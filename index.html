@@ -20,12 +20,12 @@
             font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
             background:
                 radial-gradient(circle at 18% 12%, rgba(45, 212, 191, 0.18), transparent 28%),
-                radial-gradient(circle at 78% 4%, rgba(129, 140, 248, 0.2), transparent 30%),
-                linear-gradient(135deg, #eef6ff 0%, #f8fafc 42%, #fff7ed 100%);
+                radial-gradient(circle at 82% 10%, rgba(129, 140, 248, 0.2), transparent 32%),
+                linear-gradient(135deg, #020617 0%, #0f172a 48%, #111827 100%);
             min-height: 100vh;
             padding: 0;
             margin: 0;
-            color: #1f2937;
+            color: #e5e7eb;
             letter-spacing: 0;
         }
 
@@ -56,7 +56,7 @@
         .right-panel {
             display: flex;
             flex-direction: column;
-            background: rgba(248, 250, 252, 0.72);
+            background: rgba(15, 23, 42, 0.76);
             overflow: hidden;
         }
 
@@ -92,11 +92,11 @@
         .code-editor-wrapper {
             flex-shrink: 0;
             margin: 0 24px 20px;
-            background: rgba(255, 255, 255, 0.72);
+            background: rgba(15, 23, 42, 0.72);
             border-radius: 14px;
             box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.68);
+            border: 1px solid rgba(148, 163, 184, 0.22);
             backdrop-filter: blur(18px);
             transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
         }
@@ -114,9 +114,9 @@
         }
 
         .editor-toolbar {
-            background: rgba(248, 250, 252, 0.84);
+            background: rgba(15, 23, 42, 0.86);
             padding: 12px 16px;
-            border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
@@ -177,11 +177,103 @@
         }
 
         .right-panel .panel-header {
-            background: rgba(255,255,255,0.76);
-            color: #111827;
-            border-bottom: 1px solid rgba(226, 232, 240, 0.9);
-            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+            background: rgba(15, 23, 42, 0.78);
+            color: #f8fafc;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
             backdrop-filter: blur(18px);
+            justify-content: space-between;
+            gap: 18px;
+            padding: 18px 24px;
+        }
+
+        .academy-heading {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .academy-icon {
+            display: grid;
+            place-items: center;
+            width: 44px;
+            height: 44px;
+            flex: 0 0 auto;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #4f46e5, #14b8a6);
+            color: white;
+            box-shadow: 0 14px 28px rgba(79, 70, 229, 0.22);
+        }
+
+        .academy-kicker {
+            margin-bottom: 2px;
+            color: #94a3b8;
+            font-size: 0.72rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .academy-title {
+            color: #f8fafc;
+            font-size: 1.15rem;
+            font-weight: 950;
+            line-height: 1.15;
+        }
+
+        .academy-subtitle {
+            margin-top: 2px;
+            color: #cbd5e1;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .academy-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .academy-stat {
+            padding: 9px 12px;
+            border-radius: 999px;
+            color: #e2e8f0;
+            background: rgba(30, 41, 59, 0.72);
+            border: 1px solid rgba(148, 163, 184, 0.24);
+            font-size: 0.78rem;
+            font-weight: 900;
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+        }
+
+        .continue-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 11px 16px;
+            background: linear-gradient(135deg, #4f46e5, #0891b2);
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 950;
+            cursor: pointer;
+            box-shadow: 0 14px 28px rgba(79, 70, 229, 0.22);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.04);
+            box-shadow: 0 18px 34px rgba(79, 70, 229, 0.28);
+        }
+
+        .lesson-transition {
+            animation: lessonEnter 0.34s ease both;
+        }
+
+        @keyframes lessonEnter {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         #output {
@@ -210,17 +302,17 @@
             padding: 32px 40px;
             font-size: 1.12rem;
             line-height: 1.85;
-            color: #293241;
+            color: #e2e8f0;
         }
 
         #reading-material .read-welcome {
             text-align: center;
             padding: 64px 24px;
-            color: #475569;
+            color: #cbd5e1;
             max-width: 820px;
             margin: 34px auto;
-            background: rgba(255,255,255,0.64);
-            border: 1px solid rgba(255,255,255,0.74);
+            background: rgba(15, 23, 42, 0.66);
+            border: 1px solid rgba(148, 163, 184, 0.22);
             border-radius: 22px;
             box-shadow: 0 24px 70px rgba(15, 23, 42, 0.1);
             backdrop-filter: blur(20px);
@@ -259,7 +351,7 @@
         }
 
         #reading-material .read-title {
-            color: #111827;
+            color: #f8fafc;
             font-size: 2rem;
             font-weight: 900;
             margin-bottom: 16px;
@@ -267,11 +359,11 @@
         }
 
         #reading-material .read-lead {
-            color: #475569;
+            color: #cbd5e1;
             font-size: 1.25rem;
             margin-bottom: 24px;
             padding-bottom: 20px;
-            border-bottom: 1px solid rgba(203, 213, 225, 0.78);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.22);
         }
 
         #reading-material .read-section {
@@ -287,7 +379,7 @@
 
         #reading-material .read-section p {
             margin: 8px 0;
-            color: #444;
+            color: #d1d5db;
             font-size: 1.13rem;
         }
 
@@ -308,7 +400,7 @@
         }
 
         #reading-material .read-tip {
-            background: rgba(232, 244, 253, 0.72);
+            background: rgba(14, 116, 144, 0.14);
             padding: 14px 18px;
             border-radius: 14px;
             margin: 16px 0;
@@ -321,7 +413,7 @@
         }
 
         #reading-material .read-warn {
-            background: rgba(255, 248, 230, 0.78);
+            background: rgba(245, 158, 11, 0.13);
             padding: 14px 18px;
             border-radius: 14px;
             margin: 16px 0;
@@ -334,7 +426,7 @@
         }
 
         #reading-material .read-next-step {
-            background: rgba(230, 244, 234, 0.78);
+            background: rgba(22, 163, 74, 0.13);
             padding: 14px 18px;
             border-radius: 14px;
             margin: 20px 0;
@@ -349,8 +441,8 @@
         #reading-material .lesson-section {
             margin-bottom: 20px;
             padding: 18px 20px;
-            background: rgba(255,255,255,0.62);
-            border: 1px solid rgba(255,255,255,0.72);
+            background: rgba(15, 23, 42, 0.62);
+            border: 1px solid rgba(148, 163, 184, 0.22);
             border-radius: 16px;
             box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
             backdrop-filter: blur(16px);
@@ -371,13 +463,13 @@
         }
 
         #reading-material .lesson-section-description {
-            color: #444;
+            color: #d1d5db;
             font-size: 1.13rem;
             line-height: 1.8;
         }
 
         #reading-material .tip-box {
-            background: rgba(232, 244, 253, 0.72);
+            background: rgba(14, 116, 144, 0.14);
             padding: 14px 18px;
             border-radius: 14px;
             margin: 16px 0;
@@ -390,7 +482,7 @@
         }
 
         #reading-material .warning-box {
-            background: rgba(255, 248, 230, 0.78);
+            background: rgba(245, 158, 11, 0.13);
             padding: 14px 18px;
             border-radius: 14px;
             margin: 16px 0;
@@ -407,8 +499,8 @@
             margin: 0 24px 24px;
             border-radius: 14px;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.68);
-            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: rgba(15, 23, 42, 0.72);
             box-shadow: 0 18px 42px rgba(15, 23, 42, 0.1);
             backdrop-filter: blur(18px);
         }
@@ -417,8 +509,8 @@
             padding: 10px 20px;
             font-size: 0.9rem;
             font-weight: 800;
-            color: #555;
-            background: rgba(248, 250, 252, 0.86);
+            color: #cbd5e1;
+            background: rgba(15, 23, 42, 0.86);
         }
 
         #output {
@@ -717,8 +809,8 @@
             margin: 22px 0;
             padding: 18px 20px;
             border-radius: 18px;
-            background: rgba(255,255,255,0.66);
-            border: 1px solid rgba(255,255,255,0.76);
+            background: rgba(15, 23, 42, 0.62);
+            border: 1px solid rgba(148, 163, 184, 0.22);
             box-shadow: 0 18px 46px rgba(15, 23, 42, 0.1);
             backdrop-filter: blur(18px);
             transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
@@ -736,7 +828,7 @@
             justify-content: space-between;
             gap: 12px;
             margin-bottom: 10px;
-            color: #111827;
+            color: #f8fafc;
             font-size: 1.25rem;
             font-weight: 900;
         }
@@ -752,7 +844,7 @@
         }
 
         .challenge-prompt {
-            color: #475569;
+            color: #cbd5e1;
             font-size: 1.05rem;
             margin: 8px 0 12px;
         }
@@ -760,7 +852,7 @@
         .challenge-checklist {
             margin: 10px 0 0;
             padding-left: 20px;
-            color: #334155;
+            color: #d1d5db;
             font-size: 1rem;
         }
 
@@ -802,7 +894,7 @@
         .mentor-answer {
             min-height: 22px;
             margin-top: 12px;
-            color: #475569;
+            color: #cbd5e1;
             font-weight: 700;
         }
 
@@ -819,11 +911,11 @@
             width: 100%;
             min-height: 86px;
             resize: vertical;
-            border: 1px solid rgba(148, 163, 184, 0.42);
+            border: 1px solid rgba(148, 163, 184, 0.32);
             border-radius: 14px;
             padding: 12px 14px;
-            background: rgba(255,255,255,0.76);
-            color: #1f2937;
+            background: rgba(15, 23, 42, 0.74);
+            color: #f8fafc;
             font: inherit;
             line-height: 1.5;
             outline: none;
@@ -832,7 +924,7 @@
 
         .mentor-input:focus {
             border-color: rgba(79, 70, 229, 0.58);
-            background: rgba(255,255,255,0.92);
+            background: rgba(15, 23, 42, 0.92);
             box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
         }
 
@@ -928,6 +1020,26 @@
                 padding: 9px 10px;
                 font-size: 0.85rem;
             }
+
+            .right-panel .panel-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .academy-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .academy-stat,
+            .continue-btn {
+                flex: 1 1 130px;
+                text-align: center;
+            }
+
+            #reading-material {
+                padding: 24px 18px;
+            }
         }
 
         /* Scrollbar стилизация */
@@ -977,17 +1089,22 @@
         <!-- Дясна страна – обяснение + код + резултати -->
         <main class="right-panel">
             <div class="panel-header">
-                <span>📖</span>
-                <span>Урок и код</span>
-            </div>
-            <div class="reading-panel">
-                <div id="reading-material">
-                    <div class="read-welcome">
-                        <h2>👋 Добре дошли</h2>
-                        <p>Избери раздел отляво: <strong>HTML/CSS</strong>, <strong>JS</strong>, <strong>Python</strong>, <strong>Swift</strong>, <strong>Backend</strong>, <strong>Нови уроци</strong>.</p>
-                        <p>За HTML/CSS „Изпълни код” показва <strong>визуален преглед</strong> на страницата.</p>
+                <div class="academy-heading">
+                    <span class="academy-icon">📖</span>
+                    <div>
+                        <div class="academy-kicker">Interactive coding academy</div>
+                        <div class="academy-title" id="academy-current-title">Loading lesson...</div>
+                        <div class="academy-subtitle" id="academy-current-subtitle">Your next step is ready.</div>
                     </div>
                 </div>
+                <div class="academy-actions">
+                    <div class="academy-stat" id="academy-xp-stat">0 XP</div>
+                    <div class="academy-stat" id="academy-level-stat">Level 1</div>
+                    <button class="continue-btn" type="button" onclick="continueLearning()">Continue Learning</button>
+                </div>
+            </div>
+            <div class="reading-panel">
+                <div id="reading-material"></div>
 
                 <div class="code-editor-wrapper">
                     <div class="editor-toolbar">
@@ -1041,6 +1158,7 @@
         let currentLesson = null;
         let editor;
         const PROGRESS_STORAGE_KEY = 'learningEnvironmentProgressV1';
+        const LAST_LESSON_STORAGE_KEY = 'learningEnvironmentLastLessonV1';
 
         function getLessons() {
             if (currentLanguage === 'python') return lessonsPython;
@@ -1085,6 +1203,23 @@
             localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(progress));
         }
 
+        function loadLastLessonState() {
+            try {
+                return JSON.parse(localStorage.getItem(LAST_LESSON_STORAGE_KEY)) || {};
+            } catch (error) {
+                return {};
+            }
+        }
+
+        function saveLastLessonState(lang, lessonId) {
+            const state = loadLastLessonState();
+            state.lang = lang;
+            state.lessonId = lessonId;
+            state.byLanguage = state.byLanguage || {};
+            state.byLanguage[lang] = lessonId;
+            localStorage.setItem(LAST_LESSON_STORAGE_KEY, JSON.stringify(state));
+        }
+
         function getLessonProgressKey(lang, lessonId) {
             return `${lang}:${lessonId}`;
         }
@@ -1119,6 +1254,82 @@
             return isLessonCompleted(lang, topics[index - 1].id);
         }
 
+        function getFirstLessonId(lang) {
+            return topicsByLanguage[lang]?.[0]?.id || null;
+        }
+
+        function getFirstUnlockedLessonId(lang) {
+            const topics = topicsByLanguage[lang] || [];
+            return topics.find(topic => isLessonUnlocked(lang, topic.id))?.id || getFirstLessonId(lang);
+        }
+
+        function getNextLessonId(lang, lessonId) {
+            const topics = topicsByLanguage[lang] || [];
+            const index = topics.findIndex(topic => topic.id === lessonId);
+            if (index < 0 || index >= topics.length - 1) return null;
+            return topics[index + 1].id;
+        }
+
+        function getLastLessonForLanguage(lang) {
+            const state = loadLastLessonState();
+            const lessonId = state.byLanguage?.[lang] || (state.lang === lang ? state.lessonId : null);
+            if (lessonId && topicsByLanguage[lang]?.some(topic => topic.id === lessonId)) {
+                return lessonId;
+            }
+            return null;
+        }
+
+        function setLanguageChrome(lang) {
+            currentLanguage = lang;
+
+            document.getElementById('btn-lang-js').classList.toggle('active', lang === 'javascript');
+            document.getElementById('btn-lang-py').classList.toggle('active', lang === 'python');
+            document.getElementById('btn-lang-swift').classList.toggle('active', lang === 'swift');
+            document.getElementById('btn-lang-backend').classList.toggle('active', lang === 'backend');
+            document.getElementById('btn-lang-web').classList.toggle('active', lang === 'web');
+            document.getElementById('btn-lang-new').classList.toggle('active', lang === 'new');
+
+            const titles = {
+                javascript: 'Уроци по JavaScript (18)',
+                python: 'Уроци по Python (18)',
+                swift: 'Уроци по Swift (19)',
+                backend: 'Backend – Node & Next (19)',
+                web: 'HTML & CSS (16)',
+                new: 'Нови уроци (6)'
+            };
+            document.getElementById('lessons-sidebar-title').textContent = titles[lang];
+
+            if (editor) {
+                editor.setOption('mode', getEditorMode(lang));
+                editor.setValue(defaultCodeByLanguage[lang] || '');
+            } else {
+                document.getElementById('code-editor').value = defaultCodeByLanguage[lang] || '';
+            }
+
+            setPreviewVisible(lang === 'web');
+            renderTopicsList();
+            renderProgressPanel();
+            updateAcademyHeader();
+        }
+
+        function updateAcademyHeader() {
+            const xp = getTotalCompletedCount() * 25;
+            const level = getLevelFromXp(xp);
+            const lesson = currentLesson ? getLessons()[currentLesson] : null;
+            const completed = getCompletedCount(currentLanguage);
+            const total = topicsByLanguage[currentLanguage]?.length || 0;
+
+            const titleEl = document.getElementById('academy-current-title');
+            const subtitleEl = document.getElementById('academy-current-subtitle');
+            const xpEl = document.getElementById('academy-xp-stat');
+            const levelEl = document.getElementById('academy-level-stat');
+
+            if (titleEl) titleEl.textContent = lesson ? lesson.title.replace(/^[^\s]+\s*/, '') : 'Continue your path';
+            if (subtitleEl) subtitleEl.textContent = `${getLanguageDisplayName(currentLanguage)} • ${completed}/${total} lessons complete`;
+            if (xpEl) xpEl.textContent = `${xp} XP`;
+            if (levelEl) levelEl.textContent = `Level ${level}`;
+        }
+
         function renderProgressPanel() {
             const panel = document.getElementById('progress-panel');
             const topics = topicsByLanguage[currentLanguage] || [];
@@ -1150,12 +1361,14 @@
                     <div class="progress-chip">${completed === total ? 'Mastered' : 'Unlock'}</div>
                 </div>
             `;
+            updateAcademyHeader();
         }
 
         function completeCurrentLesson() {
             if (!currentLesson) return;
             const progress = loadProgress();
             const key = getLessonProgressKey(currentLanguage, currentLesson);
+            const nextLessonId = getNextLessonId(currentLanguage, currentLesson);
             if (!progress.completed[key]) {
                 progress.completed[key] = new Date().toISOString();
                 saveProgress(progress);
@@ -1163,6 +1376,16 @@
             renderTopicsList();
             renderProgressPanel();
             loadLesson(currentLesson, document.querySelector(`[data-lesson-id="${currentLesson}"]`));
+            displayOutput('🎉 Урокът е завършен! +25 XP', 'success');
+
+            if (nextLessonId) {
+                displayOutput('➡️ Следващият урок се отключи. Зареждам го след момент...', 'success');
+                setTimeout(() => {
+                    loadLesson(nextLessonId, document.querySelector(`[data-lesson-id="${nextLessonId}"]`));
+                }, 900);
+            } else {
+                displayOutput('🏆 Завърши всички уроци в тази секция.', 'success');
+            }
         }
 
         function getChallengeForLesson(lang) {
@@ -1308,6 +1531,35 @@
             answerEl.textContent = `🤖 ${answer}`;
         }
 
+        function continueLearning() {
+            const state = loadLastLessonState();
+            const lang = state.lang && topicsByLanguage[state.lang] ? state.lang : currentLanguage;
+            let lessonId = state.lang === lang ? state.lessonId : getLastLessonForLanguage(lang);
+
+            if (!lessonId || !topicsByLanguage[lang]?.some(topic => topic.id === lessonId) || !isLessonUnlocked(lang, lessonId)) {
+                lessonId = getFirstUnlockedLessonId(lang);
+            }
+
+            if (!lessonId) return;
+            setLanguageChrome(lang);
+            loadLesson(lessonId, document.querySelector(`[data-lesson-id="${lessonId}"]`));
+        }
+
+        function startLearningFlow() {
+            const state = loadLastLessonState();
+            const lang = state.lang && topicsByLanguage[state.lang] ? state.lang : 'javascript';
+            let lessonId = state.lessonId;
+
+            if (!lessonId || !topicsByLanguage[lang]?.some(topic => topic.id === lessonId) || !isLessonUnlocked(lang, lessonId)) {
+                lessonId = getLastLessonForLanguage(lang) || getFirstUnlockedLessonId(lang);
+            }
+
+            setLanguageChrome(lang);
+            if (lessonId) {
+                loadLesson(lessonId, document.querySelector(`[data-lesson-id="${lessonId}"]`));
+            }
+        }
+
         function initEditor() {
             editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
                 lineNumbers: true,
@@ -1327,38 +1579,12 @@
         }
 
         function switchLanguage(lang) {
-            currentLanguage = lang;
             currentLesson = null;
-
-            document.getElementById('btn-lang-js').classList.toggle('active', lang === 'javascript');
-            document.getElementById('btn-lang-py').classList.toggle('active', lang === 'python');
-            document.getElementById('btn-lang-swift').classList.toggle('active', lang === 'swift');
-            document.getElementById('btn-lang-backend').classList.toggle('active', lang === 'backend');
-            document.getElementById('btn-lang-web').classList.toggle('active', lang === 'web');
-            document.getElementById('btn-lang-new').classList.toggle('active', lang === 'new');
-
-            const titles = {
-                javascript: 'Уроци по JavaScript (18)',
-                python: 'Уроци по Python (18)',
-                swift: 'Уроци по Swift (19)',
-                backend: 'Backend – Node & Next (19)',
-                web: 'HTML & CSS (16)',
-                new: 'Нови уроци (6)'
-            };
-            document.getElementById('lessons-sidebar-title').textContent = titles[lang];
-
-            if (editor) {
-                editor.setOption('mode', getEditorMode(lang));
-                editor.setValue(defaultCodeByLanguage[lang] || '');
-            } else {
-                document.getElementById('code-editor').value = defaultCodeByLanguage[lang] || '';
+            setLanguageChrome(lang);
+            const lessonId = getLastLessonForLanguage(lang) || getFirstUnlockedLessonId(lang);
+            if (lessonId) {
+                loadLesson(lessonId, document.querySelector(`[data-lesson-id="${lessonId}"]`));
             }
-
-            setPreviewVisible(lang === 'web');
-
-            renderTopicsList();
-            renderProgressPanel();
-            showWelcomeReading(lang);
         }
 
         function renderTopicsList() {
@@ -1371,33 +1597,13 @@
                 const statusIcon = completed ? ' ✅' : locked ? ' 🔒' : '';
                 const className = [
                     'lesson-item',
+                    currentLesson === t.id ? 'active' : '',
                     locked ? 'locked' : '',
                     completed ? 'completed' : ''
                 ].filter(Boolean).join(' ');
                 return `<div class="${className}" data-lesson-id="${t.id}" onclick="loadLesson('${t.id}', this)" title="${locked ? 'Завърши предишния урок, за да отключиш този.' : ''}">${t.label}${statusIcon}</div>`;
             }).join('');
             renderProgressPanel();
-        }
-
-        function showWelcomeReading(lang) {
-            const name = getLanguageDisplayName(lang);
-            let extra = '';
-            if (lang === 'swift') {
-                extra = '<p>Swift: <strong>19 теми</strong>. Пълно изпълнение в Xcode Playground.</p>';
-            } else if (lang === 'backend') {
-                extra = '<p>Backend: <strong>Node.js, Express, Next.js, API, бази данни, deploy</strong>. Пусни <code>npm start</code> за fetch към /api/test.</p>';
-            } else if (lang === 'web') {
-                extra = '<p><strong>HTML & CSS</strong> – структура и дизайн на страници. „Изпълни код” показва жив преглед отгоре.</p>';
-            } else if (lang === 'new') {
-                extra = '<p><strong>Нови уроци</strong> – практични разширени теми: проекти, fetch, localStorage и по-чист JavaScript код.</p>';
-            }
-            document.getElementById('reading-material').innerHTML = `
-                <div class="read-welcome">
-                    <h2>👋 ${name}</h2>
-                    <p>Избери тема от списъка отляво. Тук ще видиш обяснение и примери за <strong>${name}</strong>.</p>
-                    ${extra}
-                    <p>След това: „Зареди пример” → редактирай кода → „Изпълни код”.</p>
-                </div>`;
         }
 
         function runCode() {
@@ -1565,23 +1771,37 @@
             return div.innerHTML;
         }
 
-        function loadLesson(lessonId, element) {
+        function loadLesson(lessonId, element, options = {}) {
             if (!isLessonUnlocked(currentLanguage, lessonId)) {
                 displayOutput('🔒 Този урок е заключен. Завърши предишния урок, за да го отключиш.', 'error');
                 return;
             }
 
             currentLesson = lessonId;
+            saveLastLessonState(currentLanguage, lessonId);
             document.querySelectorAll('.lesson-item').forEach(item => item.classList.remove('active'));
             if (element) element.classList.add('active');
 
             const lesson = getLessons()[lessonId];
             if (!lesson) return;
 
+            if (!options.skipEditorReset) {
+                if (editor) {
+                    editor.setOption('mode', getEditorMode(currentLanguage));
+                    editor.setValue(lesson.code || defaultCodeByLanguage[currentLanguage] || '');
+                } else {
+                    document.getElementById('code-editor').value = lesson.code || defaultCodeByLanguage[currentLanguage] || '';
+                }
+            }
+
             const codeEscaped = escapeHtml(lesson.code || '');
             const langName = getLanguageDisplayName(currentLanguage);
             const completed = isLessonCompleted(currentLanguage, lessonId);
-            document.getElementById('reading-material').innerHTML = `
+            const readingMaterial = document.getElementById('reading-material');
+            readingMaterial.classList.remove('lesson-transition');
+            void readingMaterial.offsetWidth;
+            readingMaterial.classList.add('lesson-transition');
+            readingMaterial.innerHTML = `
                 <div class="read-category">${escapeHtml(lesson.category)}</div>
                 <h1 class="read-title">${escapeHtml(lesson.title)}</h1>
                 <p class="read-lead">${escapeHtml(lesson.description)}</p>
@@ -1600,18 +1820,20 @@
                         ${completed ? '✅ Урокът е завършен' : '🏁 Завърши урока +25 XP'}
                     </button>
                 </div>`;
-            document.getElementById('reading-material').scrollTop = 0;
+            readingMaterial.scrollTop = 0;
+            renderTopicsList();
+            renderProgressPanel();
+            updateAcademyHeader();
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            renderTopicsList();
-            renderProgressPanel();
             try {
                 initEditor();
             } catch (error) {
                 console.warn('Code editor did not initialize:', error);
                 document.getElementById('code-editor').value = defaultCodeByLanguage.javascript;
             }
+            startLearningFlow();
         });
     </script>
 </body>
