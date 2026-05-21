@@ -713,6 +713,135 @@
             cursor: default;
         }
 
+        .learning-widget {
+            margin: 22px 0;
+            padding: 18px 20px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.66);
+            border: 1px solid rgba(255,255,255,0.76);
+            box-shadow: 0 18px 46px rgba(15, 23, 42, 0.1);
+            backdrop-filter: blur(18px);
+            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+        }
+
+        .learning-widget:hover {
+            transform: translateY(-2px);
+            border-color: rgba(99, 102, 241, 0.22);
+            box-shadow: 0 24px 56px rgba(15, 23, 42, 0.13);
+        }
+
+        .learning-widget-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+            color: #111827;
+            font-size: 1.25rem;
+            font-weight: 900;
+        }
+
+        .learning-widget-badge {
+            flex: 0 0 auto;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 900;
+        }
+
+        .challenge-prompt {
+            color: #475569;
+            font-size: 1.05rem;
+            margin: 8px 0 12px;
+        }
+
+        .challenge-checklist {
+            margin: 10px 0 0;
+            padding-left: 20px;
+            color: #334155;
+            font-size: 1rem;
+        }
+
+        .challenge-checklist li {
+            margin: 4px 0;
+        }
+
+        .challenge-actions,
+        .mentor-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-top: 14px;
+        }
+
+        .challenge-btn,
+        .mentor-btn {
+            border: none;
+            border-radius: 12px;
+            padding: 11px 16px;
+            background: linear-gradient(135deg, #4f46e5, #0891b2);
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 12px 24px rgba(79, 70, 229, 0.18);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+
+        .challenge-btn:hover,
+        .mentor-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.04);
+            box-shadow: 0 16px 30px rgba(79, 70, 229, 0.23);
+        }
+
+        .challenge-feedback,
+        .mentor-answer {
+            min-height: 22px;
+            margin-top: 12px;
+            color: #475569;
+            font-weight: 700;
+        }
+
+        .challenge-feedback.success {
+            color: #15803d;
+            animation: successPulse 0.42s ease;
+        }
+
+        .challenge-feedback.error {
+            color: #dc2626;
+        }
+
+        .mentor-input {
+            width: 100%;
+            min-height: 86px;
+            resize: vertical;
+            border: 1px solid rgba(148, 163, 184, 0.42);
+            border-radius: 14px;
+            padding: 12px 14px;
+            background: rgba(255,255,255,0.76);
+            color: #1f2937;
+            font: inherit;
+            line-height: 1.5;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .mentor-input:focus {
+            border-color: rgba(79, 70, 229, 0.58);
+            background: rgba(255,255,255,0.92);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(0.98); opacity: 0.65; }
+            60% { transform: scale(1.02); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
         .lesson-title {
             color: #667eea;
             font-size: 1.3rem;
@@ -1036,6 +1165,149 @@
             loadLesson(currentLesson, document.querySelector(`[data-lesson-id="${currentLesson}"]`));
         }
 
+        function getChallengeForLesson(lang) {
+            const challenges = {
+                javascript: {
+                    title: 'Interactive challenge',
+                    prompt: 'Напиши функция add(a, b), която връща сбора на двете числа.',
+                    checks: ['Има функция add', 'Използва return', 'add(2, 3) връща 5']
+                },
+                new: {
+                    title: 'Interactive challenge',
+                    prompt: 'Напиши функция buildTitle(text), която връща "Урок: " + text.',
+                    checks: ['Има функция buildTitle', 'Използва return', 'buildTitle("JS") връща "Урок: JS"']
+                },
+                python: {
+                    title: 'Interactive challenge',
+                    prompt: 'Напиши Python функция add(a, b), която връща сбора на двете числа.',
+                    checks: ['Има def add', 'Използва return', 'В кода има събиране с +']
+                },
+                web: {
+                    title: 'Interactive challenge',
+                    prompt: 'Добави HTML бутон и CSS hover ефект за него.',
+                    checks: ['Има <button>', 'Има CSS :hover', 'Има стилове за padding или background']
+                },
+                swift: {
+                    title: 'Interactive challenge',
+                    prompt: 'Напиши Swift функция greet(name:), която print-ва поздрав.',
+                    checks: ['Има func greet', 'Има параметър name', 'Има print']
+                },
+                backend: {
+                    title: 'Interactive challenge',
+                    prompt: 'Напиши примерен fetch към /api/test и обработи JSON отговора.',
+                    checks: ['Има fetch', 'Има /api/test', 'Има .json() или await']
+                }
+            };
+            return challenges[lang] || challenges.javascript;
+        }
+
+        function renderChallengeCard() {
+            const challenge = getChallengeForLesson(currentLanguage);
+            const checklist = challenge.checks.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+            return `
+                <div class="learning-widget" id="challenge-card">
+                    <div class="learning-widget-title">
+                        <span>⚡ ${escapeHtml(challenge.title)}</span>
+                        <span class="learning-widget-badge">auto-check</span>
+                    </div>
+                    <p class="challenge-prompt">${escapeHtml(challenge.prompt)}</p>
+                    <ul class="challenge-checklist">${checklist}</ul>
+                    <div class="challenge-actions">
+                        <button class="challenge-btn" onclick="checkInteractiveChallenge()">Провери задачата</button>
+                    </div>
+                    <div class="challenge-feedback" id="challenge-feedback"></div>
+                </div>
+            `;
+        }
+
+        function runJavaScriptChallenge(code, fnName, expected) {
+            try {
+                const result = Function(`${code}; return typeof ${fnName} === "function" ? ${fnName}(${expected.args}) : undefined;`)();
+                return result === expected.value;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function checkInteractiveChallenge() {
+            const feedback = document.getElementById('challenge-feedback');
+            if (!feedback || !editor) return;
+            const code = editor.getValue();
+            let passed = false;
+            let hint = '';
+
+            if (currentLanguage === 'javascript') {
+                passed = /function\s+add\s*\(|(?:const|let)\s+add\s*=/.test(code) &&
+                    /return/.test(code) &&
+                    runJavaScriptChallenge(code, 'add', { args: '2, 3', value: 5 });
+                hint = 'Подсказка: function add(a, b) { return a + b; }';
+            } else if (currentLanguage === 'new') {
+                passed = /function\s+buildTitle\s*\(|(?:const|let)\s+buildTitle\s*=/.test(code) &&
+                    /return/.test(code) &&
+                    runJavaScriptChallenge(code, 'buildTitle', { args: '"JS"', value: 'Урок: JS' });
+                hint = 'Подсказка: function buildTitle(text) { return "Урок: " + text; }';
+            } else if (currentLanguage === 'python') {
+                passed = /def\s+add\s*\(\s*a\s*,\s*b\s*\)\s*:/.test(code) && /return/.test(code) && /\+/.test(code);
+                hint = 'Подсказка: def add(a, b): return a + b';
+            } else if (currentLanguage === 'web') {
+                passed = /<button[\s>]/i.test(code) && /:hover/.test(code) && /(padding|background|border-radius)/.test(code);
+                hint = 'Подсказка: добави <button> и CSS правило button:hover { ... }';
+            } else if (currentLanguage === 'swift') {
+                passed = /func\s+greet\s*\(/.test(code) && /name\s*:/.test(code) && /print\s*\(/.test(code);
+                hint = 'Подсказка: func greet(name: String) { print("Здравей, \\(name)") }';
+            } else if (currentLanguage === 'backend') {
+                passed = /fetch\s*\(/.test(code) && /\/api\/test/.test(code) && /(\.json\s*\(|await)/.test(code);
+                hint = 'Подсказка: const res = await fetch("/api/test"); const data = await res.json();';
+            }
+
+            feedback.className = `challenge-feedback ${passed ? 'success' : 'error'}`;
+            feedback.textContent = passed
+                ? '✅ Браво! Задачата мина успешно. Можеш да завършиш урока за XP.'
+                : `❌ Почти. ${hint}`;
+        }
+
+        function renderMentorCard(lesson) {
+            const placeholder = `Например: Обясни ми ${lesson.title.replace(/["']/g, '')} по-просто`;
+            return `
+                <div class="learning-widget" id="mentor-card">
+                    <div class="learning-widget-title">
+                        <span>🤖 AI Mentor</span>
+                        <span class="learning-widget-badge">lesson help</span>
+                    </div>
+                    <p class="challenge-prompt">Попитай за този урок: обяснение, пример, грешка в кода или следваща стъпка.</p>
+                    <textarea class="mentor-input" id="mentor-question" placeholder="${escapeHtml(placeholder)}"></textarea>
+                    <div class="mentor-actions">
+                        <button class="mentor-btn" onclick="askMentor()">Попитай AI</button>
+                    </div>
+                    <div class="mentor-answer" id="mentor-answer"></div>
+                </div>
+            `;
+        }
+
+        function askMentor() {
+            const questionEl = document.getElementById('mentor-question');
+            const answerEl = document.getElementById('mentor-answer');
+            if (!questionEl || !answerEl || !currentLesson) return;
+
+            const lesson = getLessons()[currentLesson];
+            const question = questionEl.value.trim().toLowerCase();
+            let answer = `За този урок мисли така: ${lesson.description}`;
+
+            if (!question) {
+                answer = 'Напиши въпрос, например: "Обясни ми по-просто", "Дай ми пример" или "Защо кодът не работи".';
+            } else if (question.includes('пример')) {
+                answer = `Мини пример: отвори "Зареди пример", промени една малка част от кода и натисни "Изпълни код". Така виждаш веднага как ${lesson.title} влияе на резултата.`;
+            } else if (question.includes('греш') || question.includes('не работ')) {
+                answer = 'Провери 3 неща: дали скобите са затворени, дали имената са написани еднакво, и дали гледаш резултата в правилния панел. После стартирай кода пак.';
+            } else if (question.includes('просто') || question.includes('обясни')) {
+                answer = `${lesson.title} накратко: взимаш една идея, пишеш малък пример, пускаш го и наблюдаваш какво се променя. Не учи всичко наведнъж, тествай една промяна.`;
+            } else if (question.includes('следва')) {
+                answer = 'Следваща стъпка: реши interactive challenge-а, после завърши урока за XP. Ако мине лесно, промени примера и го направи свой.';
+            }
+
+            answerEl.textContent = `🤖 ${answer}`;
+        }
+
         function initEditor() {
             editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
                 lineNumbers: true,
@@ -1319,6 +1591,8 @@
                     <p>Натисни „Зареди пример” по-долу, редактирай и „Изпълни код”.</p>
                     <pre class="read-code-block">${codeEscaped}</pre>
                 </div>
+                ${renderChallengeCard()}
+                ${renderMentorCard(lesson)}
                 <div class="read-next-step">
                     <strong>🎯 Следваща стъпка:</strong> Зареди примера в редактора и изпълни го. Резултатите са в „Резултати от изпълнението”.
                     <br>
