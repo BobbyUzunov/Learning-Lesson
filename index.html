@@ -582,6 +582,61 @@
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
+        .progress-panel {
+            margin: 0 0 14px;
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 16px 36px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.07);
+            backdrop-filter: blur(16px);
+        }
+
+        .progress-topline {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            color: rgba(255,255,255,0.92);
+            font-size: 0.78rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .progress-track {
+            height: 10px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.13);
+            box-shadow: inset 0 1px 4px rgba(0,0,0,0.18);
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #22c55e, #14b8a6, #6366f1);
+            box-shadow: 0 0 18px rgba(20, 184, 166, 0.45);
+            transition: width 0.35s ease;
+        }
+
+        .progress-meta {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .progress-chip {
+            padding: 7px 6px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.88);
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
         .lesson-item {
             background: rgba(255,255,255,0.02);
             color: rgba(255,255,255,0.9);
@@ -594,6 +649,24 @@
             font-size: 0.95rem;
             line-height: 1.35;
             overflow-wrap: anywhere;
+        }
+
+        .lesson-item.locked {
+            cursor: not-allowed;
+            color: rgba(255,255,255,0.38);
+            background: rgba(255,255,255,0.015);
+        }
+
+        .lesson-item.locked:hover {
+            transform: none;
+            box-shadow: none;
+            border-left-color: transparent;
+            background: rgba(255,255,255,0.035);
+        }
+
+        .lesson-item.completed {
+            border-left-color: #22c55e;
+            color: rgba(255,255,255,0.96);
         }
 
         .lesson-item:hover {
@@ -609,6 +682,35 @@
             font-weight: 800;
             color: white;
             box-shadow: 0 12px 26px rgba(20, 184, 166, 0.12);
+        }
+
+        .complete-lesson-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
+            background: linear-gradient(135deg, #22c55e, #14b8a6);
+            color: white;
+            font-size: 1rem;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 14px 28px rgba(20, 184, 166, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+
+        .complete-lesson-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.04);
+            box-shadow: 0 18px 34px rgba(20, 184, 166, 0.26);
+        }
+
+        .complete-lesson-btn.done {
+            background: linear-gradient(135deg, #64748b, #475569);
+            cursor: default;
         }
 
         .lesson-title {
@@ -737,6 +839,7 @@
             <div class="panel-content">
                 <nav class="lessons-sidebar">
                     <div class="lessons-title" id="lessons-sidebar-title">Уроци по JavaScript</div>
+                    <div class="progress-panel" id="progress-panel"></div>
                     <div id="lessons-list"></div>
                 </nav>
             </div>
@@ -808,6 +911,7 @@
         let currentLanguage = 'javascript';
         let currentLesson = null;
         let editor;
+        const PROGRESS_STORAGE_KEY = 'learningEnvironmentProgressV1';
 
         function getLessons() {
             if (currentLanguage === 'python') return lessonsPython;
@@ -838,6 +942,98 @@
 
         function setPreviewVisible(show) {
             document.getElementById('html-preview-wrap').classList.toggle('visible', show);
+        }
+
+        function loadProgress() {
+            try {
+                return JSON.parse(localStorage.getItem(PROGRESS_STORAGE_KEY)) || { completed: {} };
+            } catch (error) {
+                return { completed: {} };
+            }
+        }
+
+        function saveProgress(progress) {
+            localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(progress));
+        }
+
+        function getLessonProgressKey(lang, lessonId) {
+            return `${lang}:${lessonId}`;
+        }
+
+        function isLessonCompleted(lang, lessonId) {
+            const progress = loadProgress();
+            return Boolean(progress.completed[getLessonProgressKey(lang, lessonId)]);
+        }
+
+        function getCompletedCount(lang) {
+            const topics = topicsByLanguage[lang] || [];
+            return topics.filter(topic => isLessonCompleted(lang, topic.id)).length;
+        }
+
+        function getTotalCompletedCount() {
+            return Object.keys(topicsByLanguage).reduce((sum, lang) => sum + getCompletedCount(lang), 0);
+        }
+
+        function getLevelFromXp(xp) {
+            return Math.floor(xp / 100) + 1;
+        }
+
+        function getXpToNextLevel(xp) {
+            const remainder = xp % 100;
+            return remainder === 0 ? 100 : 100 - remainder;
+        }
+
+        function isLessonUnlocked(lang, lessonId) {
+            const topics = topicsByLanguage[lang] || [];
+            const index = topics.findIndex(topic => topic.id === lessonId);
+            if (index <= 0) return true;
+            return isLessonCompleted(lang, topics[index - 1].id);
+        }
+
+        function renderProgressPanel() {
+            const panel = document.getElementById('progress-panel');
+            const topics = topicsByLanguage[currentLanguage] || [];
+            if (!panel || !topics.length) return;
+
+            const completed = getCompletedCount(currentLanguage);
+            const total = topics.length;
+            const percent = Math.round((completed / total) * 100);
+            const xp = getTotalCompletedCount() * 25;
+            const level = getLevelFromXp(xp);
+            const nextXp = getXpToNextLevel(xp);
+
+            panel.innerHTML = `
+                <div class="progress-topline">
+                    <span>Progress</span>
+                    <span>${percent}%</span>
+                </div>
+                <div class="progress-track" aria-label="Progress ${percent}%">
+                    <div class="progress-fill" style="width: ${percent}%"></div>
+                </div>
+                <div class="progress-meta">
+                    <div class="progress-chip">${completed}/${total}</div>
+                    <div class="progress-chip">${xp} XP</div>
+                    <div class="progress-chip">Level ${level}</div>
+                </div>
+                <div class="progress-meta">
+                    <div class="progress-chip">Next ${nextXp} XP</div>
+                    <div class="progress-chip">${completed ? '🏅 Active' : 'Start'}</div>
+                    <div class="progress-chip">${completed === total ? 'Mastered' : 'Unlock'}</div>
+                </div>
+            `;
+        }
+
+        function completeCurrentLesson() {
+            if (!currentLesson) return;
+            const progress = loadProgress();
+            const key = getLessonProgressKey(currentLanguage, currentLesson);
+            if (!progress.completed[key]) {
+                progress.completed[key] = new Date().toISOString();
+                saveProgress(progress);
+            }
+            renderTopicsList();
+            renderProgressPanel();
+            loadLesson(currentLesson, document.querySelector(`[data-lesson-id="${currentLesson}"]`));
         }
 
         function initEditor() {
@@ -889,6 +1085,7 @@
             setPreviewVisible(lang === 'web');
 
             renderTopicsList();
+            renderProgressPanel();
             showWelcomeReading(lang);
         }
 
@@ -896,9 +1093,18 @@
             const list = document.getElementById('lessons-list');
             const topics = topicsByLanguage[currentLanguage];
             if (!list || !topics) return;
-            list.innerHTML = topics.map(t =>
-                `<div class="lesson-item" data-lesson-id="${t.id}" onclick="loadLesson('${t.id}', this)">${t.label}</div>`
-            ).join('');
+            list.innerHTML = topics.map(t => {
+                const locked = !isLessonUnlocked(currentLanguage, t.id);
+                const completed = isLessonCompleted(currentLanguage, t.id);
+                const statusIcon = completed ? ' ✅' : locked ? ' 🔒' : '';
+                const className = [
+                    'lesson-item',
+                    locked ? 'locked' : '',
+                    completed ? 'completed' : ''
+                ].filter(Boolean).join(' ');
+                return `<div class="${className}" data-lesson-id="${t.id}" onclick="loadLesson('${t.id}', this)" title="${locked ? 'Завърши предишния урок, за да отключиш този.' : ''}">${t.label}${statusIcon}</div>`;
+            }).join('');
+            renderProgressPanel();
         }
 
         function showWelcomeReading(lang) {
@@ -1088,6 +1294,11 @@
         }
 
         function loadLesson(lessonId, element) {
+            if (!isLessonUnlocked(currentLanguage, lessonId)) {
+                displayOutput('🔒 Този урок е заключен. Завърши предишния урок, за да го отключиш.', 'error');
+                return;
+            }
+
             currentLesson = lessonId;
             document.querySelectorAll('.lesson-item').forEach(item => item.classList.remove('active'));
             if (element) element.classList.add('active');
@@ -1097,6 +1308,7 @@
 
             const codeEscaped = escapeHtml(lesson.code || '');
             const langName = getLanguageDisplayName(currentLanguage);
+            const completed = isLessonCompleted(currentLanguage, lessonId);
             document.getElementById('reading-material').innerHTML = `
                 <div class="read-category">${escapeHtml(lesson.category)}</div>
                 <h1 class="read-title">${escapeHtml(lesson.title)}</h1>
@@ -1109,12 +1321,17 @@
                 </div>
                 <div class="read-next-step">
                     <strong>🎯 Следваща стъпка:</strong> Зареди примера в редактора и изпълни го. Резултатите са в „Резултати от изпълнението”.
+                    <br>
+                    <button class="complete-lesson-btn ${completed ? 'done' : ''}" onclick="completeCurrentLesson()" ${completed ? 'disabled' : ''}>
+                        ${completed ? '✅ Урокът е завършен' : '🏁 Завърши урока +25 XP'}
+                    </button>
                 </div>`;
             document.getElementById('reading-material').scrollTop = 0;
         }
 
         document.addEventListener('DOMContentLoaded', function() {
             renderTopicsList();
+            renderProgressPanel();
             try {
                 initEditor();
             } catch (error) {
