@@ -10,6 +10,7 @@ const PORT = 3000;
 
 // Обслужване на статични файлове (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Главен route
 app.get('/', (req, res) => {
