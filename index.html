@@ -430,6 +430,10 @@
             grid-column: 1 / -1;
         }
 
+        .lang-btn.new {
+            grid-column: 1 / -1;
+        }
+
         .lang-btn:hover {
             background: rgba(255,255,255,0.15);
         }
@@ -461,6 +465,11 @@
 
         .lang-btn.web.active {
             background: #e34c26;
+            color: white;
+        }
+
+        .lang-btn.new.active {
+            background: #8b5cf6;
             color: white;
         }
 
@@ -652,6 +661,7 @@
                 <button type="button" class="lang-btn swift" id="btn-lang-swift" onclick="switchLanguage('swift')">Swift</button>
                 <button type="button" class="lang-btn backend" id="btn-lang-backend" onclick="switchLanguage('backend')">Backend</button>
                 <button type="button" class="lang-btn web" id="btn-lang-web" onclick="switchLanguage('web')">HTML/CSS</button>
+                <button type="button" class="lang-btn new" id="btn-lang-new" onclick="switchLanguage('new')">Нови уроци</button>
             </div>
             <div class="panel-content">
                 <nav class="lessons-sidebar">
@@ -671,7 +681,7 @@
                 <div id="reading-material">
                     <div class="read-welcome">
                         <h2>👋 Добре дошли</h2>
-                        <p>Избери раздел отляво: <strong>HTML/CSS</strong>, <strong>JS</strong>, <strong>Python</strong>, <strong>Swift</strong>, <strong>Backend</strong>.</p>
+                        <p>Избери раздел отляво: <strong>HTML/CSS</strong>, <strong>JS</strong>, <strong>Python</strong>, <strong>Swift</strong>, <strong>Backend</strong>, <strong>Нови уроци</strong>.</p>
                         <p>За HTML/CSS „Изпълни код” показва <strong>визуален преглед</strong> на страницата.</p>
                     </div>
                 </div>
@@ -722,6 +732,7 @@
     <script src="/lessons-swift.js"></script>
     <script src="/lessons-backend.js"></script>
     <script src="/lessons-web.js"></script>
+    <script src="/lessons-new.js"></script>
     <script>
         let currentLanguage = 'javascript';
         let currentLesson = null;
@@ -732,6 +743,7 @@
             if (currentLanguage === 'swift') return lessonsSwift;
             if (currentLanguage === 'backend') return lessonsBackend;
             if (currentLanguage === 'web') return lessonsWeb;
+            if (currentLanguage === 'new') return lessonsNew;
             return lessonsJS;
         }
 
@@ -748,7 +760,8 @@
                 python: 'Python',
                 swift: 'Swift',
                 backend: 'Backend (Node.js & Next.js)',
-                web: 'HTML & CSS'
+                web: 'HTML & CSS',
+                new: 'Нови уроци'
             }[lang] || lang;
         }
 
@@ -783,13 +796,15 @@
             document.getElementById('btn-lang-swift').classList.toggle('active', lang === 'swift');
             document.getElementById('btn-lang-backend').classList.toggle('active', lang === 'backend');
             document.getElementById('btn-lang-web').classList.toggle('active', lang === 'web');
+            document.getElementById('btn-lang-new').classList.toggle('active', lang === 'new');
 
             const titles = {
                 javascript: 'Уроци по JavaScript (18)',
                 python: 'Уроци по Python (18)',
                 swift: 'Уроци по Swift (19)',
                 backend: 'Backend – Node & Next (19)',
-                web: 'HTML & CSS (16)'
+                web: 'HTML & CSS (16)',
+                new: 'Нови уроци (6)'
             };
             document.getElementById('lessons-sidebar-title').textContent = titles[lang];
 
@@ -824,6 +839,8 @@
                 extra = '<p>Backend: <strong>Node.js, Express, Next.js, API, бази данни, deploy</strong>. Пусни <code>npm start</code> за fetch към /api/test.</p>';
             } else if (lang === 'web') {
                 extra = '<p><strong>HTML & CSS</strong> – структура и дизайн на страници. „Изпълни код” показва жив преглед отгоре.</p>';
+            } else if (lang === 'new') {
+                extra = '<p><strong>Нови уроци</strong> – практични разширени теми: проекти, fetch, localStorage и по-чист JavaScript код.</p>';
             }
             document.getElementById('reading-material').innerHTML = `
                 <div class="read-welcome">

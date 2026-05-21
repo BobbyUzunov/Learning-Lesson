@@ -9,6 +9,7 @@
 | **Python** | **18** | ✅ Skulpt |
 | **Swift** | 19 | ⚡ Симулация + Xcode |
 | **Backend** | 19 | ✅ JS + `fetch` към API; сървър в терминал |
+| **Нови уроци** | **6** | ✅ JavaScript практика |
 
 ## Backend разделът покрива
 
@@ -37,6 +38,7 @@ npm start
 - `lessons-swift.js` – Swift  
 - `lessons-backend.js` – Node.js, Express, Next.js  
 - `lessons-web.js` – HTML & CSS (16 теми)  
+- `lessons-new.js` – Нови практически уроци  
 - `server.js` – Express (обслужва сайта + `/api/test`)  
 
 ## Спиране
