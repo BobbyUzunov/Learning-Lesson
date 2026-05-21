@@ -574,6 +574,177 @@ const lessonsWeb = {
     <footer><p>Направено в Learning Environment</p></footer>
 </body>
 </html>`
+    },
+    'advanced-layout-1': {
+        category: 'Разширени HTML & CSS',
+        title: "🚀 Урок 16: Разширен layout с Grid, Flexbox и responsive карти",
+        description: "Комбинирай CSS Grid за основната структура, Flexbox за вътрешно подравняване и media queries за мобилен изглед. Това е типичен подход за модерни dashboard, portfolio и SaaS страници.",
+        detailedExplanation: `
+            <div class="lesson-section">
+                <h3 class="lesson-section-title">Как мислим за layout</h3>
+                <p class="lesson-section-description">
+                    <strong>Grid</strong> е най-подходящ за голямата структура: колони, редове и responsive карти.<br>
+                    <strong>Flexbox</strong> е удобен вътре в компонентите: бутон до текст, badge до заглавие, подравняване по център.<br>
+                    <strong>Media query</strong> сменя правилата при по-малък екран, например от 3 колони към 1 колона.
+                </p>
+            </div>
+            <div class="lesson-section">
+                <h3 class="lesson-section-title">Ключови CSS техники</h3>
+                <p class="lesson-section-description">
+                    <code>grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))</code> прави карти, които сами се пренареждат.<br>
+                    <code>clamp()</code> държи размера на текста в разумни граници.<br>
+                    <code>max-width</code> и <code>margin: auto</code> пазят съдържанието четимо на широки екрани.
+                </p>
+            </div>
+            <div class="tip-box">
+                <strong>💡 Практика:</strong> Промени ширината на preview-а и виж как картите минават от няколко колони към една.
+            </div>
+        `,
+        code: `<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Dashboard</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: system-ui, sans-serif;
+            background: #f4f7fb;
+            color: #223;
+        }
+
+        .page {
+            width: min(1100px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 32px 0;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .title h1 {
+            margin: 0;
+            font-size: clamp(1.8rem, 4vw, 3rem);
+        }
+
+        .title p {
+            margin: 6px 0 0;
+            color: #667085;
+        }
+
+        .action {
+            border: 0;
+            border-radius: 10px;
+            background: #28a745;
+            color: white;
+            padding: 12px 18px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e4e7ec;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(20, 32, 54, 0.08);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .badge {
+            background: #e8ecff;
+            color: #667eea;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .number {
+            font-size: 2.4rem;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .note {
+            color: #667085;
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 620px) {
+            .topbar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .action {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <section class="topbar">
+            <div class="title">
+                <h1>Learning Dashboard</h1>
+                <p>Пример за responsive layout с Grid + Flexbox.</p>
+            </div>
+            <button class="action">Нов урок</button>
+        </section>
+
+        <section class="stats">
+            <article class="card">
+                <div class="card-header">
+                    <strong>HTML</strong>
+                    <span class="badge">Основи</span>
+                </div>
+                <p class="number">16</p>
+                <p class="note">Структура, семантика и форми.</p>
+            </article>
+
+            <article class="card">
+                <div class="card-header">
+                    <strong>CSS</strong>
+                    <span class="badge">Layout</span>
+                </div>
+                <p class="number">7</p>
+                <p class="note">Flexbox, Grid и responsive дизайн.</p>
+            </article>
+
+            <article class="card">
+                <div class="card-header">
+                    <strong>Проект</strong>
+                    <span class="badge">Практика</span>
+                </div>
+                <p class="number">1</p>
+                <p class="note">Сглоби реална страница от компоненти.</p>
+            </article>
+        </section>
+    </main>
+</body>
+</html>`
     }
 };
 
@@ -592,7 +763,8 @@ topicsByLanguage.web = [
     { id: 'css-5', label: '📐 12. Flexbox' },
     { id: 'css-6', label: '🔲 13. Grid' },
     { id: 'css-7', label: '📱 14. Responsive' },
-    { id: 'project-web-1', label: '🎯 15. Проект' }
+    { id: 'project-web-1', label: '🎯 15. Проект' },
+    { id: 'advanced-layout-1', label: '🚀 16. Разширен layout' }
 ];
 
 defaultCodeByLanguage.web = `<!DOCTYPE html>

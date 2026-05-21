@@ -4,7 +4,7 @@
 
 | Раздел | Теми | Изпълнение в браузъра |
 |--------|------|------------------------|
-| **HTML & CSS** | **15** | ✅ Визуален преглед в iframe |
+| **HTML & CSS** | **16** | ✅ Визуален преглед в iframe |
 | **JavaScript** | **18** | ✅ Пълно |
 | **Python** | **18** | ✅ Skulpt |
 | **Swift** | 19 | ⚡ Симулация + Xcode |
@@ -36,7 +36,7 @@ npm start
 - `lessons-python.js` + `lessons-python-more.js` – Python (18 теми)  
 - `lessons-swift.js` – Swift  
 - `lessons-backend.js` – Node.js, Express, Next.js  
-- `lessons-web.js` – HTML & CSS (15 теми)  
+- `lessons-web.js` – HTML & CSS (16 теми)  
 - `server.js` – Express (обслужва сайта + `/api/test`)  
 
 ## Спиране
