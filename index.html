@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Environment – HTML/CSS, JS, Python, Swift, Backend</title>
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+    <!-- html2pdf.js библиотека за експорт в PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+            color: #333;
+        }
+
+        .main-container {
+            max-width: 100%;
+            margin: 0;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 0;
+            min-height: 100vh;
+        }
+
+        /* Лява страна – само теми */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            background: #2d3748;
+            color: white;
+            overflow: hidden;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            background: #f8f9fa;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .left-panel .panel-header {
+            background: #1a202c;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .left-panel .panel-content {
+            padding: 12px;
+        }
+
+        .code-editor-wrapper {
+            flex-shrink: 0;
+            margin: 0 24px 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border: 1px solid #e8e8e8;
+        }
+
+        .code-editor-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 260px;
+        }
+
+        .editor-toolbar {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .editor-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .editor-btn:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+
+        .editor-btn.secondary {
+            background: #6c757d;
+        }
+
+        .editor-btn.secondary:hover {
+            background: #5a6268;
+        }
+
+        .editor-btn.success {
+            background: #28a745;
+        }
+
+        .editor-btn.success:hover {
+            background: #218838;
+        }
+
+        .CodeMirror {
+            height: 260px !important;
+            font-size: 14px;
+            border: none;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .right-panel .panel-header {
+            background: white;
+            color: #333;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        #output {
+            flex: 1;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        /* Дясно поле – материал за четене */
+        .reading-panel {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        #reading-material {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 24px 28px;
+            font-size: 1rem;
+            line-height: 1.75;
+            color: #333;
+        }
+
+        #reading-material .read-welcome {
+            text-align: center;
+            padding: 48px 24px;
+            color: #555;
+        }
+
+        #reading-material .read-welcome h2 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+
+        #reading-material .read-welcome p {
+            margin: 8px 0;
+            max-width: 420px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #reading-material .read-category {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        #reading-material .read-title {
+            color: #1a1a2e;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+
+        #reading-material .read-lead {
+            color: #555;
+            font-size: 1.05rem;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        #reading-material .read-section {
+            margin-bottom: 24px;
+        }
+
+        #reading-material .read-section h3 {
+            color: #667eea;
+            font-size: 1.15rem;
+            margin-bottom: 10px;
+        }
+
+        #reading-material .read-section p {
+            margin: 8px 0;
+            color: #444;
+        }
+
+        #reading-material .read-code-block {
+            background: #2d2d2d;
+            color: #e0e0e0;
+            padding: 18px 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-x: auto;
+            margin: 16px 0;
+            border-left: 4px solid #667eea;
+            white-space: pre;
+        }
+
+        #reading-material .read-tip {
+            background: #e8f4fd;
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin: 16px 0;
+            border-left: 4px solid #2196f3;
+        }
+
+        #reading-material .read-tip strong {
+            color: #1565c0;
+        }
+
+        #reading-material .read-warn {
+            background: #fff8e6;
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin: 16px 0;
+            border-left: 4px solid #ff9800;
+        }
+
+        #reading-material .read-warn strong {
+            color: #e65100;
+        }
+
+        #reading-material .read-next-step {
+            background: #e6f4ea;
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+
+        #reading-material .read-next-step strong {
+            color: #1b5e20;
+        }
+
+        #reading-material .lesson-section {
+            margin-bottom: 20px;
+        }
+
+        #reading-material .lesson-section-title {
+            color: #667eea;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        #reading-material .lesson-section-description {
+            color: #444;
+            line-height: 1.7;
+        }
+
+        #reading-material .tip-box {
+            background: #e8f4fd;
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin: 16px 0;
+            border-left: 4px solid #2196f3;
+        }
+
+        #reading-material .tip-box strong {
+            color: #1565c0;
+        }
+
+        #reading-material .warning-box {
+            background: #fff8e6;
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin: 16px 0;
+            border-left: 4px solid #ff9800;
+        }
+
+        #reading-material .warning-box strong {
+            color: #e65100;
+        }
+
+        .output-section {
+            flex-shrink: 0;
+            margin: 0 24px 24px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+            background: #fafafa;
+        }
+
+        .output-section-title {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #555;
+            background: #f0f0f0;
+        }
+
+        #output {
+            min-height: 120px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 12px 16px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        #output:empty::before {
+            content: 'Резултатите от „Изпълни код” ще се появят тук.';
+            color: #666;
+        }
+
+        #output p {
+            margin: 4px 0;
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.06);
+            border-left: 3px solid #667eea;
+            border-radius: 2px;
+        }
+
+        #output .error {
+            color: #f48771;
+            border-left-color: #f48771;
+        }
+
+        #output .success {
+            color: #4ec9b0;
+            border-left-color: #4ec9b0;
+        }
+
+        .lessons-sidebar {
+            background: transparent;
+            padding: 0;
+        }
+
+        .language-switcher {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .lang-btn {
+            flex: 1;
+            min-width: 0;
+            padding: 8px 6px;
+            font-size: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.85);
+            transition: all 0.2s;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .lang-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .lang-btn.js.active {
+            background: #f7df1e;
+            color: #333;
+        }
+
+        .lang-btn.py.active {
+            background: #3776ab;
+            color: white;
+        }
+
+        .lang-btn.swift.active {
+            background: #f05138;
+            color: white;
+        }
+
+        .lang-btn.backend.active {
+            background: #339933;
+            color: white;
+        }
+
+        .lang-btn.web.active {
+            background: #e34c26;
+            color: white;
+        }
+
+        #html-preview-wrap {
+            display: none;
+            flex-shrink: 0;
+            margin: 0 24px 12px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+            background: white;
+        }
+
+        #html-preview-wrap.visible {
+            display: block;
+        }
+
+        #html-preview-wrap .preview-label {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #555;
+            background: #f0f0f0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        #html-preview {
+            width: 100%;
+            height: 280px;
+            border: none;
+            display: block;
+        }
+
+        .lessons-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            padding: 0 8px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .lesson-item {
+            background: transparent;
+            color: rgba(255,255,255,0.9);
+            padding: 12px 14px;
+            margin-bottom: 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            font-size: 0.95rem;
+        }
+
+        .lesson-item:hover {
+            background: rgba(255,255,255,0.08);
+            border-left-color: #667eea;
+        }
+
+        .lesson-item.active {
+            background: rgba(102, 126, 234, 0.25);
+            border-left-color: #667eea;
+            font-weight: 500;
+            color: white;
+        }
+
+        .lesson-title {
+            color: #667eea;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .lesson-description {
+            color: #666;
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+
+        .code-snippet {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .tip-box {
+            background: #e7f3ff;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #2196f3;
+        }
+
+        .tip-box strong {
+            color: #1976d2;
+        }
+
+        .category-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+
+            .left-panel {
+                max-height: 40vh;
+            }
+
+            .code-editor-wrapper {
+                margin: 0 12px 12px;
+            }
+
+            .output-section {
+                margin: 0 12px 12px;
+            }
+        }
+
+        /* Scrollbar стилизация */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Лява страна – само теми -->
+        <aside class="left-panel">
+            <div class="panel-header">
+                <span>📚</span>
+                <span>Теми</span>
+            </div>
+            <div class="language-switcher">
+                <button type="button" class="lang-btn js active" id="btn-lang-js" onclick="switchLanguage('javascript')">JS</button>
+                <button type="button" class="lang-btn py" id="btn-lang-py" onclick="switchLanguage('python')">Python</button>
+                <button type="button" class="lang-btn swift" id="btn-lang-swift" onclick="switchLanguage('swift')">Swift</button>
+                <button type="button" class="lang-btn backend" id="btn-lang-backend" onclick="switchLanguage('backend')">Backend</button>
+                <button type="button" class="lang-btn web" id="btn-lang-web" onclick="switchLanguage('web')">HTML/CSS</button>
+            </div>
+            <div class="panel-content">
+                <nav class="lessons-sidebar">
+                    <div class="lessons-title" id="lessons-sidebar-title">Уроци по JavaScript</div>
+                    <div id="lessons-list"></div>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Дясна страна – обяснение + код + резултати -->
+        <main class="right-panel">
+            <div class="panel-header">
+                <span>📖</span>
+                <span>Урок и код</span>
+            </div>
+            <div class="reading-panel">
+                <div id="reading-material">
+                    <div class="read-welcome">
+                        <h2>👋 Добре дошли</h2>
+                        <p>Избери раздел отляво: <strong>HTML/CSS</strong>, <strong>JS</strong>, <strong>Python</strong>, <strong>Swift</strong>, <strong>Backend</strong>.</p>
+                        <p>За HTML/CSS „Изпълни код” показва <strong>визуален преглед</strong> на страницата.</p>
+                    </div>
+                </div>
+
+                <div class="code-editor-wrapper">
+                    <div class="editor-toolbar">
+                        <button class="editor-btn success" onclick="runCode()">▶️ Изпълни код</button>
+                        <button class="editor-btn secondary" onclick="clearEditor()">🗑️ Изчисти</button>
+                        <button class="editor-btn secondary" onclick="loadExample()">📋 Зареди пример</button>
+                    </div>
+                    <div class="code-editor-container">
+                        <textarea id="code-editor"></textarea>
+                    </div>
+                </div>
+
+                <div id="html-preview-wrap">
+                    <div class="preview-label">Визуален преглед (HTML/CSS)</div>
+                    <iframe id="html-preview" title="HTML preview" sandbox="allow-scripts allow-same-origin"></iframe>
+                </div>
+
+                <div class="output-section">
+                    <div class="output-section-title">Резултати / съобщения</div>
+                    <div id="output"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- CodeMirror JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+    <!-- Skulpt – изпълнение на Python в браузъра -->
+    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/selection/active-line.min.js"></script>
+
+    <script src="script.js"></script>
+    <script src="lessons-python.js"></script>
+    <script src="lessons-js-more.js"></script>
+    <script src="lessons-python-more.js"></script>
+    <script src="lessons-swift.js"></script>
+    <script src="lessons-backend.js"></script>
+    <script src="lessons-web.js"></script>
+
+    <script>
+        let currentLanguage = 'javascript';
+        let currentLesson = null;
+        let editor;
+
+        function getLessons() {
+            if (currentLanguage === 'python') return lessonsPython;
+            if (currentLanguage === 'swift') return lessonsSwift;
+            if (currentLanguage === 'backend') return lessonsBackend;
+            if (currentLanguage === 'web') return lessonsWeb;
+            return lessonsJS;
+        }
+
+        function getEditorMode(lang) {
+            if (lang === 'python') return 'python';
+            if (lang === 'web') return 'htmlmixed';
+            if (lang === 'swift') return { name: 'clike', keywords: { 'let': true, 'var': true, 'func': true, 'struct': true, 'class': true, 'enum': true, 'protocol': true, 'extension': true, 'import': true, 'guard': true, 'return': true, 'if': true, 'else': true, 'switch': true, 'case': true, 'default': true, 'for': true, 'while': true, 'in': true, 'true': true, 'false': true, 'nil': true, 'print': true } };
+            return 'javascript';
+        }
+
+        function getLanguageDisplayName(lang) {
+            return {
+                javascript: 'JavaScript',
+                python: 'Python',
+                swift: 'Swift',
+                backend: 'Backend (Node.js & Next.js)',
+                web: 'HTML & CSS'
+            }[lang] || lang;
+        }
+
+        function setPreviewVisible(show) {
+            document.getElementById('html-preview-wrap').classList.toggle('visible', show);
+        }
+
+        function initEditor() {
+            editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+                lineNumbers: true,
+                mode: 'javascript',
+                theme: 'monokai',
+                autoCloseBrackets: true,
+                matchBrackets: true,
+                styleActiveLine: true,
+                indentUnit: 4,
+                tabSize: 4,
+                lineWrapping: true
+            });
+            editor.setOption("extraKeys", {
+                "Ctrl-Enter": function() { runCode(); }
+            });
+            editor.setValue(defaultCodeByLanguage.javascript);
+        }
+
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            currentLesson = null;
+
+            document.getElementById('btn-lang-js').classList.toggle('active', lang === 'javascript');
+            document.getElementById('btn-lang-py').classList.toggle('active', lang === 'python');
+            document.getElementById('btn-lang-swift').classList.toggle('active', lang === 'swift');
+            document.getElementById('btn-lang-backend').classList.toggle('active', lang === 'backend');
+            document.getElementById('btn-lang-web').classList.toggle('active', lang === 'web');
+
+            const titles = {
+                javascript: 'Уроци по JavaScript (18)',
+                python: 'Уроци по Python (18)',
+                swift: 'Уроци по Swift (19)',
+                backend: 'Backend – Node & Next (19)',
+                web: 'HTML & CSS (15)'
+            };
+            document.getElementById('lessons-sidebar-title').textContent = titles[lang];
+
+            editor.setOption('mode', getEditorMode(lang));
+            editor.setValue(defaultCodeByLanguage[lang] || '');
+
+            setPreviewVisible(lang === 'web');
+
+            renderTopicsList();
+            showWelcomeReading(lang);
+        }
+
+        function renderTopicsList() {
+            const list = document.getElementById('lessons-list');
+            const topics = topicsByLanguage[currentLanguage];
+            list.innerHTML = topics.map(t =>
+                `<div class="lesson-item" data-lesson-id="${t.id}" onclick="loadLesson('${t.id}', this)">${t.label}</div>`
+            ).join('');
+        }
+
+        function showWelcomeReading(lang) {
+            const name = getLanguageDisplayName(lang);
+            let extra = '';
+            if (lang === 'swift') {
+                extra = '<p>Swift: <strong>19 теми</strong>. Пълно изпълнение в Xcode Playground.</p>';
+            } else if (lang === 'backend') {
+                extra = '<p>Backend: <strong>Node.js, Express, Next.js, API, бази данни, deploy</strong>. Пусни <code>npm start</code> за fetch към /api/test.</p>';
+            } else if (lang === 'web') {
+                extra = '<p><strong>HTML & CSS</strong> – структура и дизайн на страници. „Изпълни код” показва жив преглед отгоре.</p>';
+            }
+            document.getElementById('reading-material').innerHTML = `
+                <div class="read-welcome">
+                    <h2>👋 ${name}</h2>
+                    <p>Избери тема от списъка отляво. Тук ще видиш обяснение и примери за <strong>${name}</strong>.</p>
+                    ${extra}
+                    <p>След това: „Зареди пример” → редактирай кода → „Изпълни код”.</p>
+                </div>`;
+        }
+
+        function runCode() {
+            const code = editor.getValue();
+            clearOutput();
+            if (currentLanguage === 'web') {
+                runWebCode(code);
+            } else if (currentLanguage === 'python') {
+                setPreviewVisible(false);
+                runPythonCode(code);
+            } else if (currentLanguage === 'swift') {
+                setPreviewVisible(false);
+                runSwiftCode(code);
+            } else if (currentLanguage === 'backend') {
+                setPreviewVisible(false);
+                runBackendCode(code);
+            } else {
+                setPreviewVisible(false);
+                runJavaScriptCode(code);
+            }
+        }
+
+        function runWebCode(code) {
+            setPreviewVisible(true);
+            let html = code.trim();
+            if (!html.includes('<html') && !html.includes('<!DOCTYPE')) {
+                if (html.includes('{') && (html.includes('color') || html.includes('background') || html.includes('font'))) {
+                    html = `<!DOCTYPE html><html lang="bg"><head><meta charset="UTF-8"><style>${html}</style></head><body><p>Примерен текст за стилове.</p></body></html>`;
+                } else {
+                    html = `<!DOCTYPE html><html lang="bg"><head><meta charset="UTF-8"></head><body>${html}</body></html>`;
+                }
+            }
+            const iframe = document.getElementById('html-preview');
+            iframe.srcdoc = html;
+            displayOutput('Визуалният преглед е обновен по-горе.', 'success');
+            if (html.includes('<script')) {
+                displayOutput('Внимание: script тагове в preview са ограничени (sandbox).', 'success');
+            }
+        }
+
+        function runBackendCode(code) {
+            displayOutput('ℹ️ Backend: fetch и console работят тук. require, fs, Express сървър – в терминал: node server.js или npm run dev', 'success');
+            if (/require\s*\(\s*['"]fs['"]/.test(code) || /require\s*\(\s*['"]http['"]/.test(code)) {
+                displayOutput('⚠️ require("fs") / require("http") не работят в браузъра – виж кода в server.js и пусни npm start', 'error');
+            }
+            runJavaScriptCode(code);
+        }
+
+        function runSwiftCode(code) {
+            displayOutput('ℹ️ Swift се компилира в Xcode или Swift Playgrounds. По-долу: симулация на print() редове.', 'success');
+            const lines = code.split('\n');
+            let found = false;
+            const printRegex = /print\s*\(\s*"((?:[^"\\]|\\.)*)"\s*\)/g;
+            const printRegex2 = /print\s*\(\s*'((?:[^'\\]|\\.)*)'\s*\)/g;
+            for (const line of lines) {
+                let m;
+                while ((m = printRegex.exec(line)) !== null) {
+                    displayOutput(m[1].replace(/\\n/g, '\n').replace(/\\"/g, '"'), 'success');
+                    found = true;
+                }
+                while ((m = printRegex2.exec(line)) !== null) {
+                    displayOutput(m[1], 'success');
+                    found = true;
+                }
+                const printNum = line.match(/print\s*\(\s*([^")]+)\s*\)/);
+                if (printNum && !line.includes('"') && !line.includes("'")) {
+                    const expr = printNum[1].trim();
+                    if (/^-?\d+(\.\d+)?$/.test(expr)) {
+                        displayOutput(expr, 'success');
+                        found = true;
+                    }
+                }
+            }
+            if (!found) {
+                displayOutput('Няма разпознати print("...") редове. Копирай кода в Xcode → File → New → Playground.', 'success');
+            }
+        }
+
+        function runJavaScriptCode(code) {
+            const originalLog = console.log;
+            const originalError = console.error;
+            console.log = function(...args) {
+                originalLog.apply(console, args);
+                displayOutput(args.map(arg =>
+                    typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+                ).join(' '), 'success');
+            };
+            console.error = function(...args) {
+                originalError.apply(console, args);
+                displayOutput(args.join(' '), 'error');
+            };
+            try {
+                eval(code);
+            } catch (error) {
+                displayOutput('Грешка: ' + error.message, 'error');
+            } finally {
+                console.log = originalLog;
+                console.error = originalError;
+            }
+        }
+
+        function runPythonCode(code) {
+            if (typeof Skulpt === 'undefined') {
+                displayOutput('Python библиотеката не е заредена. Презареди страницата.', 'error');
+                return;
+            }
+            function outf(text) {
+                if (text !== undefined && text !== null && String(text).trim() !== '') {
+                    displayOutput(String(text).replace(/\n$/, ''), 'success');
+                }
+            }
+            function builtinRead(x) {
+                if (Skulpt.builtinFiles === undefined || Skulpt.builtinFiles["files"][x] === undefined) {
+                    throw "File not found: '" + x + "'";
+                }
+                return Skulpt.builtinFiles["files"][x];
+            }
+            Sk.configure({
+                output: outf,
+                read: builtinRead,
+                __future__: Sk.python3
+            });
+            try {
+                Sk.importMainWithBody("<stdin>", false, code, true);
+            } catch (e) {
+                const msg = e.toString ? e.toString() : String(e);
+                displayOutput('Грешка: ' + msg, 'error');
+            }
+        }
+
+        function clearEditor() {
+            if (confirm('Сигурен ли си, че искаш да изчистиш кода?')) {
+                editor.setValue('');
+            }
+        }
+
+        function loadExample() {
+            const lessons = getLessons();
+            if (currentLesson && lessons[currentLesson] && lessons[currentLesson].code) {
+                editor.setValue(lessons[currentLesson].code);
+            } else {
+                alert('Първо избери урок от списъка отляво!');
+            }
+        }
+
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '';
+            if (currentLanguage !== 'web') {
+                setPreviewVisible(false);
+            }
+        }
+
+        function displayOutput(text, type) {
+            const output = document.getElementById('output');
+            const p = document.createElement('p');
+            p.textContent = text;
+            if (type) p.classList.add(type);
+            output.appendChild(p);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function loadLesson(lessonId, element) {
+            currentLesson = lessonId;
+            document.querySelectorAll('.lesson-item').forEach(item => item.classList.remove('active'));
+            if (element) element.classList.add('active');
+
+            const lesson = getLessons()[lessonId];
+            if (!lesson) return;
+
+            const codeEscaped = escapeHtml(lesson.code || '');
+            const langName = getLanguageDisplayName(currentLanguage);
+            document.getElementById('reading-material').innerHTML = `
+                <div class="read-category">${escapeHtml(lesson.category)}</div>
+                <h1 class="read-title">${escapeHtml(lesson.title)}</h1>
+                <p class="read-lead">${escapeHtml(lesson.description)}</p>
+                ${lesson.detailedExplanation || ''}
+                <div class="read-section">
+                    <h3>📌 Примерен код (${langName})</h3>
+                    <p>Натисни „Зареди пример” по-долу, редактирай и „Изпълни код”.</p>
+                    <pre class="read-code-block">${codeEscaped}</pre>
+                </div>
+                <div class="read-next-step">
+                    <strong>🎯 Следваща стъпка:</strong> Зареди примера в редактора и изпълни го. Резултатите са в „Резултати от изпълнението”.
+                </div>`;
+            document.getElementById('reading-material').scrollTop = 0;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initEditor();
+            renderTopicsList();
+        });
+    </script>
+</body>
+</html>
