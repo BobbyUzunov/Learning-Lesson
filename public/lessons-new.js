@@ -1,193 +1,252 @@
-// Нови уроци – разширени практически теми
+// AI & Tools – модерни практически теми за програмиране
 const lessonsNew = {
     'new-1': {
-        category: 'Практически JavaScript',
-        title: "🧠 Урок 1: План за мини проект",
-        description: "Преди да пишеш код, раздели идеята на малки части: данни, действия, екран и резултат. Така проектът става по-лесен за мислене и довършване.",
+        category: 'AI-assisted development',
+        title: "🤖 Урок 1: Как да работиш с AI асистент",
+        description: "AI инструментите са най-полезни, когато им дадеш ясна задача, контекст, ограничения и критерии за проверка. Мисли за AI като за партньор, който трябва да бъде насочен.",
         detailedExplanation: `
             <div class="lesson-section">
-                <h3 class="lesson-section-title">4 въпроса преди старт</h3>
+                <h3 class="lesson-section-title">Добър prompt за код</h3>
                 <p class="lesson-section-description">
-                    <strong>Какви данни имам?</strong> Например списък със задачи.<br>
-                    <strong>Какво може да прави потребителят?</strong> Добавя, трие, маркира.<br>
-                    <strong>Какво трябва да се вижда?</strong> Заглавие, списък, брояч.<br>
-                    <strong>Как разбирам, че работи?</strong> Пробвам основните действия едно по едно.
+                    Кажи <strong>какво строиш</strong>, <strong>какви файлове/технологии използваш</strong>, <strong>какво не трябва да се променя</strong> и <strong>как ще провериш резултата</strong>.
+                    Така получаваш по-точен код и по-малко случайни промени.
                 </p>
             </div>
             <div class="tip-box">
-                <strong>💡 Съвет:</strong> Първо направи най-малката работеща версия. После добавяй детайли.
+                <strong>💡 Съвет:</strong> Питай AI първо за план, после за малка промяна, после за проверка. Не искай всичко наведнъж.
             </div>
         `,
-        code: `// План за мини To-Do проект
-const project = {
-    name: "To-Do App",
-    data: ["учи JavaScript", "направи HTML", "стилизирай с CSS"],
-    actions: ["add", "remove", "complete"],
-    screen: ["input", "button", "list", "counter"]
-};
+        code: `function buildPrompt(task, context, checks) {
+    return [
+        "Задача: " + task,
+        "Контекст: " + context,
+        "Провери: " + checks.join(", ")
+    ].join("\\n");
+}
 
-console.log("Проект:", project.name);
-console.log("Данни:", project.data.join(", "));
-console.log("Действия:", project.actions.join(", "));
-console.log("Екран:", project.screen.join(", "));`
+const prompt = buildPrompt(
+    "Направи сайта responsive за телефон",
+    "HTML, CSS, JavaScript, без нов framework",
+    ["няма хоризонтален скрол", "бутоните са удобни за touch", "сървърът работи"]
+);
+
+console.log(prompt);`
     },
     'new-2': {
-        category: 'JavaScript структури',
-        title: "🗂️ Урок 2: Array методи за реални списъци",
-        description: "map, filter и reduce са основа за работа със списъци: показване, търсене, филтриране и изчисляване на обобщения.",
+        category: 'TypeScript мислене',
+        title: "🧩 Урок 2: Типове преди TypeScript",
+        description: "TypeScript е актуален, защото типовете правят кода по-ясен за хора, редактори и AI инструменти. Можеш да мислиш типово още в JavaScript.",
         detailedExplanation: `
             <div class="lesson-section">
-                <h3 class="lesson-section-title">Кога кой метод?</h3>
+                <h3 class="lesson-section-title">Какво означава типово мислене?</h3>
                 <p class="lesson-section-description">
-                    <code>map()</code> преобразува всеки елемент.<br>
-                    <code>filter()</code> оставя само елементите, които отговарят на условие.<br>
-                    <code>reduce()</code> събира списък до една стойност: сума, брояч, обект.
+                    Преди да напишеш функция, опиши какво приема и какво връща. Това намалява грешките и прави кода по-лесен за разширяване.
+                    В JavaScript можеш да използваш JSDoc коментари като мека стъпка към TypeScript.
                 </p>
             </div>
         `,
-        code: `const lessons = [
-    { title: "HTML", minutes: 20, done: true },
-    { title: "CSS Grid", minutes: 35, done: false },
-    { title: "JavaScript", minutes: 45, done: true }
-];
+        code: `/**
+ * @param {{ title: string, minutes: number, done: boolean }} lesson
+ * @returns {string}
+ */
+function formatLesson(lesson) {
+    const status = lesson.done ? "готов" : "за учене";
+    return lesson.title + " - " + lesson.minutes + " мин. (" + status + ")";
+}
 
-const titles = lessons.map(lesson => lesson.title);
-const completed = lessons.filter(lesson => lesson.done);
-const totalMinutes = lessons.reduce((sum, lesson) => sum + lesson.minutes, 0);
-
-console.log("Всички теми:", titles.join(", "));
-console.log("Завършени:", completed.length);
-console.log("Общо минути:", totalMinutes);`
+const lesson = { title: "TypeScript basics", minutes: 30, done: false };
+console.log(formatLesson(lesson));`
     },
     'new-3': {
-        category: 'Асинхронен JavaScript',
-        title: "🌐 Урок 3: fetch и обработка на данни",
-        description: "fetch изпраща заявка към API и връща Promise. Използва се с async/await, за да четеш данни от сървър.",
+        category: 'Testing basics',
+        title: "🧪 Урок 3: Мини тестове за сигурен код",
+        description: "Когато AI или човек променя код, тестовете са предпазната мрежа. Дори малки проверки с очакван резултат помагат много.",
         detailedExplanation: `
             <div class="lesson-section">
-                <h3 class="lesson-section-title">Важният ред</h3>
+                <h3 class="lesson-section-title">Тестът е въпрос</h3>
                 <p class="lesson-section-description">
-                    <code>await response.json()</code> превръща JSON отговора в JavaScript обект. Винаги провери дали заявката е успешна.
+                    Питаш функцията: "Ако входът е това, резултатът ли е онова?". Ако не е, кодът трябва да се поправи.
+                    Започни с 2-3 прости случая, преди да мислиш за сложен test framework.
+                </p>
+            </div>
+        `,
+        code: `function calculateTotal(items) {
+    return items.reduce((sum, item) => sum + item.price, 0);
+}
+
+function expectEqual(name, actual, expected) {
+    const ok = actual === expected;
+    console.log((ok ? "OK" : "Грешка") + ": " + name);
+    if (!ok) console.log("Очаквах " + expected + ", получих " + actual);
+}
+
+expectEqual("празна количка", calculateTotal([]), 0);
+expectEqual("две покупки", calculateTotal([{ price: 10 }, { price: 15 }]), 25);`
+    },
+    'new-4': {
+        category: 'APIs and JSON',
+        title: "🌐 Урок 4: API данни и error handling",
+        description: "Модерните приложения говорят с API-та. Важното е не само да вземеш JSON, а да обработиш грешка, празен отговор и неочаквана структура.",
+        detailedExplanation: `
+            <div class="lesson-section">
+                <h3 class="lesson-section-title">Стабилен fetch</h3>
+                <p class="lesson-section-description">
+                    Проверявай <code>response.ok</code>, използвай <code>try/catch</code> и форматирай данните преди да ги покажеш в интерфейса.
                 </p>
             </div>
             <div class="read-warn">
-                <strong>⚠️ Забележка:</strong> Външните API-та може да имат CORS ограничения. Този пример използва вграден JSON адрес, за да работи еднакво локално и в production.
+                <strong>⚠️ Забележка:</strong> Примерът използва локални demo данни, за да работи без външен API ключ.
             </div>
         `,
-        code: `async function loadServerTest() {
+        code: `async function loadProfile() {
     try {
-        const mockData = {
-            message: "Данните са заредени успешно!",
-            lesson: "fetch API",
-            status: "ready"
-        };
-        const apiUrl = "data:application/json," + encodeURIComponent(JSON.stringify(mockData));
-        const response = await fetch(apiUrl);
-        const data = await response.json();
+        const demo = { name: "Alex", role: "Frontend", skills: ["JS", "CSS", "API"] };
+        const url = "data:application/json," + encodeURIComponent(JSON.stringify(demo));
+        const response = await fetch(url);
 
-        console.log("Съобщение:", data.message);
-        console.log("Урок:", data.lesson);
-        console.log("Статус:", data.status);
+        if (!response.ok) {
+            throw new Error("API грешка: " + response.status);
+        }
+
+        const profile = await response.json();
+        console.log(profile.name + " - " + profile.role);
+        console.log("Умения: " + profile.skills.join(", "));
     } catch (error) {
-        console.error("Заявката не успя:", error.message);
+        console.error("Неуспешно зареждане:", error.message);
     }
 }
 
-loadServerTest();`
-    },
-    'new-4': {
-        category: 'Browser storage',
-        title: "💾 Урок 4: localStorage за запазване на настройки",
-        description: "localStorage пази малки стойности в браузъра. Подходящ е за тема, име, последен избор или настройки на интерфейса.",
-        detailedExplanation: `
-            <div class="lesson-section">
-                <h3 class="lesson-section-title">Основни команди</h3>
-                <p class="lesson-section-description">
-                    <code>localStorage.setItem(key, value)</code> записва стойност.<br>
-                    <code>localStorage.getItem(key)</code> чете стойност.<br>
-                    <code>localStorage.removeItem(key)</code> изтрива стойност.
-                </p>
-            </div>
-            <div class="tip-box">
-                <strong>💡 Съвет:</strong> localStorage пази само текст. За обекти използвай <code>JSON.stringify()</code> и <code>JSON.parse()</code>.
-            </div>
-        `,
-        code: `const settings = {
-    theme: "dark",
-    fontSize: 18,
-    language: "bg"
-};
-
-localStorage.setItem("learning-settings", JSON.stringify(settings));
-
-const saved = JSON.parse(localStorage.getItem("learning-settings"));
-console.log("Запазена тема:", saved.theme);
-console.log("Размер на шрифта:", saved.fontSize);
-console.log("Език:", saved.language);`
+loadProfile();`
     },
     'new-5': {
-        category: 'Качествен код',
-        title: "🧪 Урок 5: Малки функции и проверими резултати",
-        description: "Добрата функция прави едно ясно нещо и връща резултат. Така можеш лесно да я тестваш с няколко примера.",
+        category: 'Security basics',
+        title: "🔐 Урок 5: Сигурност за начинаещи",
+        description: "Сигурният код започва с навици: не пази тайни в frontend кода, валидирай входа и не показвай HTML от потребител без защита.",
         detailedExplanation: `
             <div class="lesson-section">
-                <h3 class="lesson-section-title">Правило</h3>
+                <h3 class="lesson-section-title">Три правила</h3>
                 <p class="lesson-section-description">
-                    Ако функцията става дълга и прави много неща, раздели я. Имената трябва да казват какво получаваш: <code>calculateTotal</code>, <code>formatName</code>, <code>isValidEmail</code>.
+                    <strong>Не слагай API ключове в браузъра.</strong><br>
+                    <strong>Проверявай входните данни.</strong><br>
+                    <strong>Използвай textContent вместо innerHTML</strong>, когато показваш текст от потребител.
                 </p>
             </div>
+            <div class="warning-box">
+                <strong>⚠️ Важно:</strong> Ако нещо идва от потребител, API или URL, третирай го като непроверено.
+            </div>
         `,
-        code: `function calculateProgress(done, total) {
-    if (total === 0) return 0;
-    return Math.round((done / total) * 100);
+        code: `function sanitizeName(name) {
+    return String(name)
+        .trim()
+        .replace(/[<>]/g, "");
 }
 
-function testProgress(done, total, expected) {
-    const result = calculateProgress(done, total);
-    const status = result === expected ? "OK" : "Грешка";
-    console.log(status + ": " + done + "/" + total + " = " + result + "%");
+function createGreeting(rawName) {
+    const name = sanitizeName(rawName);
+    if (name.length < 2) {
+        return "Моля, въведи валидно име.";
+    }
+    return "Здравей, " + name + "!";
 }
 
-testProgress(3, 10, 30);
-testProgress(5, 5, 100);
-testProgress(0, 0, 0);`
+console.log(createGreeting("  Мария  "));
+console.log(createGreeting("<script>alert(1)</script>"));`
     },
     'new-6': {
-        category: 'Мини проект',
-        title: "🎯 Урок 6: Генератор на учебен план",
-        description: "Комбинирай масиви, функции и template strings, за да генерираш кратък план за учене по дни.",
+        category: 'Git workflow',
+        title: "🌿 Урок 6: Git промени без хаос",
+        description: "Git е ежедневен инструмент. Най-добрият навик е малка промяна, ясен commit и проверка преди push.",
         detailedExplanation: `
             <div class="lesson-section">
-                <h3 class="lesson-section-title">Какво упражняваш?</h3>
+                <h3 class="lesson-section-title">Мини workflow</h3>
                 <p class="lesson-section-description">
-                    Данни в масив, функция за форматиране, цикъл с <code>map()</code> и чист изход чрез <code>join()</code>.
+                    <code>git status</code> вижда какво е променено.<br>
+                    <code>git diff</code> показва точната промяна.<br>
+                    <code>git add</code>, <code>git commit</code>, <code>git push</code> качват само готовата работа.
                 </p>
             </div>
         `,
-        code: `const topics = ["HTML структура", "CSS layout", "JavaScript функции", "fetch API"];
+        code: `const workflow = [
+    "1. git status",
+    "2. git diff",
+    "3. тествай локално",
+    "4. git add file",
+    "5. git commit -m \\"ясно съобщение\\"",
+    "6. git push"
+];
 
-function buildStudyPlan(items) {
-    return items.map((topic, index) => {
-        const day = index + 1;
-        return "Ден " + day + ": " + topic + " - 30 минути практика";
-    }).join("\\n");
+console.log("Git workflow:");
+console.log(workflow.join("\\n"));`
+    },
+    'new-7': {
+        category: 'Performance',
+        title: "⚡ Урок 7: Бързина и UX",
+        description: "Оптимизацията не е само скорост. Тя е усещане: бързо зареждане, липса на layout shift, удобни бутони и четим текст на малък екран.",
+        detailedExplanation: `
+            <div class="lesson-section">
+                <h3 class="lesson-section-title">Какво да гледаш?</h3>
+                <p class="lesson-section-description">
+                    Намали ненужния код, използвай responsive layout, не карай потребителя да чака без feedback и пази интерфейса стабилен при промяна на съдържанието.
+                </p>
+            </div>
+        `,
+        code: `const checks = [
+    { name: "няма хоризонтален скрол", ok: true },
+    { name: "бутоните са поне 44px високи", ok: true },
+    { name: "текстът се чете на телефон", ok: true },
+    { name: "кодът не блокира интерфейса", ok: false }
+];
+
+const passed = checks.filter(check => check.ok).length;
+console.log("UX проверки: " + passed + "/" + checks.length);
+
+checks.forEach(check => {
+    console.log((check.ok ? "OK" : "Провери") + ": " + check.name);
+});`
+    },
+    'new-8': {
+        category: 'Modern mini project',
+        title: "🚀 Урок 8: AI планер за учебен проект",
+        description: "Комбинирай prompt, задачи, тестове и Git стъпки в един малък план. Това е практичен начин да използваш AI без да губиш контрол над проекта.",
+        detailedExplanation: `
+            <div class="lesson-section">
+                <h3 class="lesson-section-title">Формула</h3>
+                <p class="lesson-section-description">
+                    Идея → малки задачи → примерен prompt → проверки → commit. Това е модерният цикъл за работа с AI инструменти и код.
+                </p>
+            </div>
+        `,
+        code: `const project = {
+    idea: "Responsive learning app",
+    tasks: ["mobile navigation", "readable lessons", "touch-friendly editor"],
+    checks: ["localhost works", "no overflow", "API test passes"]
+};
+
+function buildAiProjectPlan(project) {
+    return [
+        "Идея: " + project.idea,
+        "Задачи:\\n- " + project.tasks.join("\\n- "),
+        "Проверки:\\n- " + project.checks.join("\\n- "),
+        "Commit: improve responsive learning experience"
+    ].join("\\n\\n");
 }
 
-const plan = buildStudyPlan(topics);
-console.log(plan);`
+console.log(buildAiProjectPlan(project));`
     }
 };
 
 topicsByLanguage.new = [
-    { id: 'new-1', label: '🧠 1. План за проект' },
-    { id: 'new-2', label: '🗂️ 2. Array методи' },
-    { id: 'new-3', label: '🌐 3. fetch API' },
-    { id: 'new-4', label: '💾 4. localStorage' },
-    { id: 'new-5', label: '🧪 5. Малки функции' },
-    { id: 'new-6', label: '🎯 6. Учебен план' }
+    { id: 'new-1', label: '🤖 1. AI асистент' },
+    { id: 'new-2', label: '🧩 2. TypeScript мислене' },
+    { id: 'new-3', label: '🧪 3. Мини тестове' },
+    { id: 'new-4', label: '🌐 4. API данни' },
+    { id: 'new-5', label: '🔐 5. Сигурност' },
+    { id: 'new-6', label: '🌿 6. Git workflow' },
+    { id: 'new-7', label: '⚡ 7. Performance' },
+    { id: 'new-8', label: '🚀 8. AI проект' }
 ];
 
-defaultCodeByLanguage.new = `// Нови уроци - JavaScript практика
-const message = "Избери урок от секцията Нови уроци";
+defaultCodeByLanguage.new = `// AI & Tools - модерна практика
+const message = "Избери урок от секцията AI & Tools";
 console.log(message);
 `;

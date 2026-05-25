@@ -1390,7 +1390,7 @@
                 <button type="button" class="lang-btn swift" id="btn-lang-swift" onclick="switchLanguage('swift')">Swift</button>
                 <button type="button" class="lang-btn backend" id="btn-lang-backend" onclick="switchLanguage('backend')">Backend</button>
                 <button type="button" class="lang-btn web" id="btn-lang-web" onclick="switchLanguage('web')">HTML/CSS</button>
-                <button type="button" class="lang-btn new" id="btn-lang-new" onclick="switchLanguage('new')">Нови уроци</button>
+                <button type="button" class="lang-btn new" id="btn-lang-new" onclick="switchLanguage('new')">AI & Tools</button>
             </div>
             <div class="panel-content">
                 <nav class="lessons-sidebar">
@@ -1498,7 +1498,7 @@
                 swift: 'Swift',
                 backend: 'Backend (Node.js & Next.js)',
                 web: 'HTML & CSS',
-                new: 'Нови уроци'
+                new: 'AI & Tools'
             }[lang] || lang;
         }
 
@@ -1610,7 +1610,7 @@
                 swift: 'Уроци по Swift (19)',
                 backend: 'Backend – Node & Next (19)',
                 web: 'HTML & CSS (16)',
-                new: 'Нови уроци (6)'
+                new: 'AI & Tools (8)'
             };
             document.getElementById('lessons-sidebar-title').textContent = titles[lang];
 
@@ -1712,8 +1712,8 @@
                 },
                 new: {
                     title: 'Interactive challenge',
-                    prompt: 'Напиши функция buildTitle(text), която връща "Урок: " + text.',
-                    checks: ['Има функция buildTitle', 'Използва return', 'buildTitle("JS") връща "Урок: JS"']
+                    prompt: 'Напиши функция buildPrompt(task), която връща "Задача: " + task.',
+                    checks: ['Има функция buildPrompt', 'Използва return', 'buildPrompt("тест") връща "Задача: тест"']
                 },
                 python: {
                     title: 'Interactive challenge',
@@ -1780,10 +1780,10 @@
                     runJavaScriptChallenge(code, 'add', { args: '2, 3', value: 5 });
                 hint = 'Подсказка: function add(a, b) { return a + b; }';
             } else if (currentLanguage === 'new') {
-                passed = /function\s+buildTitle\s*\(|(?:const|let)\s+buildTitle\s*=/.test(code) &&
+                passed = /function\s+buildPrompt\s*\(|(?:const|let)\s+buildPrompt\s*=/.test(code) &&
                     /return/.test(code) &&
-                    runJavaScriptChallenge(code, 'buildTitle', { args: '"JS"', value: 'Урок: JS' });
-                hint = 'Подсказка: function buildTitle(text) { return "Урок: " + text; }';
+                    runJavaScriptChallenge(code, 'buildPrompt', { args: '"тест"', value: 'Задача: тест' });
+                hint = 'Подсказка: function buildPrompt(task) { return "Задача: " + task; }';
             } else if (currentLanguage === 'python') {
                 passed = /def\s+add\s*\(\s*a\s*,\s*b\s*\)\s*:/.test(code) && /return/.test(code) && /\+/.test(code);
                 hint = 'Подсказка: def add(a, b): return a + b';
