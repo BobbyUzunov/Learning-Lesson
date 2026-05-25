@@ -261,6 +261,28 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
         }
 
+        .admin-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            color: #e2e8f0;
+            background: rgba(30, 41, 59, 0.72);
+            border: 1px solid rgba(148, 163, 184, 0.24);
+            font-size: 0.84rem;
+            font-weight: 950;
+            text-decoration: none;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .admin-link:hover {
+            transform: translateY(-2px);
+            border-color: rgba(20, 184, 166, 0.42);
+            background: rgba(51, 65, 85, 0.82);
+        }
+
         .continue-btn:hover {
             transform: translateY(-2px);
             filter: brightness(1.04);
@@ -1222,6 +1244,7 @@
             }
 
             .academy-stat,
+            .admin-link,
             .continue-btn {
                 width: 100%;
                 min-height: 42px;
@@ -1229,6 +1252,7 @@
                 text-align: center;
             }
 
+            .admin-link,
             .continue-btn {
                 grid-column: 1 / -1;
             }
@@ -1415,6 +1439,7 @@
                 <div class="academy-actions">
                     <div class="academy-stat" id="academy-xp-stat">0 XP</div>
                     <div class="academy-stat" id="academy-level-stat">Level 1</div>
+                    <a class="admin-link" href="/admin">Admin</a>
                     <button class="continue-btn" type="button" onclick="continueLearning()">Continue Learning</button>
                 </div>
             </div>

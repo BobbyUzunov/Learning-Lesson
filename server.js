@@ -17,6 +17,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Admin panel route
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
 // API endpoint за тестване на Node.js функционалност
 app.get('/api/test', (req, res) => {
     res.json({
