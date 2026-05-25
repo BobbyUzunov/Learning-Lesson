@@ -2642,6 +2642,7 @@
     <script src="/lessons-backend.js"></script>
     <script src="/lessons-web.js"></script>
     <script src="/lessons-new.js"></script>
+    <script src="/supabase.js"></script>
     <script>
         let currentLanguage = 'javascript';
         let currentLesson = null;
@@ -2656,6 +2657,15 @@
             if (currentLanguage === 'backend') return lessonsBackend;
             if (currentLanguage === 'web') return lessonsWeb;
             if (currentLanguage === 'new') return lessonsNew;
+            return lessonsJS;
+        }
+
+        function getLessonMapForLanguage(lang) {
+            if (lang === 'python') return lessonsPython;
+            if (lang === 'swift') return lessonsSwift;
+            if (lang === 'backend') return lessonsBackend;
+            if (lang === 'web') return lessonsWeb;
+            if (lang === 'new') return lessonsNew;
             return lessonsJS;
         }
 
@@ -3121,7 +3131,7 @@
             `;
         }
 
-        function completeCurrentLesson() {
+        async function completeCurrentLesson() {
             if (!currentLesson) return;
             const progress = loadProgress();
             const key = getLessonProgressKey(currentLanguage, currentLesson);
@@ -3129,6 +3139,14 @@
             if (!progress.completed[key]) {
                 progress.completed[key] = new Date().toISOString();
                 saveProgress(progress);
+                if (window.LearningSupabase?.isConfigured()) {
+                    try {
+                        await window.LearningSupabase.saveCompletedLesson(currentLanguage, currentLesson, true);
+                    } catch (error) {
+                        console.warn('Supabase progress save failed:', error.message);
+                        displayOutput('Прогресът е запазен локално. Supabase sync не успя.', 'error');
+                    }
+                }
             }
             renderTopicsList();
             renderProgressPanel();
@@ -3397,6 +3415,58 @@
             setLanguageChrome(lang);
             if (lessonId) {
                 loadLesson(lessonId, document.querySelector(`[data-lesson-id="${lessonId}"]`));
+            }
+        }
+
+        async function loadSupabaseLessonsIntoApp() {
+            if (!window.LearningSupabase?.isConfigured()) return;
+            try {
+                const rows = await window.LearningSupabase.fetchLessons();
+                if (!rows?.length) return;
+                rows.filter(row => row.published).forEach(row => {
+                    const lang = row.lang;
+                    const lessonsMap = getLessonMapForLanguage(lang);
+                    lessonsMap[row.id] = {
+                        category: row.category,
+                        title: row.title,
+                        description: row.description,
+                        detailedExplanation: row.detailedExplanation,
+                        code: row.code
+                    };
+                    topicsByLanguage[lang] = topicsByLanguage[lang] || [];
+                    const label = row.label || `${row.order}. ${row.title}`;
+                    const existing = topicsByLanguage[lang].find(topic => topic.id === row.id);
+                    if (existing) {
+                        existing.label = label;
+                    } else {
+                        topicsByLanguage[lang].push({ id: row.id, label });
+                    }
+                });
+                Object.keys(topicsByLanguage).forEach(lang => {
+                    topicsByLanguage[lang].sort((a, b) => {
+                        const lessonA = rows.find(row => row.lang === lang && row.id === a.id);
+                        const lessonB = rows.find(row => row.lang === lang && row.id === b.id);
+                        return (lessonA?.order || 999) - (lessonB?.order || 999);
+                    });
+                });
+            } catch (error) {
+                console.warn('Supabase lessons fallback active:', error.message);
+            }
+        }
+
+        async function syncSupabaseProgressToLocal() {
+            if (!window.LearningSupabase?.isConfigured()) return;
+            try {
+                const rows = await window.LearningSupabase.fetchProgress();
+                if (!rows?.length) return;
+                const progress = loadProgress();
+                progress.completed = progress.completed || {};
+                rows.filter(row => row.completed).forEach(row => {
+                    progress.completed[getLessonProgressKey(row.path_slug, row.lesson_slug)] = row.completed_at || new Date().toISOString();
+                });
+                saveProgress(progress);
+            } catch (error) {
+                console.warn('Supabase progress fallback active:', error.message);
             }
         }
 
@@ -3672,13 +3742,15 @@
             updateAcademyHeader();
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             try {
                 initEditor();
             } catch (error) {
                 console.warn('Code editor did not initialize:', error);
                 document.getElementById('code-editor').value = defaultCodeByLanguage.javascript;
             }
+            await loadSupabaseLessonsIntoApp();
+            await syncSupabaseProgressToLocal();
             startLearningFlow();
             showOnboardingIfNeeded();
         });

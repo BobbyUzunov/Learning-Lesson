@@ -8,6 +8,14 @@ const TRACK_LABELS = {
     new: 'AI & Tools'
 };
 
+const state = {
+    rows: [],
+    paths: [],
+    source: 'local',
+    loading: false,
+    selectedDbId: null
+};
+
 function readProgress() {
     try {
         return JSON.parse(localStorage.getItem(PROGRESS_STORAGE_KEY)) || { completed: {} };
@@ -33,7 +41,7 @@ function getProgressKey(lang, lessonId) {
     return `${lang}:${lessonId}`;
 }
 
-function getAllRows() {
+function getLocalRows() {
     return Object.keys(topicsByLanguage).flatMap(lang => {
         const lessons = getLessonsMap(lang);
         return (topicsByLanguage[lang] || []).map((topic, index) => {
@@ -42,16 +50,65 @@ function getAllRows() {
                 lang,
                 track: TRACK_LABELS[lang] || lang,
                 id: topic.id,
+                slug: topic.id,
+                dbId: null,
                 order: index + 1,
                 label: topic.label,
                 title: lesson.title || topic.label,
                 category: lesson.category || 'Без категория',
                 description: lesson.description || '',
+                detailedExplanation: lesson.detailedExplanation || '',
                 code: lesson.code || '',
-                hasDetails: Boolean(lesson.detailedExplanation)
+                hasDetails: Boolean(lesson.detailedExplanation),
+                published: true
             };
         });
     });
+}
+
+function getLocalPaths() {
+    return Object.keys(topicsByLanguage).map((slug, index) => ({
+        slug,
+        title: TRACK_LABELS[slug] || slug,
+        sort_order: index + 1
+    }));
+}
+
+async function loadRows() {
+    state.loading = true;
+    setStatus('Зареждане на данни...', 'warn');
+    try {
+        if (window.LearningSupabase?.isConfigured()) {
+            const [paths, lessons] = await Promise.all([
+                window.LearningSupabase.fetchPaths(),
+                window.LearningSupabase.fetchLessons()
+            ]);
+            if (lessons && paths) {
+                state.paths = paths.length ? paths : getLocalPaths();
+                state.rows = lessons.map(row => ({
+                    ...row,
+                    lang: row.lang,
+                    track: TRACK_LABELS[row.lang] || state.paths.find(path => path.slug === row.lang)?.title || row.lang,
+                    hasDetails: Boolean(row.detailedExplanation)
+                }));
+                state.source = 'supabase';
+                setStatus(`Supabase е свързан. Заредени са ${state.rows.length} урока от базата.`, 'ok');
+                return;
+            }
+        }
+        state.paths = getLocalPaths();
+        state.rows = getLocalRows();
+        state.source = 'local';
+        setStatus('Supabase не е конфигуриран. Показвам fallback данните от JS файловете.', 'warn');
+    } catch (error) {
+        console.error('Admin data loading failed:', error);
+        state.paths = getLocalPaths();
+        state.rows = getLocalRows();
+        state.source = 'local';
+        setStatus(`Грешка при Supabase зареждане: ${error.message}. Включен е fallback.`, 'warn');
+    } finally {
+        state.loading = false;
+    }
 }
 
 function getCompletedSet() {
@@ -75,31 +132,41 @@ function updateMetrics(rows) {
     const completed = rows.filter(isCompleted).length;
     const issues = rows.reduce((sum, row) => sum + auditRow(row).length, 0);
     const percent = rows.length ? Math.round((completed / rows.length) * 100) : 0;
+    const tracks = new Set(rows.map(row => row.lang)).size || state.paths.length;
 
-    document.getElementById('metric-tracks').textContent = Object.keys(topicsByLanguage).length;
+    document.getElementById('metric-tracks').textContent = tracks;
     document.getElementById('metric-lessons').textContent = rows.length;
     document.getElementById('metric-completed').textContent = completed;
-    document.getElementById('metric-completed-note').textContent = `${percent}% local progress.`;
+    document.getElementById('metric-completed-note').textContent = `${percent}% local/Supabase-ready progress.`;
     document.getElementById('metric-issues').textContent = issues;
 }
 
 function renderTrackFilter() {
     const select = document.getElementById('track-filter');
+    const current = select.value || 'all';
     select.innerHTML = [
         '<option value="all">Всички теми</option>',
-        ...Object.keys(topicsByLanguage).map(lang => `<option value="${lang}">${TRACK_LABELS[lang] || lang}</option>`)
+        ...state.paths.map(path => `<option value="${path.slug}">${escapeHtml(path.title || TRACK_LABELS[path.slug] || path.slug)}</option>`)
     ].join('');
+    select.value = [...select.options].some(option => option.value === current) ? current : 'all';
+}
+
+function renderLessonPathOptions() {
+    const select = document.getElementById('lesson-path');
+    const current = select.value || state.paths[0]?.slug || 'new';
+    select.innerHTML = state.paths.map(path => `<option value="${path.slug}">${escapeHtml(path.title || path.slug)}</option>`).join('');
+    select.value = [...select.options].some(option => option.value === current) ? current : state.paths[0]?.slug || 'new';
 }
 
 function renderTrackProgress(rows) {
     const container = document.getElementById('track-progress-list');
-    container.innerHTML = Object.keys(topicsByLanguage).map(lang => {
-        const trackRows = rows.filter(row => row.lang === lang);
+    container.innerHTML = state.paths.map(path => {
+        const trackRows = rows.filter(row => row.lang === path.slug);
         const completed = trackRows.filter(isCompleted).length;
         const percent = trackRows.length ? Math.round((completed / trackRows.length) * 100) : 0;
         return `
             <div class="track-row">
-                <div class="track-name">${TRACK_LABELS[lang] || lang}</div>
+                <div class="track-name">${escapeHtml(path.title || TRACK_LABELS[path.slug] || path.slug)}</div>
                 <div class="progress-track" aria-label="${percent}%">
                     <div class="progress-fill" style="width: ${percent}%"></div>
                 </div>
@@ -120,20 +187,22 @@ function renderLessonsTable(rows) {
     });
 
     if (!filtered.length) {
-        tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">Няма намерени уроци.</div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Няма намерени уроци.</div></td></tr>';
         return;
     }
 
     tbody.innerHTML = filtered.map(row => {
         const issues = auditRow(row);
         const completed = isCompleted(row);
+        const sourceLabel = row.dbId ? 'Supabase' : 'Local';
         return `
             <tr>
-                <td data-label="Track">${row.track}</td>
+                <td data-label="Track">${escapeHtml(row.track)}</td>
                 <td data-label="Lesson"><strong>${escapeHtml(row.title)}</strong><br><span class="metric-note">${escapeHtml(row.id)}</span></td>
                 <td data-label="Category">${escapeHtml(row.category)}</td>
                 <td data-label="Status"><span class="status-pill ${completed ? 'ok' : ''}">${completed ? 'Complete' : 'Open'}</span></td>
-                <td data-label="Code"><span class="status-pill ${issues.length ? 'warn' : 'ok'}">${issues.length ? issues.join(', ') : 'Ready'}</span></td>
+                <td data-label="Code"><span class="status-pill ${issues.length ? 'warn' : 'ok'}">${issues.length ? escapeHtml(issues.join(', ')) : 'Ready'}</span></td>
+                <td data-label="Edit"><button class="btn" type="button" onclick="editLesson('${escapeHtml(row.dbId || '')}', '${escapeHtml(row.lang)}', '${escapeHtml(row.id)}')">${sourceLabel}</button></td>
             </tr>
         `;
     }).join('');
@@ -162,16 +231,17 @@ function renderAudit(rows) {
 function exportReport(rows) {
     const completed = rows.filter(isCompleted).length;
     const report = {
+        source: state.source,
         exportedAt: new Date().toISOString(),
-        tracks: Object.keys(topicsByLanguage).length,
+        tracks: new Set(rows.map(row => row.lang)).size,
         lessons: rows.length,
         completed,
         completionPercent: rows.length ? Math.round((completed / rows.length) * 100) : 0,
-        byTrack: Object.keys(topicsByLanguage).map(lang => {
-            const trackRows = rows.filter(row => row.lang === lang);
+        byTrack: state.paths.map(path => {
+            const trackRows = rows.filter(row => row.lang === path.slug);
             return {
-                lang,
-                name: TRACK_LABELS[lang] || lang,
+                lang: path.slug,
+                name: path.title || TRACK_LABELS[path.slug] || path.slug,
                 lessons: trackRows.length,
                 completed: trackRows.filter(isCompleted).length
             };
@@ -203,6 +273,96 @@ function resetProgress() {
     renderAdmin();
 }
 
+function fillLessonForm(row = null) {
+    document.getElementById('lesson-db-id').value = row?.dbId || '';
+    document.getElementById('lesson-path').value = row?.lang || state.paths[0]?.slug || 'new';
+    document.getElementById('lesson-slug').value = row?.id || '';
+    document.getElementById('lesson-title').value = row?.title || '';
+    document.getElementById('lesson-category').value = row?.category || '';
+    document.getElementById('lesson-description').value = row?.description || '';
+    document.getElementById('lesson-details').value = row?.detailedExplanation || '';
+    document.getElementById('lesson-code').value = row?.code || '';
+    document.getElementById('lesson-order').value = row?.order || 1;
+    document.getElementById('lesson-published').checked = row?.published !== false;
+    state.selectedDbId = row?.dbId || null;
+}
+
+function editLesson(dbId, lang, slug) {
+    const row = state.rows.find(item => (dbId && item.dbId === dbId) || (item.lang === lang && item.id === slug));
+    if (!row) return;
+    fillLessonForm(row);
+    setStatus(row.dbId ? 'Урокът е зареден за редакция.' : 'Това е local fallback урок. Запази го, за да го създадеш в Supabase.', row.dbId ? 'ok' : 'warn');
+}
+
+function getLessonPayload() {
+    const pathSlug = document.getElementById('lesson-path').value;
+    const slug = document.getElementById('lesson-slug').value.trim();
+    return {
+        path_slug: pathSlug,
+        slug,
+        label: document.getElementById('lesson-title').value.trim(),
+        title: document.getElementById('lesson-title').value.trim(),
+        category: document.getElementById('lesson-category').value.trim(),
+        description: document.getElementById('lesson-description').value.trim(),
+        detailed_explanation: document.getElementById('lesson-details').value.trim(),
+        code: document.getElementById('lesson-code').value,
+        sort_order: Number(document.getElementById('lesson-order').value || 1),
+        published: document.getElementById('lesson-published').checked
+    };
+}
+
+async function saveLesson(event) {
+    event.preventDefault();
+    if (!window.LearningSupabase?.isConfigured()) {
+        setStatus('Supabase не е конфигуриран. Попълни SUPABASE_URL и SUPABASE_ANON_KEY, за да записваш в база.', 'warn');
+        return;
+    }
+    const dbId = document.getElementById('lesson-db-id').value;
+    const payload = getLessonPayload();
+    if (!payload.slug || !payload.title || !payload.path_slug) {
+        setStatus('Попълни поне пътека, slug и заглавие.', 'warn');
+        return;
+    }
+    try {
+        setStatus('Записване...', 'warn');
+        if (dbId) {
+            await window.LearningSupabase.updateLesson(dbId, payload);
+        } else {
+            await window.LearningSupabase.createLesson(payload);
+        }
+        setStatus('Урокът е записан в Supabase.', 'ok');
+        await refreshAdmin();
+    } catch (error) {
+        console.error('Lesson save failed:', error);
+        setStatus(`Грешка при запис: ${error.message}`, 'warn');
+    }
+}
+
+async function deleteSelectedLesson() {
+    const dbId = document.getElementById('lesson-db-id').value;
+    if (!dbId) {
+        setStatus('Може да изтриеш само урок, който вече съществува в Supabase.', 'warn');
+        return;
+    }
+    if (!confirm('Да изтрия ли този урок от Supabase?')) return;
+    try {
+        await window.LearningSupabase.deleteLesson(dbId);
+        fillLessonForm();
+        setStatus('Урокът е изтрит.', 'ok');
+        await refreshAdmin();
+    } catch (error) {
+        console.error('Lesson delete failed:', error);
+        setStatus(`Грешка при изтриване: ${error.message}`, 'warn');
+    }
+}
+
+function setStatus(message, type = '') {
+    const status = document.getElementById('admin-status');
+    if (!status) return;
+    status.textContent = message;
+    status.className = `admin-status ${type}`.trim();
+}
+
 function escapeHtml(value) {
     const div = document.createElement('div');
     div.textContent = String(value);
@@ -210,20 +370,30 @@ function escapeHtml(value) {
 }
 
 function renderAdmin() {
-    const rows = getAllRows();
-    updateMetrics(rows);
-    renderTrackProgress(rows);
-    renderLessonsTable(rows);
-    renderAudit(rows);
+    renderTrackFilter();
+    renderLessonPathOptions();
+    updateMetrics(state.rows);
+    renderTrackProgress(state.rows);
+    renderLessonsTable(state.rows);
+    renderAudit(state.rows);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    renderTrackFilter();
+async function refreshAdmin() {
+    await loadRows();
     renderAdmin();
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await refreshAdmin();
+    fillLessonForm();
 
     document.getElementById('track-filter').addEventListener('change', renderAdmin);
     document.getElementById('lesson-search').addEventListener('input', renderAdmin);
-    document.getElementById('export-report-btn').addEventListener('click', () => exportReport(getAllRows()));
-    document.getElementById('mark-track-btn').addEventListener('click', () => markSelectedTrackComplete(getAllRows()));
+    document.getElementById('reload-data-btn').addEventListener('click', refreshAdmin);
+    document.getElementById('lesson-form').addEventListener('submit', saveLesson);
+    document.getElementById('new-lesson-btn').addEventListener('click', () => fillLessonForm());
+    document.getElementById('delete-lesson-btn').addEventListener('click', deleteSelectedLesson);
+    document.getElementById('export-report-btn').addEventListener('click', () => exportReport(state.rows));
+    document.getElementById('mark-track-btn').addEventListener('click', () => markSelectedTrackComplete(state.rows));
     document.getElementById('reset-progress-btn').addEventListener('click', resetProgress);
 });

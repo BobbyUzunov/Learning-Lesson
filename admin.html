@@ -262,6 +262,11 @@
             box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.12);
         }
 
+        .field.textarea {
+            min-height: 96px;
+            resize: vertical;
+        }
+
         .track-list {
             display: grid;
             gap: 10px;
@@ -369,6 +374,46 @@
             text-align: center;
         }
 
+        .admin-status {
+            margin-bottom: 14px;
+            padding: 12px 14px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 8px;
+            color: #cbd5e1;
+            background: rgba(30, 41, 59, 0.62);
+            font-size: 0.88rem;
+            font-weight: 850;
+        }
+
+        .admin-status.ok {
+            color: #bbf7d0;
+            border-color: rgba(34, 197, 94, 0.26);
+            background: rgba(22, 101, 52, 0.2);
+        }
+
+        .admin-status.warn {
+            color: #fde68a;
+            border-color: rgba(245, 158, 11, 0.28);
+            background: rgba(120, 53, 15, 0.22);
+        }
+
+        .lesson-form {
+            display: grid;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .form-actions {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
         @media (max-width: 1120px) {
             .admin-shell {
                 grid-template-columns: 1fr;
@@ -438,7 +483,9 @@
             }
 
             .dashboard-grid,
-            .filters {
+            .filters,
+            .form-grid,
+            .form-actions {
                 grid-template-columns: 1fr;
             }
 
@@ -514,11 +561,13 @@
                     <p class="page-subtitle">Преглед на съдържанието, прогреса в браузъра и бързи админ действия за курса.</p>
                 </div>
                 <div class="toolbar">
+                    <button class="btn" type="button" id="reload-data-btn">Reload data</button>
                     <button class="btn primary" type="button" id="export-report-btn">Export report</button>
                     <button class="btn" type="button" id="mark-track-btn">Mark track complete</button>
                     <button class="btn danger" type="button" id="reset-progress-btn">Reset progress</button>
                 </div>
             </header>
+            <div class="admin-status warn" id="admin-status">Зареждане на данни...</div>
 
             <section class="dashboard-grid" aria-label="Metrics">
                 <div class="metric-card">
@@ -562,6 +611,7 @@
                                         <th>Category</th>
                                         <th>Status</th>
                                         <th>Code</th>
+                                        <th>Edit</th>
                                     </tr>
                                 </thead>
                                 <tbody id="lessons-table-body"></tbody>
@@ -571,6 +621,38 @@
                 </section>
 
                 <div>
+                    <section class="panel" id="editor">
+                        <div class="panel-header">
+                            <h2 class="panel-title">Content editor</h2>
+                        </div>
+                        <div class="panel-body">
+                            <form class="lesson-form" id="lesson-form">
+                                <input type="hidden" id="lesson-db-id">
+                                <div class="form-grid">
+                                    <select class="field" id="lesson-path" required></select>
+                                    <input class="field" id="lesson-slug" placeholder="lesson slug" required>
+                                </div>
+                                <input class="field" id="lesson-title" placeholder="Заглавие" required>
+                                <input class="field" id="lesson-category" placeholder="Категория">
+                                <textarea class="field textarea" id="lesson-description" placeholder="Кратко описание"></textarea>
+                                <textarea class="field textarea" id="lesson-details" placeholder="HTML детайлно обяснение"></textarea>
+                                <textarea class="field textarea" id="lesson-code" placeholder="Примерен код"></textarea>
+                                <div class="form-grid">
+                                    <input class="field" id="lesson-order" type="number" min="0" value="1" placeholder="Подредба">
+                                    <label class="field" style="display:flex;align-items:center;gap:8px;">
+                                        <input id="lesson-published" type="checkbox" checked>
+                                        Published
+                                    </label>
+                                </div>
+                                <div class="form-actions">
+                                    <button class="btn primary" type="submit">Save lesson</button>
+                                    <button class="btn" type="button" id="new-lesson-btn">New lesson</button>
+                                    <button class="btn danger" type="button" id="delete-lesson-btn">Delete</button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+
                     <section class="panel" id="tracks">
                         <div class="panel-header">
                             <h2 class="panel-title">Прогрес по теми</h2>
@@ -601,6 +683,7 @@
     <script src="/lessons-backend.js"></script>
     <script src="/lessons-web.js"></script>
     <script src="/lessons-new.js"></script>
+    <script src="/supabase.js"></script>
     <script src="/admin.js"></script>
 </body>
 </html>
