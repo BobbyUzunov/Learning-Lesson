@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Learning Environment – HTML/CSS, JS, Python, Swift, Backend</title>
+    <meta name="description" content="Интерактивна среда за учене на HTML/CSS, JavaScript, Python, Swift, Backend и AI инструменти с уроци, редактор за код и progress dashboard.">
+    <meta name="theme-color" content="#0f172a">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Learning Environment">
+    <meta property="og:description" content="Практически уроци, код редактор, AI & Tools пътека и проследяване на прогреса.">
+    <meta property="og:locale" content="bg_BG">
+    <meta name="twitter:card" content="summary_large_image">
     <!-- CodeMirror CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
@@ -1015,6 +1022,115 @@
             margin-bottom: 10px;
         }
 
+        .onboarding-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(2, 6, 23, 0.72);
+            backdrop-filter: blur(16px);
+        }
+
+        .onboarding-overlay.visible {
+            display: flex;
+        }
+
+        .onboarding-panel {
+            width: min(860px, 100%);
+            border: 1px solid rgba(148, 163, 184, 0.26);
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.96);
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+        }
+
+        .onboarding-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 22px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .onboarding-title {
+            color: #f8fafc;
+            font-size: 1.35rem;
+            font-weight: 950;
+            line-height: 1.2;
+        }
+
+        .onboarding-copy {
+            margin-top: 7px;
+            color: #cbd5e1;
+            font-size: 0.98rem;
+            line-height: 1.55;
+        }
+
+        .onboarding-skip {
+            flex: 0 0 auto;
+            min-height: 38px;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            border-radius: 8px;
+            padding: 8px 12px;
+            background: rgba(30, 41, 59, 0.72);
+            color: #e2e8f0;
+            font: inherit;
+            font-size: 0.84rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .path-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            padding: 18px;
+        }
+
+        .path-card {
+            min-height: 148px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            border-radius: 8px;
+            padding: 15px;
+            background: rgba(30, 41, 59, 0.62);
+            color: #e5e7eb;
+            text-align: left;
+            cursor: pointer;
+            font: inherit;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .path-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(20, 184, 166, 0.48);
+            background: rgba(30, 41, 59, 0.86);
+        }
+
+        .path-icon {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 1.6rem;
+        }
+
+        .path-name {
+            display: block;
+            color: #f8fafc;
+            font-size: 1rem;
+            font-weight: 950;
+        }
+
+        .path-desc {
+            display: block;
+            margin-top: 7px;
+            color: #cbd5e1;
+            font-size: 0.84rem;
+            line-height: 1.45;
+        }
+
         @media (max-width: 1100px) and (min-width: 769px) {
             .main-container {
                 grid-template-columns: 236px minmax(0, 1fr);
@@ -1062,6 +1178,10 @@
             .lang-btn.web,
             .lang-btn.new {
                 grid-column: auto;
+            }
+
+            .path-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 
@@ -1344,6 +1464,30 @@
                 max-height: 180px;
                 font-size: 12px;
             }
+
+            .onboarding-overlay {
+                align-items: flex-end;
+                padding: 12px;
+            }
+
+            .onboarding-head {
+                display: grid;
+                padding: 18px;
+            }
+
+            .onboarding-skip {
+                width: 100%;
+            }
+
+            .path-grid {
+                grid-template-columns: 1fr;
+                max-height: min(58vh, 520px);
+                overflow-y: auto;
+            }
+
+            .path-card {
+                min-height: 112px;
+            }
         }
 
         @media (max-width: 430px) {
@@ -1470,6 +1614,40 @@
         </main>
     </div>
 
+    <div class="onboarding-overlay" id="onboarding-overlay" aria-modal="true" role="dialog" aria-labelledby="onboarding-title">
+        <div class="onboarding-panel">
+            <div class="onboarding-head">
+                <div>
+                    <h2 class="onboarding-title" id="onboarding-title">Избери своята пътека</h2>
+                    <p class="onboarding-copy">Ще ти предложим подходящ старт според това, което искаш да учиш първо.</p>
+                </div>
+                <button class="onboarding-skip" type="button" onclick="skipOnboarding()">Пропусни</button>
+            </div>
+            <div class="path-grid">
+                <button class="path-card" type="button" onclick="chooseLearningPath('frontend')">
+                    <span class="path-icon">🎨</span>
+                    <span class="path-name">Frontend</span>
+                    <span class="path-desc">HTML, CSS, JavaScript и интерфейси.</span>
+                </button>
+                <button class="path-card" type="button" onclick="chooseLearningPath('backend')">
+                    <span class="path-icon">🛠️</span>
+                    <span class="path-name">Backend</span>
+                    <span class="path-desc">Node.js, API, routes и server логика.</span>
+                </button>
+                <button class="path-card" type="button" onclick="chooseLearningPath('fullstack')">
+                    <span class="path-icon">🚀</span>
+                    <span class="path-name">Full Stack</span>
+                    <span class="path-desc">Пълен път от основи до проект.</span>
+                </button>
+                <button class="path-card" type="button" onclick="chooseLearningPath('ai')">
+                    <span class="path-icon">🤖</span>
+                    <span class="path-name">AI</span>
+                    <span class="path-desc">AI инструменти, prompt-и, тестове и workflow.</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- CodeMirror JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
@@ -1499,6 +1677,7 @@
         let editor;
         const PROGRESS_STORAGE_KEY = 'learningEnvironmentProgressV1';
         const LAST_LESSON_STORAGE_KEY = 'learningEnvironmentLastLessonV1';
+        const ONBOARDING_STORAGE_KEY = 'learningEnvironmentOnboardingV1';
 
         function getLessons() {
             if (currentLanguage === 'python') return lessonsPython;
@@ -1900,6 +2079,47 @@
             }
         }
 
+        function getLanguageForPath(path) {
+            return {
+                frontend: 'web',
+                backend: 'backend',
+                fullstack: 'javascript',
+                ai: 'new'
+            }[path] || 'javascript';
+        }
+
+        function hideOnboarding() {
+            document.getElementById('onboarding-overlay')?.classList.remove('visible');
+        }
+
+        function showOnboardingIfNeeded() {
+            if (localStorage.getItem(ONBOARDING_STORAGE_KEY)) return;
+            document.getElementById('onboarding-overlay')?.classList.add('visible');
+        }
+
+        function skipOnboarding() {
+            localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify({
+                path: 'skipped',
+                selectedAt: new Date().toISOString()
+            }));
+            hideOnboarding();
+        }
+
+        function chooseLearningPath(path) {
+            const lang = getLanguageForPath(path);
+            const lessonId = getFirstUnlockedLessonId(lang);
+            localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify({
+                path,
+                lang,
+                selectedAt: new Date().toISOString()
+            }));
+            hideOnboarding();
+            setLanguageChrome(lang);
+            if (lessonId) {
+                loadLesson(lessonId, document.querySelector(`[data-lesson-id="${lessonId}"]`));
+            }
+        }
+
         function initEditor() {
             editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
                 lineNumbers: true,
@@ -2174,6 +2394,7 @@
                 document.getElementById('code-editor').value = defaultCodeByLanguage.javascript;
             }
             startLearningFlow();
+            showOnboardingIfNeeded();
         });
     </script>
 </body>
