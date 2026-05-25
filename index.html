@@ -36,6 +36,10 @@
             letter-spacing: 0;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         .main-container {
             max-width: 100%;
             margin: 0;
@@ -803,6 +807,7 @@
             font-weight: 800;
             color: white;
             box-shadow: 0 12px 26px rgba(20, 184, 166, 0.12);
+            animation: activeLessonGlow 2.8s ease-in-out infinite;
         }
 
         .complete-lesson-btn {
@@ -832,6 +837,7 @@
         .complete-lesson-btn.done {
             background: linear-gradient(135deg, #64748b, #475569);
             cursor: default;
+            animation: badgePulse 2.4s ease-in-out infinite;
         }
 
         .learning-widget {
@@ -1131,6 +1137,450 @@
             line-height: 1.45;
         }
 
+        .academy-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+            gap: 22px;
+            align-items: center;
+            margin-bottom: 26px;
+            padding: 24px;
+            border: 1px solid rgba(148, 163, 184, 0.24);
+            border-radius: 18px;
+            background:
+                linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(30, 41, 59, 0.72)),
+                radial-gradient(circle at 86% 18%, rgba(20, 184, 166, 0.22), transparent 34%);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.18);
+            overflow: hidden;
+        }
+
+        .hero-kicker {
+            color: #5eead4;
+            font-size: 0.75rem;
+            font-weight: 950;
+            text-transform: uppercase;
+        }
+
+        .hero-title {
+            margin-top: 8px;
+            color: #f8fafc;
+            font-size: 2rem;
+            line-height: 1.12;
+            font-weight: 950;
+        }
+
+        .hero-copy {
+            margin-top: 12px;
+            max-width: 640px;
+            color: #cbd5e1;
+            font-size: 1.06rem;
+            line-height: 1.62;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .glow-btn {
+            position: relative;
+            min-height: 44px;
+            border: 0;
+            border-radius: 12px;
+            padding: 11px 16px;
+            color: white;
+            background: linear-gradient(135deg, #4f46e5, #0891b2);
+            font: inherit;
+            font-weight: 950;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: 0 16px 34px rgba(79, 70, 229, 0.24);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+
+        .glow-btn::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            transform: translateX(-120%);
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+            transition: transform 0.5s ease;
+        }
+
+        .glow-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+            box-shadow: 0 20px 42px rgba(20, 184, 166, 0.24);
+        }
+
+        .glow-btn:hover::after {
+            transform: translateX(120%);
+        }
+
+        .dashboard-visual {
+            position: relative;
+            min-height: 260px;
+            border: 1px solid rgba(148, 163, 184, 0.26);
+            border-radius: 18px;
+            padding: 14px;
+            background: rgba(2, 6, 23, 0.72);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+            animation: floatPanel 5.5s ease-in-out infinite;
+        }
+
+        .code-window {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: #0f172a;
+        }
+
+        .window-bar {
+            display: flex;
+            gap: 6px;
+            padding: 9px 11px;
+            background: rgba(30, 41, 59, 0.9);
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: #ef4444;
+        }
+
+        .dot:nth-child(2) { background: #f59e0b; }
+        .dot:nth-child(3) { background: #22c55e; }
+
+        .code-lines {
+            display: grid;
+            gap: 9px;
+            padding: 15px;
+        }
+
+        .code-line {
+            height: 9px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #22c55e, #14b8a6);
+            opacity: 0.9;
+        }
+
+        .code-line.short { width: 48%; }
+        .code-line.mid { width: 68%; background: linear-gradient(90deg, #6366f1, #22c55e); }
+        .code-line.long { width: 88%; background: linear-gradient(90deg, #06b6d4, #8b5cf6); }
+
+        .chart-card {
+            position: absolute;
+            right: 18px;
+            bottom: 18px;
+            width: 158px;
+            padding: 13px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.94);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.24);
+        }
+
+        .mini-bars {
+            display: flex;
+            align-items: end;
+            gap: 8px;
+            height: 78px;
+            margin-top: 10px;
+        }
+
+        .mini-bars span {
+            flex: 1;
+            border-radius: 999px 999px 4px 4px;
+            background: linear-gradient(180deg, #5eead4, #4f46e5);
+            animation: barGrow 1.7s ease both;
+        }
+
+        .mini-bars span:nth-child(1) { height: 34%; }
+        .mini-bars span:nth-child(2) { height: 68%; animation-delay: 0.1s; }
+        .mini-bars span:nth-child(3) { height: 48%; animation-delay: 0.2s; }
+        .mini-bars span:nth-child(4) { height: 82%; animation-delay: 0.3s; }
+
+        .floating-badge {
+            position: absolute;
+            left: 18px;
+            bottom: 22px;
+            padding: 8px 11px;
+            border-radius: 999px;
+            color: #bbf7d0;
+            background: rgba(22, 163, 74, 0.16);
+            border: 1px solid rgba(34, 197, 94, 0.28);
+            font-size: 0.78rem;
+            font-weight: 950;
+            animation: badgePulse 2.8s ease-in-out infinite;
+        }
+
+        .path-showcase,
+        .achievement-grid,
+        .roadmap-grid {
+            display: grid;
+            gap: 12px;
+            margin: 22px 0;
+        }
+
+        .path-showcase {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+
+        .visual-path-card,
+        .achievement-card,
+        .roadmap-step,
+        .lesson-detail-card {
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.62);
+            box-shadow: 0 16px 38px rgba(0, 0, 0, 0.12);
+            transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+        }
+
+        .visual-path-card:hover,
+        .achievement-card:hover,
+        .roadmap-step:hover,
+        .lesson-detail-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(20, 184, 166, 0.36);
+            box-shadow: 0 22px 52px rgba(0, 0, 0, 0.18);
+        }
+
+        .visual-path-card {
+            padding: 14px;
+            overflow: hidden;
+        }
+
+        .path-illustration {
+            position: relative;
+            height: 96px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, rgba(79,70,229,0.22), rgba(20,184,166,0.16));
+            overflow: hidden;
+        }
+
+        .path-illustration::before,
+        .path-illustration::after {
+            content: "";
+            position: absolute;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.16);
+        }
+
+        .path-illustration::before {
+            width: 58%;
+            height: 42%;
+            left: 14px;
+            top: 15px;
+        }
+
+        .path-illustration::after {
+            width: 38%;
+            height: 18%;
+            right: 14px;
+            bottom: 15px;
+        }
+
+        .visual-path-card[data-path="backend"] .path-illustration::before {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            box-shadow: 58px 0 0 rgba(255,255,255,0.1);
+        }
+
+        .visual-path-card[data-path="fullstack"] .path-illustration::before {
+            width: 44px;
+            height: 44px;
+            box-shadow: 52px 22px 0 rgba(255,255,255,0.12), 104px 0 0 rgba(255,255,255,0.16);
+        }
+
+        .visual-path-card[data-path="ai"] .path-illustration::before {
+            width: 62px;
+            height: 62px;
+            border-radius: 50% 50% 42% 42%;
+        }
+
+        .visual-path-card[data-path="mobile"] .path-illustration::before {
+            width: 46px;
+            height: 74px;
+            border-radius: 14px;
+        }
+
+        .visual-path-title {
+            color: #f8fafc;
+            font-size: 0.98rem;
+            font-weight: 950;
+        }
+
+        .visual-path-text {
+            margin-top: 4px;
+            color: #cbd5e1;
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .achievement-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .achievement-card {
+            padding: 14px;
+            min-height: 118px;
+        }
+
+        .achievement-icon {
+            display: inline-grid;
+            place-items: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(20, 184, 166, 0.14);
+            margin-bottom: 10px;
+        }
+
+        .achievement-card.unlocked .achievement-icon {
+            animation: badgePulse 2.4s ease-in-out infinite;
+        }
+
+        .achievement-title {
+            color: #f8fafc;
+            font-weight: 950;
+            line-height: 1.25;
+        }
+
+        .achievement-state {
+            margin-top: 6px;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            font-weight: 850;
+        }
+
+        .roadmap-grid {
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            position: relative;
+        }
+
+        .roadmap-step {
+            padding: 13px;
+            min-height: 132px;
+        }
+
+        .roadmap-icon {
+            font-size: 1.35rem;
+        }
+
+        .roadmap-title {
+            margin-top: 8px;
+            color: #f8fafc;
+            font-size: 0.92rem;
+            font-weight: 950;
+        }
+
+        .roadmap-text {
+            margin-top: 5px;
+            color: #cbd5e1;
+            font-size: 0.78rem;
+            line-height: 1.38;
+        }
+
+        .roadmap-status {
+            display: inline-flex;
+            margin-top: 9px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.14);
+            color: #cbd5e1;
+            font-size: 0.7rem;
+            font-weight: 950;
+        }
+
+        .roadmap-step.completed .roadmap-status {
+            color: #bbf7d0;
+            background: rgba(34, 197, 94, 0.16);
+        }
+
+        .roadmap-step.active .roadmap-status {
+            color: #bae6fd;
+            background: rgba(14, 165, 233, 0.16);
+        }
+
+        .lesson-detail-card {
+            margin: 18px 0;
+            overflow: hidden;
+        }
+
+        .lesson-detail-toggle {
+            width: 100%;
+            min-height: 48px;
+            border: 0;
+            padding: 14px 16px;
+            color: #f8fafc;
+            background: rgba(30, 41, 59, 0.72);
+            font: inherit;
+            font-weight: 950;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .lesson-detail-body {
+            display: none;
+            padding: 16px;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        .lesson-detail-card.open .lesson-detail-body {
+            display: block;
+            animation: lessonEnter 0.28s ease both;
+        }
+
+        .hint-box,
+        .solution-box {
+            display: none;
+            margin-top: 12px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            color: #dbeafe;
+            background: rgba(30, 64, 175, 0.18);
+            border: 1px solid rgba(96, 165, 250, 0.24);
+            line-height: 1.5;
+        }
+
+        .hint-box.visible,
+        .solution-box.visible {
+            display: block;
+            animation: lessonEnter 0.24s ease both;
+        }
+
+        .solution-box {
+            color: #bbf7d0;
+            background: rgba(22, 101, 52, 0.18);
+            border-color: rgba(34, 197, 94, 0.24);
+        }
+
+        @keyframes floatPanel {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes barGrow {
+            from { transform: scaleY(0.3); opacity: 0.4; }
+            to { transform: scaleY(1); opacity: 1; }
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.24); }
+            50% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+        }
+
+        @keyframes activeLessonGlow {
+            0%, 100% { box-shadow: 0 12px 26px rgba(20, 184, 166, 0.12); }
+            50% { box-shadow: 0 12px 30px rgba(20, 184, 166, 0.28); }
+        }
+
         @media (max-width: 1100px) and (min-width: 769px) {
             .main-container {
                 grid-template-columns: 236px minmax(0, 1fr);
@@ -1182,6 +1632,22 @@
 
             .path-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .academy-hero {
+                grid-template-columns: 1fr;
+            }
+
+            .path-showcase {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .achievement-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .roadmap-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
         }
 
@@ -1488,6 +1954,34 @@
             .path-card {
                 min-height: 112px;
             }
+
+            .academy-hero {
+                grid-template-columns: 1fr;
+                padding: 18px;
+                border-radius: 14px;
+            }
+
+            .hero-title {
+                font-size: 1.48rem;
+            }
+
+            .hero-copy {
+                font-size: 0.96rem;
+            }
+
+            .dashboard-visual {
+                min-height: 220px;
+            }
+
+            .path-showcase,
+            .achievement-grid,
+            .roadmap-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-card {
+                width: 138px;
+            }
         }
 
         @media (max-width: 430px) {
@@ -1644,6 +2138,11 @@
                     <span class="path-name">AI</span>
                     <span class="path-desc">AI инструменти, prompt-и, тестове и workflow.</span>
                 </button>
+                <button class="path-card" type="button" onclick="chooseLearningPath('frontend')">
+                    <span class="path-icon">📱</span>
+                    <span class="path-name">Mobile</span>
+                    <span class="path-desc">Responsive интерфейси и touch-friendly app screens.</span>
+                </button>
             </div>
         </div>
     </div>
@@ -1759,6 +2258,10 @@
 
         function getLevelFromXp(xp) {
             return Math.floor(xp / 100) + 1;
+        }
+
+        function getTotalLessonCount() {
+            return Object.keys(topicsByLanguage).reduce((sum, lang) => sum + (topicsByLanguage[lang]?.length || 0), 0);
         }
 
         function getXpToNextLevel(xp) {
@@ -1883,6 +2386,132 @@
             updateAcademyHeader();
         }
 
+        function renderAcademyHero(lesson) {
+            const completed = getTotalCompletedCount();
+            const total = getTotalLessonCount();
+            const percent = total ? Math.round((completed / total) * 100) : 0;
+            const xp = completed * 25;
+            const level = getLevelFromXp(xp);
+            return `
+                <section class="academy-hero">
+                    <div>
+                        <div class="hero-kicker">Modern interactive coding academy</div>
+                        <h2 class="hero-title">${lesson ? escapeHtml(lesson.title.replace(/^[^\s]+\s*/, '')) : 'Choose a learning path to start your journey'}</h2>
+                        <p class="hero-copy">${lesson ? escapeHtml(lesson.description) : 'Pick a track, complete lessons, collect XP and follow the roadmap from basics to a deployable SaaS project.'}</p>
+                        <div class="hero-actions">
+                            <button class="glow-btn" type="button" onclick="loadExample()">Start path</button>
+                            <button class="glow-btn" type="button" onclick="showOnboardingIfNeeded(true)">Explore Paths</button>
+                        </div>
+                    </div>
+                    <div class="dashboard-visual" aria-hidden="true">
+                        <div class="code-window">
+                            <div class="window-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="code-lines">
+                                <span class="code-line long"></span>
+                                <span class="code-line mid"></span>
+                                <span class="code-line short"></span>
+                                <span class="code-line long"></span>
+                                <span class="code-line mid"></span>
+                            </div>
+                        </div>
+                        <div class="floating-badge">Level ${level} • ${xp} XP</div>
+                        <div class="chart-card">
+                            <strong>${percent}% progress</strong>
+                            <div class="mini-bars"><span></span><span></span><span></span><span></span></div>
+                        </div>
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderPathShowcase() {
+            const paths = [
+                ['frontend', '🎨', 'Frontend', 'Browser UI, CSS layout and JavaScript interactions.'],
+                ['backend', '🛠️', 'Backend', 'Servers, APIs, routes and data flow.'],
+                ['fullstack', '🚀', 'Full-Stack', 'Connected frontend and backend product thinking.'],
+                ['ai', '🤖', 'AI Developer', 'AI workflows, prompts, tests and productivity.'],
+                ['mobile', '📱', 'Mobile', 'Touch-friendly app screens and responsive UX.']
+            ];
+            return `<section class="path-showcase">${paths.map(([id, icon, title, text]) => `
+                <button class="visual-path-card" data-path="${id}" type="button" onclick="chooseLearningPath('${id === 'mobile' ? 'frontend' : id}')">
+                    <div class="path-illustration"><span class="path-icon">${icon}</span></div>
+                    <div class="visual-path-title">${title}</div>
+                    <div class="visual-path-text">${text}</div>
+                </button>
+            `).join('')}</section>`;
+        }
+
+        function renderAchievements() {
+            const completed = getTotalCompletedCount();
+            const jsCompleted = getCompletedCount('javascript');
+            const backendCompleted = getCompletedCount('backend');
+            const achievements = [
+                ['🏁', 'First Lesson Completed', completed > 0],
+                ['🟨', 'JavaScript Beginner', jsCompleted >= 3],
+                ['🔗', 'Full-Stack Starter', jsCompleted >= 2 && backendCompleted >= 1],
+                ['🚢', 'Deployment Ready', isLessonCompleted('backend', 'deploy-1') || backendCompleted >= 12]
+            ];
+            return `<section class="achievement-grid">${achievements.map(([icon, title, unlocked]) => `
+                <div class="achievement-card ${unlocked ? 'unlocked' : ''}">
+                    <span class="achievement-icon">${icon}</span>
+                    <div class="achievement-title">${title}</div>
+                    <div class="achievement-state">${unlocked ? 'Unlocked' : 'Locked'}</div>
+                </div>
+            `).join('')}</section>`;
+        }
+
+        function renderRoadmap() {
+            const completed = getTotalCompletedCount();
+            const steps = [
+                ['🧱', 'Basics', 'Variables, types and control flow.', completed >= 1 ? 'completed' : 'active'],
+                ['🎨', 'Frontend', 'HTML, CSS and browser UI.', completed >= 5 ? 'completed' : completed >= 1 ? 'active' : 'locked'],
+                ['🛠️', 'Backend', 'Node.js, routes and APIs.', completed >= 12 ? 'completed' : completed >= 5 ? 'active' : 'locked'],
+                ['🗄️', 'Database', 'Persist real product data.', completed >= 20 ? 'completed' : completed >= 12 ? 'active' : 'locked'],
+                ['🚢', 'Deployment', 'Ship and monitor your app.', completed >= 30 ? 'completed' : completed >= 20 ? 'active' : 'locked'],
+                ['💼', 'SaaS Project', 'Build a full product flow.', completed >= 40 ? 'completed' : completed >= 30 ? 'active' : 'locked']
+            ];
+            return `<section class="roadmap-grid">${steps.map(([icon, title, text, status]) => `
+                <div class="roadmap-step ${status}">
+                    <div class="roadmap-icon">${icon}</div>
+                    <div class="roadmap-title">${title}</div>
+                    <div class="roadmap-text">${text}</div>
+                    <span class="roadmap-status">${status}</span>
+                </div>
+            `).join('')}</section>`;
+        }
+
+        function renderLessonDetails(lesson) {
+            const shortTitle = escapeHtml(lesson.title.replace(/^[^\s]+\s*/, ''));
+            return `
+                <div class="lesson-detail-card" id="lesson-detail-card">
+                    <button class="lesson-detail-toggle" type="button" onclick="toggleLessonDetails()">Expand lesson details: ${shortTitle}</button>
+                    <div class="lesson-detail-body">
+                        <p>${escapeHtml(lesson.description)}</p>
+                        <p><strong>XP reward:</strong> 25 XP • <strong>Next action:</strong> run the example, then complete the lesson.</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleLessonDetails() {
+            document.getElementById('lesson-detail-card')?.classList.toggle('open');
+        }
+
+        function renderEmptyLearningState() {
+            const readingMaterial = document.getElementById('reading-material');
+            if (!readingMaterial) return;
+            readingMaterial.innerHTML = `
+                ${renderAcademyHero(null)}
+                <div class="read-welcome">
+                    <h2>Choose a learning path to start your journey</h2>
+                    <p>Избери пътека и ще заредим първия подходящ урок, XP прогреса и roadmap-а.</p>
+                    <button class="glow-btn" type="button" onclick="showOnboardingIfNeeded(true)">Explore Paths</button>
+                </div>
+                ${renderPathShowcase()}
+                ${renderRoadmap()}
+            `;
+        }
+
         function completeCurrentLesson() {
             if (!currentLesson) return;
             const progress = loadProgress();
@@ -1943,6 +2572,42 @@
             return challenges[lang] || challenges.javascript;
         }
 
+        function getChallengeHint(lang) {
+            return {
+                javascript: 'Започни с function add(a, b), после върни a + b с return.',
+                new: 'Създай функция buildPrompt(task) и върни текст, който започва със "Задача: ".',
+                python: 'Използвай def add(a, b): и return a + b.',
+                web: 'Добави <button> в HTML и правило button:hover в CSS.',
+                swift: 'Създай func greet(name: String) и използвай print().',
+                backend: 'Използвай fetch("/api/test"), await response.json() и console.log(data).'
+            }[lang] || 'Раздели задачата на малка функция, вход и очакван резултат.';
+        }
+
+        function getChallengeSolution(lang) {
+            return {
+                javascript: 'function add(a, b) { return a + b; }',
+                new: 'function buildPrompt(task) { return "Задача: " + task; }',
+                python: 'def add(a, b):\\n    return a + b',
+                web: '<button>Start</button>\\n<style>button:hover { background: #14b8a6; padding: 12px; }</style>',
+                swift: 'func greet(name: String) { print("Здравей, \\\\(name)") }',
+                backend: 'const response = await fetch("/api/test");\\nconst data = await response.json();\\nconsole.log(data);'
+            }[lang] || 'Пробвай най-малката версия, която връща очакван резултат.';
+        }
+
+        function showChallengeHint() {
+            const box = document.getElementById('challenge-hint');
+            if (!box) return;
+            box.textContent = getChallengeHint(currentLanguage);
+            box.classList.add('visible');
+        }
+
+        function showChallengeSolution() {
+            const box = document.getElementById('challenge-solution');
+            if (!box) return;
+            box.textContent = getChallengeSolution(currentLanguage);
+            box.classList.add('visible');
+        }
+
         function renderChallengeCard() {
             const challenge = getChallengeForLesson(currentLanguage);
             const checklist = challenge.checks.map(item => `<li>${escapeHtml(item)}</li>`).join('');
@@ -1956,7 +2621,11 @@
                     <ul class="challenge-checklist">${checklist}</ul>
                     <div class="challenge-actions">
                         <button class="challenge-btn" onclick="checkInteractiveChallenge()">Провери задачата</button>
+                        <button class="challenge-btn" onclick="showChallengeHint()">Show hint</button>
+                        <button class="challenge-btn" onclick="showChallengeSolution()">Show solution</button>
                     </div>
+                    <div class="hint-box" id="challenge-hint"></div>
+                    <div class="solution-box" id="challenge-solution"></div>
                     <div class="challenge-feedback" id="challenge-feedback"></div>
                 </div>
             `;
@@ -2076,6 +2745,8 @@
             setLanguageChrome(lang);
             if (lessonId) {
                 loadLesson(lessonId, document.querySelector(`[data-lesson-id="${lessonId}"]`));
+            } else {
+                renderEmptyLearningState();
             }
         }
 
@@ -2092,8 +2763,8 @@
             document.getElementById('onboarding-overlay')?.classList.remove('visible');
         }
 
-        function showOnboardingIfNeeded() {
-            if (localStorage.getItem(ONBOARDING_STORAGE_KEY)) return;
+        function showOnboardingIfNeeded(force = false) {
+            if (!force && localStorage.getItem(ONBOARDING_STORAGE_KEY)) return;
             document.getElementById('onboarding-overlay')?.classList.add('visible');
         }
 
@@ -2362,9 +3033,14 @@
             void readingMaterial.offsetWidth;
             readingMaterial.classList.add('lesson-transition');
             readingMaterial.innerHTML = `
+                ${renderAcademyHero(lesson)}
+                ${renderPathShowcase()}
+                ${renderAchievements()}
+                ${renderRoadmap()}
                 <div class="read-category">${escapeHtml(lesson.category)}</div>
                 <h1 class="read-title">${escapeHtml(lesson.title)}</h1>
                 <p class="read-lead">${escapeHtml(lesson.description)}</p>
+                ${renderLessonDetails(lesson)}
                 ${lesson.detailedExplanation || ''}
                 <div class="read-section">
                     <h3>📌 Примерен код (${langName})</h3>
