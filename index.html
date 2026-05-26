@@ -3757,6 +3757,72 @@
         window.switchLanguage = switchLanguage;
         window.loadLesson = loadLesson;
 
+        function handleAppButtonClick(event) {
+            const button = event.target.closest('button, .lesson-item');
+            if (!button) return;
+
+            const inlineAction = button.getAttribute('onclick') || '';
+            if (!inlineAction) return;
+
+            const readArg = (name) => {
+                const match = inlineAction.match(new RegExp(`${name}\\('([^']+)'`));
+                return match ? match[1] : null;
+            };
+            const preventInline = () => {
+                event.preventDefault();
+                event.stopPropagation();
+            };
+
+            const path = readArg('chooseLearningPath');
+            if (path) {
+                preventInline();
+                chooseLearningPath(path);
+                return;
+            }
+
+            const lang = readArg('switchLanguage');
+            if (lang) {
+                preventInline();
+                switchLanguage(lang);
+                return;
+            }
+
+            const lessonId = readArg('loadLesson');
+            if (lessonId) {
+                preventInline();
+                loadLesson(lessonId, button);
+                return;
+            }
+
+            const actions = {
+                continueLearning,
+                runCode,
+                clearEditor,
+                loadExample,
+                showChallengeHint,
+                showChallengeSolution,
+                checkInteractiveChallenge,
+                askMentor,
+                completeCurrentLesson,
+                toggleLessonDetails,
+                skipOnboarding
+            };
+
+            Object.entries(actions).some(([name, action]) => {
+                if (!inlineAction.startsWith(`${name}(`)) return false;
+                preventInline();
+                action();
+                return true;
+            });
+
+            if (inlineAction.startsWith('showOnboardingIfNeeded(')) {
+                preventInline();
+                showOnboardingIfNeeded(true);
+            }
+        }
+
+        document.addEventListener('click', handleAppButtonClick, true);
+
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 initEditor();
