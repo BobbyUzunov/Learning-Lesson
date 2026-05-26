@@ -3818,6 +3818,31 @@
             }
         }
 
+        function refreshCurrentLessonAfterDataSync() {
+            renderTopicsList();
+            renderProgressPanel();
+            if (currentLesson && getLessons()[currentLesson]) {
+                loadLesson(currentLesson, getLessonElement(currentLesson), { skipEditorReset: true, forceUnlock: true });
+            } else {
+                startLearningFlow();
+            }
+        }
+
+        async function hydrateSupabaseDataAfterInitialRender() {
+            try {
+                await Promise.race([
+                    (async () => {
+                        await loadSupabaseLessonsIntoApp();
+                        await syncSupabaseProgressToLocal();
+                    })(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase hydration timeout.')), 7000))
+                ]);
+                refreshCurrentLessonAfterDataSync();
+            } catch (error) {
+                console.warn('Supabase hydration skipped, using JS fallback:', error.message);
+            }
+        }
+
         async function syncSupabaseProgressToLocal() {
             await window.LearningSupabase?.ready?.();
             if (!window.LearningSupabase?.isConfigured()) return;
@@ -4218,17 +4243,16 @@
 
         document.addEventListener('click', handleAppButtonClick, true);
 
-        document.addEventListener('DOMContentLoaded', async function() {
+        document.addEventListener('DOMContentLoaded', function() {
             try {
                 initEditor();
             } catch (error) {
                 console.warn('Code editor did not initialize:', error);
                 document.getElementById('code-editor').value = defaultCodeByLanguage.javascript;
             }
-            await loadSupabaseLessonsIntoApp();
-            await syncSupabaseProgressToLocal();
             startLearningFlow();
             showOnboardingIfNeeded();
+            hydrateSupabaseDataAfterInitialRender();
         });
     </script>
 </body>

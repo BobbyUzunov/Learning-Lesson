@@ -57,18 +57,31 @@
     function loadSupabaseLibrary() {
         if (window.supabase?.createClient) return Promise.resolve(window.supabase);
         return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Supabase client library timed out.')), 6000);
             const existingScript = document.querySelector('script[data-supabase-client]');
             if (existingScript) {
-                existingScript.addEventListener('load', () => resolve(window.supabase));
-                existingScript.addEventListener('error', reject);
+                existingScript.addEventListener('load', () => {
+                    clearTimeout(timeout);
+                    resolve(window.supabase);
+                });
+                existingScript.addEventListener('error', (error) => {
+                    clearTimeout(timeout);
+                    reject(error);
+                });
                 return;
             }
             const script = document.createElement('script');
             script.src = CDN_URL;
             script.defer = true;
             script.dataset.supabaseClient = 'true';
-            script.onload = () => resolve(window.supabase);
-            script.onerror = () => reject(new Error('Supabase client library failed to load.'));
+            script.onload = () => {
+                clearTimeout(timeout);
+                resolve(window.supabase);
+            };
+            script.onerror = () => {
+                clearTimeout(timeout);
+                reject(new Error('Supabase client library failed to load.'));
+            };
             document.head.appendChild(script);
         });
     }
@@ -88,6 +101,27 @@
             });
         }
         return clientPromise;
+    }
+
+    async function apiFetch(path, options = {}) {
+        await ready();
+        if (!isConfigured()) return null;
+        const config = getConfig();
+        const response = await fetch(`${config.url}/rest/v1/${path}`, {
+            ...options,
+            headers: {
+                apikey: config.anonKey,
+                Authorization: `Bearer ${config.anonKey}`,
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+            }
+        });
+        if (!response.ok) {
+            const message = await response.text();
+            throw new Error(message || `Supabase request failed with ${response.status}`);
+        }
+        if (response.status === 204) return null;
+        return response.json();
     }
 
     function getProfileId() {
@@ -117,81 +151,59 @@
     }
 
     async function fetchPaths() {
-        const client = await getClient();
-        if (!client) return null;
-        const { data, error } = await client
-            .from('learning_paths')
-            .select('*')
-            .order('sort_order', { ascending: true });
-        if (error) throw error;
-        return data || [];
+        return apiFetch('learning_paths?select=*&order=sort_order.asc');
     }
 
     async function fetchLessons() {
-        const client = await getClient();
-        if (!client) return null;
-        const { data, error } = await client
-            .from('lessons')
-            .select('*')
-            .order('path_slug', { ascending: true })
-            .order('sort_order', { ascending: true });
-        if (error) throw error;
+        const data = await apiFetch('lessons?select=*&order=path_slug.asc,sort_order.asc');
         return (data || []).map(normalizeLesson);
     }
 
     async function createLesson(payload) {
-        const client = await getClient();
-        if (!client) throw new Error('Supabase не е конфигуриран.');
-        const { data, error } = await client.from('lessons').insert(payload).select().single();
-        if (error) throw error;
-        return normalizeLesson(data);
+        const data = await apiFetch('lessons?select=*', {
+            method: 'POST',
+            headers: { Prefer: 'return=representation' },
+            body: JSON.stringify(payload)
+        });
+        return normalizeLesson(data[0]);
     }
 
     async function updateLesson(id, payload) {
-        const client = await getClient();
-        if (!client) throw new Error('Supabase не е конфигуриран.');
-        const { data, error } = await client.from('lessons').update(payload).eq('id', id).select().single();
-        if (error) throw error;
-        return normalizeLesson(data);
+        const data = await apiFetch(`lessons?id=eq.${encodeURIComponent(id)}&select=*`, {
+            method: 'PATCH',
+            headers: { Prefer: 'return=representation' },
+            body: JSON.stringify(payload)
+        });
+        return normalizeLesson(data[0]);
     }
 
     async function deleteLesson(id) {
-        const client = await getClient();
-        if (!client) throw new Error('Supabase не е конфигуриран.');
-        const { error } = await client.from('lessons').delete().eq('id', id);
-        if (error) throw error;
+        await apiFetch(`lessons?id=eq.${encodeURIComponent(id)}`, { method: 'DELETE' });
     }
 
     async function fetchProgress() {
-        const client = await getClient();
-        if (!client) return null;
-        const { data, error } = await client
-            .from('user_progress')
-            .select('*')
-            .eq('profile_id', getProfileId());
-        if (error) throw error;
-        return data || [];
+        return apiFetch(`user_progress?select=*&profile_id=eq.${encodeURIComponent(getProfileId())}`);
     }
 
     async function saveCompletedLesson(pathSlug, lessonSlug, completed = true) {
-        const client = await getClient();
-        if (!client) return null;
-        const { error } = await client.from('user_progress').upsert({
+        await apiFetch('user_progress?on_conflict=profile_id,path_slug,lesson_slug', {
+            method: 'POST',
+            headers: { Prefer: 'resolution=merge-duplicates' },
+            body: JSON.stringify({
             profile_id: getProfileId(),
             path_slug: pathSlug,
             lesson_slug: lessonSlug,
             completed,
             completed_at: completed ? new Date().toISOString() : null,
             updated_at: new Date().toISOString()
-        }, {
-            onConflict: 'profile_id,path_slug,lesson_slug'
+            })
         });
-        if (error) throw error;
         return true;
     }
 
     window.LearningSupabase = {
         getClient,
+        apiFetch,
         getConfig,
         getProfileId,
         isConfigured,

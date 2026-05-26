@@ -77,12 +77,21 @@ function getLocalPaths() {
 async function loadRows() {
     state.loading = true;
     setStatus('Зареждане на данни...', 'warn');
+
+    state.paths = getLocalPaths();
+    state.rows = getLocalRows();
+    state.source = 'local';
+    renderAdmin();
+
     try {
         await window.LearningSupabase?.ready?.();
         if (window.LearningSupabase?.isConfigured()) {
-            const [paths, lessons] = await Promise.all([
-                window.LearningSupabase.fetchPaths(),
-                window.LearningSupabase.fetchLessons()
+            const [paths, lessons] = await Promise.race([
+                Promise.all([
+                    window.LearningSupabase.fetchPaths(),
+                    window.LearningSupabase.fetchLessons()
+                ]),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase admin loading timeout.')), 7000))
             ]);
             if (lessons && paths) {
                 state.paths = paths.length ? paths : getLocalPaths();
@@ -97,15 +106,9 @@ async function loadRows() {
                 return;
             }
         }
-        state.paths = getLocalPaths();
-        state.rows = getLocalRows();
-        state.source = 'local';
         setStatus('Supabase не е конфигуриран. Показвам fallback данните от JS файловете.', 'warn');
     } catch (error) {
         console.error('Admin data loading failed:', error);
-        state.paths = getLocalPaths();
-        state.rows = getLocalRows();
-        state.source = 'local';
         setStatus(`Грешка при Supabase зареждане: ${error.message}. Включен е fallback.`, 'warn');
     } finally {
         state.loading = false;
