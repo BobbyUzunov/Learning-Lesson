@@ -1282,6 +1282,19 @@
             transform: translateX(120%);
         }
 
+        .glow-btn.is-pressed,
+        .open-path-btn.is-pressed,
+        .visual-path-card.is-pressed {
+            transform: translateY(1px) scale(0.99);
+            filter: brightness(1.08);
+        }
+
+        .glow-btn.is-loading,
+        .open-path-btn.is-loading {
+            cursor: wait;
+            box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12), 0 16px 34px rgba(20, 184, 166, 0.22);
+        }
+
         .dashboard-visual {
             position: relative;
             min-height: 260px;
@@ -1504,6 +1517,8 @@
 
         .visual-path-card.active-path {
             background: rgba(20, 184, 166, 0.08);
+            border-color: rgba(45, 212, 191, 0.42);
+            box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.08), 0 22px 54px rgba(20, 184, 166, 0.12);
         }
 
         .path-illustration {
@@ -1731,6 +1746,32 @@
             transform: translateY(-1px);
             background: rgba(14, 116, 144, 0.34);
             box-shadow: 0 12px 28px rgba(20, 184, 166, 0.16);
+        }
+
+        .app-toast {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 80;
+            max-width: min(340px, calc(100vw - 36px));
+            padding: 12px 14px;
+            border: 1px solid rgba(45, 212, 191, 0.36);
+            border-radius: 12px;
+            color: #ecfeff;
+            background: rgba(15, 23, 42, 0.92);
+            box-shadow: 0 18px 48px rgba(2, 6, 23, 0.34);
+            font-size: 0.88rem;
+            font-weight: 900;
+            opacity: 0;
+            transform: translateY(14px);
+            pointer-events: none;
+            transition: opacity 0.22s ease, transform 0.22s ease;
+            backdrop-filter: blur(14px);
+        }
+
+        .app-toast.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .engagement-grid {
@@ -2556,7 +2597,7 @@
             <div class="reading-panel">
                 <div id="reading-material"></div>
 
-                <div class="code-editor-wrapper">
+                <div class="code-editor-wrapper" id="lessonEditorSection">
                     <div class="editor-toolbar">
                         <button class="editor-btn success" onclick="runCode()">▶️ Изпълни код</button>
                         <button class="editor-btn secondary" onclick="clearEditor()">🗑️ Изчисти</button>
@@ -2618,6 +2659,7 @@
             </div>
         </div>
     </div>
+    <div class="app-toast" id="appToast" role="status" aria-live="polite"></div>
 
     <!-- CodeMirror JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
@@ -2803,6 +2845,75 @@
             loadLesson(targetLessonId, getLessonElement(targetLessonId), options);
         }
 
+        function getPathIdForLanguage(lang) {
+            if (lang === 'web') return 'frontend';
+            if (lang === 'backend') return 'backend';
+            if (lang === 'new') return 'ai';
+            return 'fullstack';
+        }
+
+        function saveSelectedPath(path, lang) {
+            localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify({
+                path,
+                lang,
+                selectedAt: new Date().toISOString()
+            }));
+        }
+
+        function loadSelectedPathState() {
+            try {
+                return JSON.parse(localStorage.getItem(ONBOARDING_STORAGE_KEY)) || {};
+            } catch (error) {
+                return {};
+            }
+        }
+
+        function showToast(message = 'Пътеката е заредена') {
+            const toast = document.getElementById('appToast');
+            if (!toast) return;
+            toast.textContent = message;
+            toast.classList.add('visible');
+            clearTimeout(showToast.timeout);
+            showToast.timeout = setTimeout(() => toast.classList.remove('visible'), 2200);
+        }
+
+        function scrollToSection(selector) {
+            const target = document.querySelector(selector);
+            if (!target) return;
+            target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+        }
+
+        function setButtonFeedback(button) {
+            if (!button) return;
+            button.classList.add('is-pressed', 'is-loading');
+            setTimeout(() => button.classList.remove('is-pressed'), 180);
+            setTimeout(() => button.classList.remove('is-loading'), 520);
+        }
+
+        function refreshPathCardState() {
+            const activePath = getActivePathId();
+            document.querySelectorAll('.visual-path-card').forEach(card => {
+                card.classList.toggle('active-path', card.dataset.path === activePath);
+            });
+        }
+
+        function startCurrentPath(button = null) {
+            setButtonFeedback(button);
+            const path = getPathIdForLanguage(currentLanguage);
+            const lang = getLanguageForPath(path);
+            const lessonId = getFirstUnlockedLessonId(lang) || getFirstLessonId(lang);
+            saveSelectedPath(path, lang);
+            openLessonForLanguage(lang, lessonId, { forceUnlock: true });
+            refreshPathCardState();
+            showToast('Пътеката е заредена');
+            setTimeout(() => scrollToSection('#lessonEditorSection'), 80);
+        }
+
+        function explorePathCards(button = null) {
+            setButtonFeedback(button);
+            scrollToSection('#learningPathCards');
+        }
+
         function setLanguageChrome(lang) {
             currentLanguage = lang;
 
@@ -2922,10 +3033,11 @@
         }
 
         function getActivePathId() {
-            if (currentLanguage === 'web') return 'frontend';
-            if (currentLanguage === 'backend') return 'backend';
-            if (currentLanguage === 'new') return 'ai';
-            return 'fullstack';
+            const selected = loadSelectedPathState();
+            if (selected.lang === currentLanguage && selected.path) {
+                return selected.path;
+            }
+            return getPathIdForLanguage(currentLanguage);
         }
 
         function renderEngagementWidgets() {
@@ -2989,8 +3101,8 @@
                             <div class="hero-metric"><strong>Ниво ${level}</strong><span>${xp} XP</span></div>
                         </div>
                         <div class="hero-actions">
-                            <button class="glow-btn" type="button" onclick="loadExample()">Започни пътеката</button>
-                            <button class="glow-btn" type="button" onclick="showOnboardingIfNeeded(true)">Разгледай пътеки</button>
+                            <button class="glow-btn" id="startPathBtn" type="button" data-action="start-path">Започни пътеката</button>
+                            <button class="glow-btn" id="explorePathsBtn" type="button" data-action="explore-paths">Разгледай пътеки</button>
                         </div>
                     </div>
                     <div class="dashboard-visual" aria-hidden="true">
@@ -3031,10 +3143,10 @@
                 ['ai', '🤖', 'AI разработчик', 'AI работни процеси, prompt-и, тестове и продуктивност.'],
                 ['mobile', '📱', 'Мобилни приложения', 'Удобни екрани за телефон и responsive UX.']
             ];
-            return `<section class="path-showcase">${paths.map(([id, icon, title, text]) => {
+            return `<section class="path-showcase" id="learningPathCards">${paths.map(([id, icon, title, text]) => {
                 const [count, difficulty, time] = getPathStats(id);
                 return `
-                <button class="visual-path-card ${activePath === id ? 'active-path' : ''}" data-path="${id}" type="button" onclick="chooseLearningPath('${id === 'mobile' ? 'frontend' : id}')">
+                <button class="visual-path-card ${activePath === id ? 'active-path' : ''}" data-path="${id}" data-track="${id}" data-action="open-path" type="button">
                     <div class="path-illustration">
                         <span class="path-icon">${icon}</span>
                         ${renderPathArt(id)}
@@ -3046,7 +3158,7 @@
                         <span>${difficulty}</span>
                         <span>${time}</span>
                     </div>
-                    <span class="open-path-btn">Отвори пътеката</span>
+                    <span class="open-path-btn" data-track="${id}">Отвори пътеката</span>
                 </button>
             `;
             }).join('')}</section>`;
@@ -3144,7 +3256,7 @@
                 <div class="read-welcome">
                     <h2>Избери пътека и започни своето обучение</h2>
                     <p>Избери пътека и ще заредим първия подходящ урок, XP прогреса и roadmap-а.</p>
-                    <button class="glow-btn" type="button" onclick="showOnboardingIfNeeded(true)">Разгледай пътеки</button>
+                    <button class="glow-btn" id="explorePathsEmptyBtn" type="button" data-action="explore-paths">Разгледай пътеки</button>
                 </div>
                 ${renderPathShowcase()}
                 ${renderRoadmap()}
@@ -3397,7 +3509,8 @@
                 frontend: 'web',
                 backend: 'backend',
                 fullstack: 'javascript',
-                ai: 'new'
+                ai: 'new',
+                mobile: 'web'
             }[path] || 'javascript';
         }
 
@@ -3421,13 +3534,11 @@
         function chooseLearningPath(path) {
             const lang = getLanguageForPath(path);
             const lessonId = getFirstUnlockedLessonId(lang) || getFirstLessonId(lang);
-            localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify({
-                path,
-                lang,
-                selectedAt: new Date().toISOString()
-            }));
+            saveSelectedPath(path, lang);
             hideOnboarding();
             openLessonForLanguage(lang, lessonId, { forceUnlock: true });
+            refreshPathCardState();
+            showToast('Пътеката е заредена');
         }
 
         async function loadSupabaseLessonsIntoApp() {
@@ -3756,13 +3867,20 @@
         window.chooseLearningPath = chooseLearningPath;
         window.switchLanguage = switchLanguage;
         window.loadLesson = loadLesson;
+        window.startCurrentPath = startCurrentPath;
+        window.explorePathCards = explorePathCards;
+        window.continueLearning = continueLearning;
+        window.loadExample = loadExample;
+        window.runCode = runCode;
+        window.completeCurrentLesson = completeCurrentLesson;
 
         function handleAppButtonClick(event) {
             const button = event.target.closest('button, .lesson-item');
             if (!button) return;
 
+            const action = button.dataset.action || '';
             const inlineAction = button.getAttribute('onclick') || '';
-            if (!inlineAction) return;
+            if (!action && !inlineAction) return;
 
             const readArg = (name) => {
                 const match = inlineAction.match(new RegExp(`${name}\\('([^']+)'`));
@@ -3771,11 +3889,32 @@
             const preventInline = () => {
                 event.preventDefault();
                 event.stopPropagation();
+                event.stopImmediatePropagation?.();
             };
+
+            if (action === 'start-path') {
+                preventInline();
+                startCurrentPath(button);
+                return;
+            }
+
+            if (action === 'explore-paths') {
+                preventInline();
+                explorePathCards(button);
+                return;
+            }
+
+            if (action === 'open-path') {
+                preventInline();
+                setButtonFeedback(button);
+                chooseLearningPath(button.dataset.track || button.dataset.path || 'frontend');
+                return;
+            }
 
             const path = readArg('chooseLearningPath');
             if (path) {
                 preventInline();
+                setButtonFeedback(button);
                 chooseLearningPath(path);
                 return;
             }
@@ -3817,7 +3956,7 @@
 
             if (inlineAction.startsWith('showOnboardingIfNeeded(')) {
                 preventInline();
-                showOnboardingIfNeeded(true);
+                explorePathCards(button);
             }
         }
 
