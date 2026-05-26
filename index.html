@@ -762,7 +762,26 @@
             border: 1px solid rgba(255,255,255,0.08);
         }
 
+        .quest-sidebar-label {
+            color: rgba(255,255,255,0.54);
+            font-size: 0.68rem;
+            font-weight: 950;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .quest-sidebar-title {
+            margin: 3px 0 12px;
+            color: #f8fafc;
+            font-size: 1rem;
+            font-weight: 950;
+        }
+
         .lesson-item {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 10px;
+            align-items: center;
             background: rgba(255,255,255,0.02);
             color: rgba(255,255,255,0.9);
             padding: 12px 14px;
@@ -780,6 +799,8 @@
             cursor: not-allowed;
             color: rgba(255,255,255,0.38);
             background: rgba(255,255,255,0.015);
+            opacity: 0.58;
+            filter: blur(0.2px) saturate(0.7);
         }
 
         .lesson-item.locked:hover {
@@ -808,6 +829,42 @@
             color: white;
             box-shadow: 0 12px 26px rgba(20, 184, 166, 0.12);
             animation: activeLessonGlow 2.8s ease-in-out infinite;
+        }
+
+        .mission-status {
+            display: grid;
+            place-items: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.38);
+        }
+
+        .mission-body {
+            min-width: 0;
+            display: grid;
+            gap: 2px;
+        }
+
+        .mission-body strong {
+            color: #f8fafc;
+            font-size: 0.9rem;
+        }
+
+        .mission-body small,
+        .mission-state {
+            color: rgba(226, 232, 240, 0.72);
+            font-size: 0.72rem;
+            line-height: 1.25;
+        }
+
+        .mission-state {
+            grid-column: 2;
+            width: fit-content;
+            padding: 3px 7px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.06);
+            font-weight: 850;
         }
 
         .complete-lesson-btn {
@@ -1295,6 +1352,28 @@
             box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12), 0 16px 34px rgba(20, 184, 166, 0.22);
         }
 
+        .primary-continue {
+            min-height: 54px;
+            padding-inline: 24px;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #22c55e, #14b8a6 52%, #2563eb);
+        }
+
+        .game-progress {
+            margin-top: 16px;
+            padding: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.42);
+        }
+
+        .game-reward {
+            margin-top: 8px;
+            color: #bae6fd;
+            font-size: 0.82rem;
+            font-weight: 850;
+        }
+
         .dashboard-visual {
             position: relative;
             min-height: 260px;
@@ -1748,6 +1827,21 @@
             box-shadow: 0 12px 28px rgba(20, 184, 166, 0.16);
         }
 
+        .quest-card-progress {
+            height: 8px;
+            margin-top: 12px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.55);
+        }
+
+        .quest-card-progress div {
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #22c55e, #14b8a6, #38bdf8);
+            transition: width 0.3s ease;
+        }
+
         .app-toast {
             position: fixed;
             right: 18px;
@@ -1817,6 +1911,49 @@
 
         .achievement-grid {
             grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .achievement-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 18px 0 24px;
+        }
+
+        .achievement-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 42px;
+            padding: 9px 12px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 999px;
+            color: #e2e8f0;
+            background: rgba(15, 23, 42, 0.64);
+            font-weight: 900;
+        }
+
+        .achievement-badge.locked {
+            opacity: 0.5;
+            filter: grayscale(0.8);
+        }
+
+        .achievement-badge.unlocked {
+            border-color: rgba(45, 212, 191, 0.42);
+            box-shadow: 0 12px 30px rgba(20, 184, 166, 0.12);
+        }
+
+        .achievement-badge .achievement-icon {
+            width: auto;
+            height: auto;
+            margin: 0;
+            background: transparent;
+            font-size: 1rem;
+        }
+
+        .achievement-badge .achievement-title,
+        .achievement-badge .achievement-state {
+            font-size: 0.78rem;
         }
 
         .achievement-card {
@@ -2692,6 +2829,8 @@
         const PROGRESS_STORAGE_KEY = 'learningEnvironmentProgressV1';
         const LAST_LESSON_STORAGE_KEY = 'learningEnvironmentLastLessonV1';
         const ONBOARDING_STORAGE_KEY = 'learningEnvironmentOnboardingV1';
+        const XP_PER_LESSON = 100;
+        const XP_PER_LEVEL = 500;
 
         function getLessons() {
             if (currentLanguage === 'python') return lessonsPython;
@@ -2780,8 +2919,12 @@
             return Object.keys(topicsByLanguage).reduce((sum, lang) => sum + getCompletedCount(lang), 0);
         }
 
+        function getTotalXp() {
+            return getTotalCompletedCount() * XP_PER_LESSON;
+        }
+
         function getLevelFromXp(xp) {
-            return Math.floor(xp / 100) + 1;
+            return Math.floor(xp / XP_PER_LEVEL) + 1;
         }
 
         function getTotalLessonCount() {
@@ -2789,8 +2932,12 @@
         }
 
         function getXpToNextLevel(xp) {
-            const remainder = xp % 100;
-            return remainder === 0 ? 100 : 100 - remainder;
+            const remainder = xp % XP_PER_LEVEL;
+            return remainder === 0 ? XP_PER_LEVEL : XP_PER_LEVEL - remainder;
+        }
+
+        function getLevelProgressPercent(xp) {
+            return Math.round(((xp % XP_PER_LEVEL) / XP_PER_LEVEL) * 100);
         }
 
         function isLessonUnlocked(lang, lessonId) {
@@ -2807,6 +2954,13 @@
         function getFirstUnlockedLessonId(lang) {
             const topics = topicsByLanguage[lang] || [];
             return topics.find(topic => isLessonUnlocked(lang, topic.id))?.id || getFirstLessonId(lang);
+        }
+
+        function getNextMissionLessonId(lang = currentLanguage) {
+            const topics = topicsByLanguage[lang] || [];
+            return topics.find(topic => isLessonUnlocked(lang, topic.id) && !isLessonCompleted(lang, topic.id))?.id ||
+                topics.find(topic => isLessonUnlocked(lang, topic.id))?.id ||
+                getFirstLessonId(lang);
         }
 
         function getNextLessonId(lang, lessonId) {
@@ -2901,17 +3055,26 @@
             setButtonFeedback(button);
             const path = getPathIdForLanguage(currentLanguage);
             const lang = getLanguageForPath(path);
-            const lessonId = getFirstUnlockedLessonId(lang) || getFirstLessonId(lang);
+            const lessonId = getNextMissionLessonId(lang);
             saveSelectedPath(path, lang);
             openLessonForLanguage(lang, lessonId, { forceUnlock: true });
             refreshPathCardState();
-            showToast('Пътеката е заредена');
+            showToast('Това е следващата ти мисия');
             setTimeout(() => scrollToSection('#lessonEditorSection'), 80);
         }
 
         function explorePathCards(button = null) {
             setButtonFeedback(button);
             scrollToSection('#learningPathCards');
+        }
+
+        function goToNextLesson(button = null) {
+            setButtonFeedback(button);
+            const nextLessonId = getNextMissionLessonId(currentLanguage);
+            if (!nextLessonId) return;
+            openLessonForLanguage(currentLanguage, nextLessonId);
+            showToast('Това е следващата ти мисия');
+            setTimeout(() => scrollToSection('#lessonEditorSection'), 80);
         }
 
         function setLanguageChrome(lang) {
@@ -2948,7 +3111,7 @@
         }
 
         function updateAcademyHeader() {
-            const xp = getTotalCompletedCount() * 25;
+            const xp = getTotalXp();
             const level = getLevelFromXp(xp);
             const lesson = currentLesson ? getLessons()[currentLesson] : null;
             const completed = getCompletedCount(currentLanguage);
@@ -2960,7 +3123,7 @@
             const levelEl = document.getElementById('academy-level-stat');
 
             if (titleEl) titleEl.textContent = lesson ? lesson.title.replace(/^[^\s]+\s*/, '') : 'Продължи своята пътека';
-            if (subtitleEl) subtitleEl.textContent = `${getLanguageDisplayName(currentLanguage)} • ${completed}/${total} завършени урока`;
+            if (subtitleEl) subtitleEl.textContent = `${getPathDisplayName(currentLanguage)} Quest • ${completed}/${total} levels завършени`;
             if (xpEl) xpEl.textContent = `${xp} XP`;
             if (levelEl) levelEl.textContent = `Ниво ${level}`;
         }
@@ -2973,13 +3136,15 @@
             const completed = getCompletedCount(currentLanguage);
             const total = topics.length;
             const percent = Math.round((completed / total) * 100);
-            const xp = getTotalCompletedCount() * 25;
+            const xp = getTotalXp();
             const level = getLevelFromXp(xp);
             const nextXp = getXpToNextLevel(xp);
 
             panel.innerHTML = `
+                <div class="quest-sidebar-label">Избран Quest</div>
+                <div class="quest-sidebar-title">${getPathDisplayName(currentLanguage)} Quest</div>
                 <div class="progress-topline">
-                    <span>Прогрес</span>
+                    <span>Quest прогрес</span>
                     <span>${percent}%</span>
                 </div>
                 <div class="progress-track" aria-label="Прогрес ${percent}%">
@@ -2992,8 +3157,7 @@
                 </div>
                 <div class="progress-meta">
                     <div class="progress-chip">Следващи ${nextXp} XP</div>
-                    <div class="progress-chip">${completed ? '🏅 Активно' : 'Старт'}</div>
-                    <div class="progress-chip">${completed === total ? 'Завършено' : 'Отключи'}</div>
+                    <div class="progress-chip">${completed === total ? '🏆 Готово' : '🎯 Мисия'}</div>
                 </div>
             `;
             updateAcademyHeader();
@@ -3017,7 +3181,7 @@
         }
 
         function getNextRecommendedLesson() {
-            const lessonId = getFirstUnlockedLessonId(currentLanguage);
+            const lessonId = getNextMissionLessonId(currentLanguage);
             const lesson = lessonId ? getLessons()[lessonId] : null;
             return lesson ? lesson.title.replace(/^[^\s]+\s*/, '') : 'Избери пътека';
         }
@@ -3042,7 +3206,7 @@
 
         function renderEngagementWidgets() {
             const completed = getTotalCompletedCount();
-            const xp = completed * 25;
+            const xp = getTotalXp();
             const nextLesson = getNextRecommendedLesson();
             const dailyGoal = Math.min(100, Math.round((Math.min(completed, 3) / 3) * 100));
             return `
@@ -3085,22 +3249,30 @@
             const completed = getTotalCompletedCount();
             const total = getTotalLessonCount();
             const percent = total ? Math.round((completed / total) * 100) : 0;
-            const xp = completed * 25;
+            const xp = getTotalXp();
             const level = getLevelFromXp(xp);
+            const levelProgress = getLevelProgressPercent(xp);
             const trackPercent = getTrackPercent(currentLanguage);
             const currentTitle = lesson ? lesson.title.replace(/^[^\s]+\s*/, '') : getNextRecommendedLesson();
+            const nextReward = getXpToNextLevel(xp);
             return `
                 <section class="academy-hero">
                     <div class="hero-content">
-                        <div class="hero-kicker">Модерна интерактивна академия по програмиране</div>
-                        <h2 class="hero-title">${lesson ? escapeHtml(lesson.title.replace(/^[^\s]+\s*/, '')) : 'Избери пътека и започни своето обучение'}</h2>
-                        <p class="hero-copy">${lesson ? escapeHtml(lesson.description) : 'Избери посока, завършвай уроци, събирай XP и следвай roadmap от основи до готов SaaS проект.'}</p>
+                        <div class="hero-kicker">Coding Quest</div>
+                        <h2 class="hero-title">${escapeHtml(getPathDisplayName(currentLanguage))} Quest</h2>
+                        <p class="hero-copy">Сега си на: <strong>${escapeHtml(currentTitle)}</strong>. Завърши level-а, вземи ${XP_PER_LESSON} XP и отключи следващата мисия.</p>
                         <div class="hero-metrics">
-                            <div class="hero-metric"><strong>${getPathDisplayName(currentLanguage)}</strong><span>текуща пътека</span></div>
-                            <div class="hero-metric"><strong>${trackPercent}%</strong><span>прогрес в пътеката</span></div>
+                            <div class="hero-metric"><strong>${getPathDisplayName(currentLanguage)}</strong><span>текущ Quest</span></div>
+                            <div class="hero-metric"><strong>${trackPercent}%</strong><span>quest прогрес</span></div>
                             <div class="hero-metric"><strong>Ниво ${level}</strong><span>${xp} XP</span></div>
                         </div>
+                        <div class="game-progress">
+                            <div class="progress-topline"><span>До следващо ниво</span><span>${levelProgress}%</span></div>
+                            <div class="progress-track"><div class="progress-fill" style="width: ${levelProgress}%"></div></div>
+                            <div class="game-reward">Следваща награда: +${nextReward} XP до Level ${level + 1}</div>
+                        </div>
                         <div class="hero-actions">
+                            <button class="glow-btn primary-continue" type="button" onclick="continueLearning()">Продължи обучението</button>
                             <button class="glow-btn" id="startPathBtn" type="button" data-action="start-path">Започни пътеката</button>
                             <button class="glow-btn" id="explorePathsBtn" type="button" data-action="explore-paths">Разгледай пътеки</button>
                         </div>
@@ -3116,14 +3288,14 @@
                                 <span class="code-line mid"></span>
                             </div>
                         </div>
-                        <div class="floating-badge">Ниво ${level} • ${xp} XP</div>
+                        <div class="floating-badge">Level ${level} • ${xp} XP</div>
                         <div class="chart-card">
                             <strong>${percent}% прогрес</strong>
                             <div class="mini-bars"><span></span><span></span><span></span><span></span></div>
                         </div>
                         <div class="continue-card">
                             <div>
-                                <div class="continue-label">Продължи обучението</div>
+                                <div class="continue-label">Следваща мисия</div>
                                 <div class="continue-title">${escapeHtml(currentTitle)}</div>
                                 <div class="continue-meta">${getPathDisplayName(currentLanguage)} • ${xp} XP • Ниво ${level}</div>
                             </div>
@@ -3137,14 +3309,16 @@
         function renderPathShowcase() {
             const activePath = getActivePathId();
             const paths = [
-                ['frontend', '🎨', 'Frontend', 'Браузър интерфейси, CSS layout и JavaScript интеракции.'],
-                ['backend', '🛠️', 'Backend', 'Сървъри, API маршрути, бази данни и поток на данни.'],
-                ['fullstack', '🚀', 'Full-Stack', 'Свързано мислене между frontend, backend и продукт.'],
-                ['ai', '🤖', 'AI разработчик', 'AI работни процеси, prompt-и, тестове и продуктивност.'],
-                ['mobile', '📱', 'Мобилни приложения', 'Удобни екрани за телефон и responsive UX.']
+                ['frontend', '🎨', 'Frontend Quest', 'HTML, CSS и интерактивни интерфейси.'],
+                ['backend', '🛠️', 'Backend Quest', 'Сървъри, API и база данни.'],
+                ['fullstack', '🚀', 'Full-Stack Quest', 'От frontend до готов продукт.'],
+                ['ai', '🤖', 'AI Quest', 'AI инструменти, prompt-и и автоматизация.'],
+                ['mobile', '📱', 'Mobile Quest', 'Responsive и мобилно app мислене.']
             ];
             return `<section class="path-showcase" id="learningPathCards">${paths.map(([id, icon, title, text]) => {
                 const [count, difficulty, time] = getPathStats(id);
+                const lang = getLanguageForPath(id);
+                const progress = getTrackPercent(lang);
                 return `
                 <button class="visual-path-card ${activePath === id ? 'active-path' : ''}" data-path="${id}" data-track="${id}" data-action="open-path" type="button">
                     <div class="path-illustration">
@@ -3153,12 +3327,13 @@
                     </div>
                     <div class="visual-path-title">${title}</div>
                     <div class="visual-path-text">${text}</div>
+                    <div class="quest-card-progress"><div style="width: ${progress}%"></div></div>
                     <div class="path-meta">
                         <span>${count}</span>
                         <span>${difficulty}</span>
-                        <span>${time}</span>
+                        <span>${progress}%</span>
                     </div>
-                    <span class="open-path-btn" data-track="${id}">Отвори пътеката</span>
+                    <span class="open-path-btn" data-track="${id}">Играй</span>
                 </button>
             `;
             }).join('')}</section>`;
@@ -3179,27 +3354,20 @@
             const completed = getTotalCompletedCount();
             const jsCompleted = getCompletedCount('javascript');
             const backendCompleted = getCompletedCount('backend');
+            const xp = getTotalXp();
             const achievements = [
-                ['🏁', 'Първи завършен урок', completed, 1],
-                ['🟨', 'JavaScript начинаещ', jsCompleted, 3],
-                ['🔗', 'Full-Stack старт', jsCompleted + backendCompleted, 5],
-                ['🚢', 'Готов за deploy', backendCompleted, 12]
+                ['🏁', 'First Step', completed >= 1],
+                ['⚡', '500 XP Club', xp >= 500],
+                ['🟨', 'JavaScript Starter', jsCompleted >= 1],
+                ['🚀', 'Full-Stack Explorer', jsCompleted + backendCompleted >= 2]
             ];
-            return `<section class="achievement-grid">${achievements.map(([icon, title, current, target]) => {
-                const unlocked = current >= target;
-                const progress = Math.min(100, Math.round((current / target) * 100));
-                return `
-                <div class="achievement-card ${unlocked ? 'unlocked' : 'locked'}">
+            return `<section class="achievement-badges">${achievements.map(([icon, title, unlocked]) => `
+                <div class="achievement-badge ${unlocked ? 'unlocked' : 'locked'}">
                     <span class="achievement-icon">${icon}</span>
                     <div class="achievement-title">${title}</div>
                     <div class="achievement-state">${unlocked ? 'Отключено' : 'Заключено'}</div>
-                    <div class="achievement-progress" style="--achievement-progress: ${progress}%">
-                        <div class="achievement-progress-track"><div class="achievement-progress-fill"></div></div>
-                        <div class="achievement-progress-label">${Math.min(current, target)}/${target} прогрес</div>
-                    </div>
                 </div>
-            `;
-            }).join('')}</section>`;
+            `).join('')}</section>`;
         }
 
         function renderRoadmap() {
@@ -3237,7 +3405,7 @@
                     <button class="lesson-detail-toggle" type="button" onclick="toggleLessonDetails()">Покажи детайли за урока: ${shortTitle}</button>
                     <div class="lesson-detail-body">
                         <p>${escapeHtml(lesson.description)}</p>
-                        <p><strong>XP награда:</strong> 25 XP • <strong>Следващо действие:</strong> зареди примера, изпълни го и завърши урока.</p>
+                        <p><strong>XP награда:</strong> ${XP_PER_LESSON} XP • <strong>Следващо действие:</strong> завърши level-а и отключи следващата мисия.</p>
                     </div>
                 </div>
             `;
@@ -3252,14 +3420,12 @@
             if (!readingMaterial) return;
             readingMaterial.innerHTML = `
                 ${renderAcademyHero(null)}
-                ${renderEngagementWidgets()}
                 <div class="read-welcome">
                     <h2>Избери пътека и започни своето обучение</h2>
-                    <p>Избери пътека и ще заредим първия подходящ урок, XP прогреса и roadmap-а.</p>
+                    <p>Избери Quest и ще заредим първата отключена мисия.</p>
                     <button class="glow-btn" id="explorePathsEmptyBtn" type="button" data-action="explore-paths">Разгледай пътеки</button>
                 </div>
                 ${renderPathShowcase()}
-                ${renderRoadmap()}
             `;
         }
 
@@ -3269,8 +3435,6 @@
             const key = getLessonProgressKey(currentLanguage, currentLesson);
             const nextLessonId = getNextLessonId(currentLanguage, currentLesson);
             if (!progress.completed[key]) {
-                progress.completed[key] = new Date().toISOString();
-                saveProgress(progress);
                 await window.LearningSupabase?.ready?.();
                 if (window.LearningSupabase?.isConfigured()) {
                     try {
@@ -3280,18 +3444,20 @@
                         displayOutput('Прогресът е запазен локално. Supabase sync не успя.', 'error');
                     }
                 }
+                progress.completed[key] = new Date().toISOString();
+                saveProgress(progress);
             }
             renderTopicsList();
             renderProgressPanel();
-            loadLesson(currentLesson, document.querySelector(`[data-lesson-id="${currentLesson}"]`));
-            displayOutput('🎉 Урокът е завършен! +25 XP', 'success');
+            loadLesson(currentLesson, getLessonElement(currentLesson), { skipEditorReset: true, forceUnlock: true });
+            displayOutput(`🎉 Урокът е завършен! +${XP_PER_LESSON} XP`, 'success');
 
             if (nextLessonId) {
-                displayOutput('➡️ Следващият урок се отключи. Зареждам го след момент...', 'success');
-                setTimeout(() => {
-                    loadLesson(nextLessonId, document.querySelector(`[data-lesson-id="${nextLessonId}"]`));
-                }, 900);
+                const nextIndex = (topicsByLanguage[currentLanguage] || []).findIndex(topic => topic.id === nextLessonId) + 1;
+                showToast(`Браво! Отключи Level ${nextIndex} 🎉`);
+                displayOutput(`➡️ Отключи Level ${nextIndex}. Натисни „Към следващия урок”.`, 'success');
             } else {
+                showToast('Quest-ът е завършен 🏆');
                 displayOutput('🏆 Завърши всички уроци в тази секция.', 'success');
             }
         }
@@ -3482,24 +3648,18 @@
         function continueLearning() {
             const state = loadLastLessonState();
             const lang = state.lang && topicsByLanguage[state.lang] ? state.lang : currentLanguage;
-            let lessonId = state.lang === lang ? state.lessonId : getLastLessonForLanguage(lang);
-
-            if (!lessonId || !topicsByLanguage[lang]?.some(topic => topic.id === lessonId) || !isLessonUnlocked(lang, lessonId)) {
-                lessonId = getFirstUnlockedLessonId(lang);
-            }
+            const lessonId = getNextMissionLessonId(lang);
 
             if (!lessonId) return;
             openLessonForLanguage(lang, lessonId);
+            showToast('Това е следващата ти мисия');
+            setTimeout(() => scrollToSection('#lessonEditorSection'), 80);
         }
 
         function startLearningFlow() {
             const state = loadLastLessonState();
             const lang = state.lang && topicsByLanguage[state.lang] ? state.lang : 'javascript';
-            let lessonId = state.lessonId;
-
-            if (!lessonId || !topicsByLanguage[lang]?.some(topic => topic.id === lessonId) || !isLessonUnlocked(lang, lessonId)) {
-                lessonId = getLastLessonForLanguage(lang) || getFirstUnlockedLessonId(lang);
-            }
+            let lessonId = getLastLessonForLanguage(lang) || getNextMissionLessonId(lang);
 
             openLessonForLanguage(lang, lessonId);
         }
@@ -3533,7 +3693,7 @@
 
         function chooseLearningPath(path) {
             const lang = getLanguageForPath(path);
-            const lessonId = getFirstUnlockedLessonId(lang) || getFirstLessonId(lang);
+            const lessonId = getNextMissionLessonId(lang);
             saveSelectedPath(path, lang);
             hideOnboarding();
             openLessonForLanguage(lang, lessonId, { forceUnlock: true });
@@ -3623,17 +3783,26 @@
             const list = document.getElementById('lessons-list');
             const topics = topicsByLanguage[currentLanguage];
             if (!list || !topics) return;
-            list.innerHTML = topics.map(t => {
+            list.innerHTML = topics.map((t, index) => {
                 const locked = !isLessonUnlocked(currentLanguage, t.id);
                 const completed = isLessonCompleted(currentLanguage, t.id);
-                const statusIcon = completed ? ' ✅' : locked ? ' 🔒' : '';
+                const statusIcon = completed ? '✅' : locked ? '🔒' : '🔓';
+                const stateText = completed ? 'Завършен' : locked ? 'Заключен' : 'Отключен';
                 const className = [
                     'lesson-item',
                     currentLesson === t.id ? 'active' : '',
                     locked ? 'locked' : '',
                     completed ? 'completed' : ''
                 ].filter(Boolean).join(' ');
-                return `<div class="${className}" data-lesson-id="${t.id}" onclick="loadLesson('${t.id}', this)" title="${locked ? 'Завърши предишния урок, за да отключиш този.' : ''}">${t.label}${statusIcon}</div>`;
+                const lessonTitle = (getLessonMapForLanguage(currentLanguage)[t.id]?.title || t.label).replace(/^[^\s]+\s*/, '');
+                return `<div class="${className}" data-lesson-id="${t.id}" onclick="loadLesson('${t.id}', this)" title="${locked ? 'Завърши предишния урок, за да отключиш този.' : ''}">
+                    <span class="mission-status">${statusIcon}</span>
+                    <span class="mission-body">
+                        <strong>Level ${index + 1}</strong>
+                        <small>${escapeHtml(lessonTitle)}</small>
+                    </span>
+                    <span class="mission-state">${stateText}</span>
+                </div>`;
             }).join('');
             renderProgressPanel();
         }
@@ -3805,6 +3974,7 @@
 
         function loadLesson(lessonId, element, options = {}) {
             if (!options.forceUnlock && !isLessonUnlocked(currentLanguage, lessonId)) {
+                showToast('Завърши предишния урок, за да отключиш този.');
                 displayOutput('🔒 Този урок е заключен. Завърши предишния урок, за да го отключиш.', 'error');
                 return;
             }
@@ -3835,10 +4005,8 @@
             readingMaterial.classList.add('lesson-transition');
             readingMaterial.innerHTML = `
                 ${renderAcademyHero(lesson)}
-                ${renderEngagementWidgets()}
                 ${renderPathShowcase()}
                 ${renderAchievements()}
-                ${renderRoadmap()}
                 <div class="read-category">${escapeHtml(lesson.category)}</div>
                 <h1 class="read-title">${escapeHtml(lesson.title)}</h1>
                 <p class="read-lead">${escapeHtml(lesson.description)}</p>
@@ -3852,11 +4020,12 @@
                 ${renderChallengeCard()}
                 ${renderMentorCard(lesson)}
                 <div class="read-next-step">
-                    <strong>🎯 Следваща стъпка:</strong> Зареди примера в редактора и изпълни го. Резултатите са в „Резултати от изпълнението”.
+                    <strong>🎯 Следваща стъпка:</strong> Завърши този level, вземи ${XP_PER_LESSON} XP и отключи следващата мисия.
                     <br>
                     <button class="complete-lesson-btn ${completed ? 'done' : ''}" onclick="completeCurrentLesson()" ${completed ? 'disabled' : ''}>
-                        ${completed ? '✅ Урокът е завършен' : '🏁 Завърши урока +25 XP'}
+                        ${completed ? '✅ Level-ът е завършен' : `🏁 Завърши урока +${XP_PER_LESSON} XP`}
                     </button>
+                    ${completed && getNextLessonId(currentLanguage, lessonId) ? '<button class="complete-lesson-btn next" type="button" data-action="next-lesson">Към следващия урок</button>' : ''}
                 </div>`;
             readingMaterial.scrollTop = 0;
             renderTopicsList();
@@ -3869,6 +4038,7 @@
         window.loadLesson = loadLesson;
         window.startCurrentPath = startCurrentPath;
         window.explorePathCards = explorePathCards;
+        window.goToNextLesson = goToNextLesson;
         window.continueLearning = continueLearning;
         window.loadExample = loadExample;
         window.runCode = runCode;
@@ -3908,6 +4078,12 @@
                 preventInline();
                 setButtonFeedback(button);
                 chooseLearningPath(button.dataset.track || button.dataset.path || 'frontend');
+                return;
+            }
+
+            if (action === 'next-lesson') {
+                preventInline();
+                goToNextLesson(button);
                 return;
             }
 
