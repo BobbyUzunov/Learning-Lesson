@@ -3139,6 +3139,7 @@
             if (!progress.completed[key]) {
                 progress.completed[key] = new Date().toISOString();
                 saveProgress(progress);
+                await window.LearningSupabase?.ready?.();
                 if (window.LearningSupabase?.isConfigured()) {
                     try {
                         await window.LearningSupabase.saveCompletedLesson(currentLanguage, currentLesson, true);
@@ -3419,6 +3420,7 @@
         }
 
         async function loadSupabaseLessonsIntoApp() {
+            await window.LearningSupabase?.ready?.();
             if (!window.LearningSupabase?.isConfigured()) return;
             try {
                 const rows = await window.LearningSupabase.fetchLessons();
@@ -3455,6 +3457,7 @@
         }
 
         async function syncSupabaseProgressToLocal() {
+            await window.LearningSupabase?.ready?.();
             if (!window.LearningSupabase?.isConfigured()) return;
             try {
                 const rows = await window.LearningSupabase.fetchProgress();

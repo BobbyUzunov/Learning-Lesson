@@ -35,16 +35,25 @@ npm start
 
 1. Създай Supabase проект.
 2. Отвори Supabase SQL Editor и пусни `supabase-schema.sql`.
-3. За временен vanilla JS setup можеш да зададеш public anon config по един от тези начини:
+3. За production във Vercel добави Environment Variables:
+
+```txt
+SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+SUPABASE_ANON_KEY=YOUR_ANON_KEY
+```
+
+Сайтът ги подава към браузъра през `/api/supabase-config`. Това са публични anon настройки, но RLS политиките в Supabase трябва да пазят данните.
+
+За локален vanilla JS setup можеш временно да зададеш public anon config през browser console:
 
 ```js
 localStorage.setItem('SUPABASE_URL', 'https://YOUR_PROJECT.supabase.co');
 localStorage.setItem('SUPABASE_ANON_KEY', 'YOUR_ANON_KEY');
 ```
 
-или копирай `public/supabase-config.example.js` като `public/supabase-config.js`, попълни стойностите и добави script tag преди `/supabase.js`.
+или копирай `public/supabase-config.example.js` като `public/supabase-config.js` и попълни стойностите за локални тестове.
 
-Важно: anon key е публичен. За production защити writes с Supabase Auth admin роли или server route със `SUPABASE_SERVICE_ROLE_KEY`; не поставяй service role key в `public/`.
+Важно: anon key е публичен. За production защити writes с Supabase Auth admin роли или server route със `SUPABASE_SERVICE_ROLE_KEY`; не поставяй service role key в `public/` или в клиентски JavaScript.
 
 ## Файлове
 

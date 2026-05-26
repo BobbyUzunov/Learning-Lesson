@@ -78,6 +78,7 @@ async function loadRows() {
     state.loading = true;
     setStatus('Зареждане на данни...', 'warn');
     try {
+        await window.LearningSupabase?.ready?.();
         if (window.LearningSupabase?.isConfigured()) {
             const [paths, lessons] = await Promise.all([
                 window.LearningSupabase.fetchPaths(),
@@ -313,8 +314,9 @@ function getLessonPayload() {
 
 async function saveLesson(event) {
     event.preventDefault();
+    await window.LearningSupabase?.ready?.();
     if (!window.LearningSupabase?.isConfigured()) {
-        setStatus('Supabase не е конфигуриран. Попълни SUPABASE_URL и SUPABASE_ANON_KEY, за да записваш в база.', 'warn');
+        setStatus('Supabase не е конфигуриран. Добави SUPABASE_URL и SUPABASE_ANON_KEY във Vercel Environment Variables.', 'warn');
         return;
     }
     const dbId = document.getElementById('lesson-db-id').value;

@@ -1,18 +1,57 @@
 (function () {
     const CDN_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
     const PROFILE_STORAGE_KEY = 'learningEnvironmentProfileIdV1';
+    let remoteConfig = null;
+    let configPromise = null;
 
     function getConfig() {
         const config = window.SUPABASE_CONFIG || {};
         return {
-            url: config.SUPABASE_URL || window.SUPABASE_URL || localStorage.getItem('SUPABASE_URL') || '',
-            anonKey: config.SUPABASE_ANON_KEY || window.SUPABASE_ANON_KEY || localStorage.getItem('SUPABASE_ANON_KEY') || ''
+            url: config.SUPABASE_URL || window.SUPABASE_URL || localStorage.getItem('SUPABASE_URL') || remoteConfig?.SUPABASE_URL || '',
+            anonKey: config.SUPABASE_ANON_KEY || window.SUPABASE_ANON_KEY || localStorage.getItem('SUPABASE_ANON_KEY') || remoteConfig?.SUPABASE_ANON_KEY || ''
         };
     }
 
     function isConfigured() {
         const config = getConfig();
         return Boolean(config.url && config.anonKey && !config.url.includes('your-project'));
+    }
+
+    async function loadOptionalLocalConfig() {
+        if (isConfigured()) return;
+        const response = await fetch('/supabase-config.js', { cache: 'no-store' });
+        if (!response.ok) return;
+        const source = await response.text();
+        if (!source.trim()) return;
+        Function(source)();
+    }
+
+    async function ready() {
+        if (isConfigured()) return getConfig();
+        if (!configPromise) {
+            configPromise = loadOptionalLocalConfig()
+                .catch((error) => {
+                    console.warn('Local Supabase config unavailable:', error.message);
+                })
+                .then(async () => {
+                    if (isConfigured()) return getConfig();
+                    const response = await fetch('/api/supabase-config', {
+                        headers: { Accept: 'application/json' },
+                        cache: 'no-store'
+                    });
+                    if (!response.ok) return getConfig();
+                    const data = await response.json();
+                    if (data?.configured) {
+                        remoteConfig = data;
+                    }
+                    return getConfig();
+                })
+                .catch((error) => {
+                    console.warn('Supabase config endpoint unavailable:', error.message);
+                    return getConfig();
+                });
+        }
+        return configPromise;
     }
 
     function loadSupabaseLibrary() {
@@ -37,6 +76,7 @@
     let clientPromise = null;
 
     async function getClient() {
+        await ready();
         if (!isConfigured()) return null;
         if (!clientPromise) {
             clientPromise = loadSupabaseLibrary().then((supabaseGlobal) => {
@@ -155,6 +195,7 @@
         getConfig,
         getProfileId,
         isConfigured,
+        ready,
         fetchPaths,
         fetchLessons,
         createLesson,
