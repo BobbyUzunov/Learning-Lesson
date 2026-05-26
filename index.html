@@ -2783,6 +2783,26 @@
             return null;
         }
 
+        function getLessonElement(lessonId) {
+            if (!lessonId) return null;
+            const escapedId = window.CSS?.escape ? CSS.escape(lessonId) : lessonId.replace(/"/g, '\\"');
+            return document.querySelector(`[data-lesson-id="${escapedId}"]`) ||
+                [...document.querySelectorAll('.lesson-item')].find(item => item.dataset.lessonId === lessonId) ||
+                null;
+        }
+
+        function openLessonForLanguage(lang, lessonId, options = {}) {
+            const targetLessonId = lessonId || getFirstUnlockedLessonId(lang) || getFirstLessonId(lang);
+            setLanguageChrome(lang);
+
+            if (!targetLessonId) {
+                renderEmptyLearningState();
+                return;
+            }
+
+            loadLesson(targetLessonId, getLessonElement(targetLessonId), options);
+        }
+
         function setLanguageChrome(lang) {
             currentLanguage = lang;
 
@@ -3357,8 +3377,7 @@
             }
 
             if (!lessonId) return;
-            setLanguageChrome(lang);
-            loadLesson(lessonId, document.querySelector(`[data-lesson-id="${lessonId}"]`));
+            openLessonForLanguage(lang, lessonId);
         }
 
         function startLearningFlow() {
@@ -3370,12 +3389,7 @@
                 lessonId = getLastLessonForLanguage(lang) || getFirstUnlockedLessonId(lang);
             }
 
-            setLanguageChrome(lang);
-            if (lessonId) {
-                loadLesson(lessonId, document.querySelector(`[data-lesson-id="${lessonId}"]`));
-            } else {
-                renderEmptyLearningState();
-            }
+            openLessonForLanguage(lang, lessonId);
         }
 
         function getLanguageForPath(path) {
@@ -3406,17 +3420,14 @@
 
         function chooseLearningPath(path) {
             const lang = getLanguageForPath(path);
-            const lessonId = getFirstUnlockedLessonId(lang);
+            const lessonId = getFirstUnlockedLessonId(lang) || getFirstLessonId(lang);
             localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify({
                 path,
                 lang,
                 selectedAt: new Date().toISOString()
             }));
             hideOnboarding();
-            setLanguageChrome(lang);
-            if (lessonId) {
-                loadLesson(lessonId, document.querySelector(`[data-lesson-id="${lessonId}"]`));
-            }
+            openLessonForLanguage(lang, lessonId, { forceUnlock: true });
         }
 
         async function loadSupabaseLessonsIntoApp() {
@@ -3493,11 +3504,8 @@
 
         function switchLanguage(lang) {
             currentLesson = null;
-            setLanguageChrome(lang);
             const lessonId = getLastLessonForLanguage(lang) || getFirstUnlockedLessonId(lang);
-            if (lessonId) {
-                loadLesson(lessonId, document.querySelector(`[data-lesson-id="${lessonId}"]`));
-            }
+            openLessonForLanguage(lang, lessonId);
         }
 
         function renderTopicsList() {
@@ -3685,7 +3693,7 @@
         }
 
         function loadLesson(lessonId, element, options = {}) {
-            if (!isLessonUnlocked(currentLanguage, lessonId)) {
+            if (!options.forceUnlock && !isLessonUnlocked(currentLanguage, lessonId)) {
                 displayOutput('🔒 Този урок е заключен. Завърши предишния урок, за да го отключиш.', 'error');
                 return;
             }
@@ -3744,6 +3752,10 @@
             renderProgressPanel();
             updateAcademyHeader();
         }
+
+        window.chooseLearningPath = chooseLearningPath;
+        window.switchLanguage = switchLanguage;
+        window.loadLesson = loadLesson;
 
         document.addEventListener('DOMContentLoaded', async function() {
             try {
