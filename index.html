@@ -371,6 +371,30 @@
             line-height: 1.65;
         }
 
+        #reading-material .celebration-state {
+            text-align: center;
+            padding: 42px 24px;
+            margin: 24px 0;
+            border: 1px solid rgba(45, 212, 191, 0.28);
+            border-radius: 20px;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(45, 212, 191, 0.16), transparent 34%),
+                rgba(15, 23, 42, 0.72);
+            box-shadow: 0 24px 70px rgba(2, 6, 23, 0.2);
+        }
+
+        #reading-material .celebration-state h2 {
+            color: #f8fafc;
+            font-size: 1.8rem;
+            line-height: 1.2;
+            margin-bottom: 10px;
+        }
+
+        #reading-material .celebration-state p {
+            color: #cbd5e1;
+            margin-bottom: 18px;
+        }
+
         #reading-material .read-category {
             display: inline-block;
             background: linear-gradient(135deg, #4f46e5, #0891b2);
@@ -3022,6 +3046,34 @@
             }
         }
 
+        function hasSelectedQuest() {
+            const selected = loadSelectedPathState();
+            return Boolean(selected.path && selected.lang && topicsByLanguage[selected.lang]);
+        }
+
+        function isPathCompleted(lang) {
+            const topics = topicsByLanguage[lang] || [];
+            return Boolean(topics.length && topics.every(topic => isLessonCompleted(lang, topic.id)));
+        }
+
+        function renderPathCompleteState(lang = currentLanguage) {
+            const readingMaterial = document.getElementById('reading-material');
+            if (!readingMaterial) return;
+            setLanguageChrome(lang);
+            readingMaterial.innerHTML = `
+                ${renderAcademyHero(null)}
+                <section class="celebration-state">
+                    <h2>Браво! Завърши тази пътека 🎉</h2>
+                    <p>${getPathDisplayName(lang)} Quest е завършен. Избери нов Quest и продължи серията.</p>
+                    <button class="glow-btn" type="button" data-action="explore-paths">Избери нова пътека</button>
+                </section>
+                ${renderPathShowcase()}
+                ${renderAchievements()}
+            `;
+            showToast('Браво! Завърши тази пътека 🎉');
+            setTimeout(() => scrollToSection('#learningPathCards'), 100);
+        }
+
         function showToast(message = 'Пътеката е заредена') {
             const toast = document.getElementById('appToast');
             if (!toast) return;
@@ -3053,8 +3105,17 @@
 
         function startCurrentPath(button = null) {
             setButtonFeedback(button);
+            if (!hasSelectedQuest()) {
+                explorePathCards(button);
+                showToast('Избери quest, за да започнеш');
+                return;
+            }
             const path = getPathIdForLanguage(currentLanguage);
             const lang = getLanguageForPath(path);
+            if (isPathCompleted(lang)) {
+                renderPathCompleteState(lang);
+                return;
+            }
             const lessonId = getNextMissionLessonId(lang);
             saveSelectedPath(path, lang);
             openLessonForLanguage(lang, lessonId, { forceUnlock: true });
@@ -3070,6 +3131,10 @@
 
         function goToNextLesson(button = null) {
             setButtonFeedback(button);
+            if (isPathCompleted(currentLanguage)) {
+                renderPathCompleteState(currentLanguage);
+                return;
+            }
             const nextLessonId = getNextMissionLessonId(currentLanguage);
             if (!nextLessonId) return;
             openLessonForLanguage(currentLanguage, nextLessonId);
@@ -3457,7 +3522,7 @@
                 showToast(`Браво! Отключи Level ${nextIndex} 🎉`);
                 displayOutput(`➡️ Отключи Level ${nextIndex}. Натисни „Към следващия урок”.`, 'success');
             } else {
-                showToast('Quest-ът е завършен 🏆');
+                renderPathCompleteState(currentLanguage);
                 displayOutput('🏆 Завърши всички уроци в тази секция.', 'success');
             }
         }
@@ -3646,11 +3711,26 @@
         }
 
         function continueLearning() {
+            if (!hasSelectedQuest()) {
+                explorePathCards();
+                showToast('Избери quest, за да започнеш');
+                return;
+            }
             const state = loadLastLessonState();
-            const lang = state.lang && topicsByLanguage[state.lang] ? state.lang : currentLanguage;
+            const selected = loadSelectedPathState();
+            const lang = selected.lang && topicsByLanguage[selected.lang]
+                ? selected.lang
+                : state.lang && topicsByLanguage[state.lang] ? state.lang : currentLanguage;
+            if (isPathCompleted(lang)) {
+                renderPathCompleteState(lang);
+                return;
+            }
             const lessonId = getNextMissionLessonId(lang);
 
-            if (!lessonId) return;
+            if (!lessonId) {
+                renderPathCompleteState(lang);
+                return;
+            }
             openLessonForLanguage(lang, lessonId);
             showToast('Това е следващата ти мисия');
             setTimeout(() => scrollToSection('#lessonEditorSection'), 80);
