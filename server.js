@@ -12,6 +12,8 @@ const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || 'local-admin-session-secret';
 const ADMIN_COOKIE_NAME = 'learning_admin_session';
+const PUBLIC_SUPABASE_URL = 'https://hmhwupoubtdcywcsqtwz.supabase.co';
+const PUBLIC_SUPABASE_ANON_KEY = 'sb_publishable_wR-OwwxoOMkh4MLt2B-6fQ_qgub5oN-';
 
 app.use(express.urlencoded({ extended: false }));
 
@@ -216,8 +218,11 @@ app.get('/api/test', (req, res) => {
 });
 
 app.get('/api/supabase-config', (req, res) => {
-    const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-    const anonKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+    const envUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const envAnonKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+    const hasRealValue = (value) => value && !/your-|placeholder|anon public key/i.test(value);
+    const url = hasRealValue(envUrl) ? envUrl : PUBLIC_SUPABASE_URL;
+    const anonKey = hasRealValue(envAnonKey) ? envAnonKey : PUBLIC_SUPABASE_ANON_KEY;
 
     res.set('Cache-Control', 'no-store');
     res.json({
