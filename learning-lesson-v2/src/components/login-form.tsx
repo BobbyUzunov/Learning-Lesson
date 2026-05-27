@@ -6,7 +6,19 @@ import { LogIn, UserPlus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
-export function LoginForm() {
+type LoginLabels = {
+  login: string;
+  register: string;
+  email: string;
+  password: string;
+  createAccount: string;
+  working: string;
+  missingConfig: string;
+  loggedIn: string;
+  registered: string;
+};
+
+export function LoginForm({ labels }: { labels: LoginLabels }) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,7 +31,7 @@ export function LoginForm() {
     event.preventDefault();
 
     if (!configured) {
-      setMessage("Add Supabase keys in .env.local to enable auth.");
+      setMessage(labels.missingConfig);
       return;
     }
 
@@ -38,7 +50,7 @@ export function LoginForm() {
       return;
     }
 
-    setMessage(mode === "login" ? "Logged in. Redirecting to dashboard." : "Account created. Confirm email if required.");
+    setMessage(mode === "login" ? labels.loggedIn : labels.registered);
 
     if (mode === "login") {
       router.push("/dashboard");
@@ -54,18 +66,18 @@ export function LoginForm() {
           onClick={() => setMode("login")}
           type="button"
         >
-          Login
+          {labels.login}
         </button>
         <button
           className={`focus-ring rounded-md px-3 py-2 text-sm font-bold ${mode === "register" ? "bg-white shadow-sm" : ""}`}
           onClick={() => setMode("register")}
           type="button"
         >
-          Register
+          {labels.register}
         </button>
       </div>
       <label className="mt-5 block text-sm font-bold" htmlFor="email">
-        Email
+        {labels.email}
       </label>
       <input
         className="focus-ring mt-2 w-full rounded-md border border-ink/15 bg-white px-3 py-3"
@@ -77,7 +89,7 @@ export function LoginForm() {
         value={email}
       />
       <label className="mt-4 block text-sm font-bold" htmlFor="password">
-        Password
+        {labels.password}
       </label>
       <input
         className="focus-ring mt-2 w-full rounded-md border border-ink/15 bg-white px-3 py-3"
@@ -94,7 +106,7 @@ export function LoginForm() {
         type="submit"
       >
         {mode === "login" ? <LogIn className="size-5" /> : <UserPlus className="size-5" />}
-        {loading ? "Working..." : mode === "login" ? "Login" : "Create account"}
+        {loading ? labels.working : mode === "login" ? labels.login : labels.createAccount}
       </button>
       {message ? <p className="mt-4 rounded-md bg-ink/10 px-3 py-2 text-sm text-ink/70">{message}</p> : null}
     </form>

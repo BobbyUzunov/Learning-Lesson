@@ -6,9 +6,15 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 type CompleteLessonButtonProps = {
   lessonId: string;
   disabled?: boolean;
+  labels: {
+    complete: string;
+    saved: string;
+    needsLogin: string;
+    working: string;
+  };
 };
 
-export function CompleteLessonButton({ lessonId, disabled }: CompleteLessonButtonProps) {
+export function CompleteLessonButton({ lessonId, disabled, labels }: CompleteLessonButtonProps) {
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   async function completeLesson() {
@@ -30,7 +36,13 @@ export function CompleteLessonButton({ lessonId, disabled }: CompleteLessonButto
       type="button"
     >
       {status === "saving" ? <Loader2 className="size-5 animate-spin" /> : <CheckCircle2 className="size-5" />}
-      {status === "saved" ? "Saved" : status === "error" ? "Needs login" : "Complete lesson"}
+      {status === "saving"
+        ? labels.working
+        : status === "saved"
+          ? labels.saved
+          : status === "error"
+            ? labels.needsLogin
+            : labels.complete}
     </button>
   );
 }

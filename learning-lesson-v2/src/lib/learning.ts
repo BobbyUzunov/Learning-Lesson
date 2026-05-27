@@ -1,5 +1,6 @@
 import { getPathLessons, learningPaths, lessons } from "./data";
 import { isLessonUnlocked } from "./level";
+import type { Language } from "./i18n";
 
 export function getPathById(pathId: string) {
   return learningPaths.find((path) => path.id === pathId);
@@ -36,7 +37,7 @@ export function getLessonExample(lessonId: string) {
   return examples[lessonId] ?? "Complete the reading, then apply the idea in a small exercise.";
 }
 
-export function getLessonPractice(lessonId: string) {
+export function getLessonPractice(lessonId: string, language: Language = "en") {
   const practice: Record<string, string> = {
     "js-variables": "Create three variables for course name, current XP, and completed lesson count.",
     "js-functions": "Write a function that receives current XP and lesson XP, then returns the new total.",
@@ -46,6 +47,20 @@ export function getLessonPractice(lessonId: string) {
     "api-basics": "Sketch three routes for lessons, paths, and progress using the correct HTTP method.",
     "auth-flow": "Write the steps an app follows from login to protected progress save."
   };
+
+  const practiceBg: Record<string, string> = {
+    "js-variables": "Създай три променливи за име на курс, текущ XP и брой завършени уроци.",
+    "js-functions": "Напиши функция, която приема текущ XP и XP от урок, после връща новия total.",
+    "js-arrays": "Създай масив с имена на уроци и покажи само тези, които съдържат буквата a.",
+    "py-variables": "Създай променливи за learner profile и отпечатай кратко progress съобщение.",
+    "py-loops": "Минѝ през списък с имена на уроци и отпечатай номериран learning план.",
+    "api-basics": "Скицирай три routes за lessons, paths и progress с правилния HTTP метод.",
+    "auth-flow": "Опиши стъпките от login до защитено записване на progress."
+  };
+
+  if (language === "bg") {
+    return practiceBg[lessonId] ?? "Напиши кратък пример, който прилага основната идея от урока.";
+  }
 
   return practice[lessonId] ?? "Write a short example that applies the main idea from this lesson.";
 }
