@@ -2955,6 +2955,19 @@
             return Object.keys(topicsByLanguage).reduce((sum, lang) => sum + (topicsByLanguage[lang]?.length || 0), 0);
         }
 
+        function getLessonCountForLanguage(lang) {
+            return topicsByLanguage[lang]?.length || 0;
+        }
+
+        function logLessonBootState(stage, lang, lessonId) {
+            console.log('[Learning boot]', {
+                stage,
+                loadedLessonsCount: getTotalLessonCount(),
+                activeTopic: lang,
+                selectedLesson: lessonId
+            });
+        }
+
         function getXpToNextLevel(xp) {
             const remainder = xp % XP_PER_LEVEL;
             return remainder === 0 ? XP_PER_LEVEL : XP_PER_LEVEL - remainder;
@@ -3003,6 +3016,22 @@
             return null;
         }
 
+        function resolveStartupLesson() {
+            const state = loadLastLessonState();
+            const selected = loadSelectedPathState();
+            const preferredLang = selected.lang && topicsByLanguage[selected.lang]
+                ? selected.lang
+                : state.lang && topicsByLanguage[state.lang]
+                    ? state.lang
+                    : 'javascript';
+            const lang = topicsByLanguage[preferredLang]?.length ? preferredLang : 'javascript';
+            const lessonId = getLastLessonForLanguage(lang) || getNextMissionLessonId(lang) || getFirstLessonId(lang) || getFirstLessonId('javascript');
+            return {
+                lang: topicsByLanguage[lang]?.length ? lang : 'javascript',
+                lessonId
+            };
+        }
+
         function getLessonElement(lessonId) {
             if (!lessonId) return null;
             const escapedId = window.CSS?.escape ? CSS.escape(lessonId) : lessonId.replace(/"/g, '\\"');
@@ -3012,8 +3041,10 @@
         }
 
         function openLessonForLanguage(lang, lessonId, options = {}) {
-            const targetLessonId = lessonId || getFirstUnlockedLessonId(lang) || getFirstLessonId(lang);
-            setLanguageChrome(lang);
+            const safeLang = topicsByLanguage[lang]?.length ? lang : 'javascript';
+            const targetLessonId = lessonId || getFirstUnlockedLessonId(safeLang) || getFirstLessonId(safeLang) || getFirstLessonId('javascript');
+            setLanguageChrome(safeLang);
+            logLessonBootState('openLessonForLanguage', safeLang, targetLessonId);
 
             if (!targetLessonId) {
                 renderEmptyLearningState();
@@ -3737,10 +3768,8 @@
         }
 
         function startLearningFlow() {
-            const state = loadLastLessonState();
-            const lang = state.lang && topicsByLanguage[state.lang] ? state.lang : 'javascript';
-            let lessonId = getLastLessonForLanguage(lang) || getNextMissionLessonId(lang);
-
+            const { lang, lessonId } = resolveStartupLesson();
+            logLessonBootState('startLearningFlow', lang, lessonId);
             openLessonForLanguage(lang, lessonId);
         }
 
@@ -3821,6 +3850,7 @@
         function refreshCurrentLessonAfterDataSync() {
             renderTopicsList();
             renderProgressPanel();
+            logLessonBootState('afterSupabaseHydration', currentLanguage, currentLesson);
             if (currentLesson && getLessons()[currentLesson]) {
                 loadLesson(currentLesson, getLessonElement(currentLesson), { skipEditorReset: true, forceUnlock: true });
             } else {
@@ -4078,6 +4108,19 @@
         }
 
         function loadLesson(lessonId, element, options = {}) {
+            let lesson = getLessons()[lessonId];
+            if (!lesson) {
+                const fallbackLessonId = getFirstLessonId(currentLanguage) || getFirstLessonId('javascript');
+                if (fallbackLessonId && fallbackLessonId !== lessonId) {
+                    console.warn('[Learning boot] Missing lesson, falling back to first available lesson.', { requested: lessonId, fallback: fallbackLessonId });
+                    loadLesson(fallbackLessonId, getLessonElement(fallbackLessonId), { ...options, forceUnlock: true });
+                    return;
+                }
+                document.getElementById('academy-current-title').textContent = 'Избери урок';
+                renderEmptyLearningState();
+                return;
+            }
+
             if (!options.forceUnlock && !isLessonUnlocked(currentLanguage, lessonId)) {
                 showToast('Завърши предишния урок, за да отключиш този.');
                 displayOutput('🔒 Този урок е заключен. Завърши предишния урок, за да го отключиш.', 'error');
@@ -4089,8 +4132,7 @@
             document.querySelectorAll('.lesson-item').forEach(item => item.classList.remove('active'));
             if (element) element.classList.add('active');
 
-            const lesson = getLessons()[lessonId];
-            if (!lesson) return;
+            logLessonBootState('loadLesson', currentLanguage, lessonId);
 
             if (!options.skipEditorReset) {
                 if (editor) {
@@ -4243,15 +4285,28 @@
 
         document.addEventListener('click', handleAppButtonClick, true);
 
-        document.addEventListener('DOMContentLoaded', function() {
+        function renderInitialLessonSafely() {
             try {
                 initEditor();
             } catch (error) {
                 console.warn('Code editor did not initialize:', error);
                 document.getElementById('code-editor').value = defaultCodeByLanguage.javascript;
             }
-            startLearningFlow();
-            showOnboardingIfNeeded();
+            try {
+                startLearningFlow();
+            } catch (error) {
+                console.error('[Learning boot] Initial lesson render failed, using JavaScript fallback:', error);
+                openLessonForLanguage('javascript', getFirstLessonId('javascript'), { forceUnlock: true });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderInitialLessonSafely();
+            try {
+                showOnboardingIfNeeded();
+            } catch (error) {
+                console.warn('[Learning boot] Onboarding skipped:', error.message);
+            }
             hydrateSupabaseDataAfterInitialRender();
         });
     </script>
