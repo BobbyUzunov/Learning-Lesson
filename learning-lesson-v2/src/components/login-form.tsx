@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import { LogIn, UserPlus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
@@ -11,6 +12,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
   const configured = hasSupabaseEnv();
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -36,7 +38,12 @@ export function LoginForm() {
       return;
     }
 
-    setMessage(mode === "login" ? "Logged in. Open the dashboard." : "Account created. Confirm email if required.");
+    setMessage(mode === "login" ? "Logged in. Redirecting to dashboard." : "Account created. Confirm email if required.");
+
+    if (mode === "login") {
+      router.push("/dashboard");
+      router.refresh();
+    }
   }
 
   return (
