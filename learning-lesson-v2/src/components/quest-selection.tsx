@@ -10,32 +10,41 @@ import { localizeGameQuest, t, type Language } from "@/lib/i18n";
 export function QuestSelection({
   completedLessonIds: initialCompletedLessonIds,
   isAuthenticated,
+  showGuestLockMessage = false,
   language
 }: {
   completedLessonIds?: string[];
   isAuthenticated: boolean;
+  showGuestLockMessage?: boolean;
   language: Language;
 }) {
   const [completedLessonIds, setCompletedLessonIds] = useState<string[]>(initialCompletedLessonIds ?? []);
+  const [guestMessage, setGuestMessage] = useState<string | null>(
+    showGuestLockMessage ? "Влез в акаунт, за да отключиш следващите мисии." : null
+  );
   const copy = t(language);
 
   useEffect(() => {
-    if (!initialCompletedLessonIds && isAuthenticated) {
+    if (!initialCompletedLessonIds) {
       setCompletedLessonIds(getStoredProgress().completedLessonIds);
     }
-  }, [initialCompletedLessonIds, isAuthenticated]);
+  }, [initialCompletedLessonIds]);
 
   return (
-    <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+    <div className="mt-8">
+      {guestMessage ? (
+        <p className="mb-4 rounded-md bg-violet/15 px-4 py-3 text-sm font-bold text-ink">{guestMessage}</p>
+      ) : null}
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
       {gameQuests.map((rawQuest) => {
         const quest = localizeGameQuest(rawQuest, language);
         const completed = quest.lessonIds.filter((id) => completedLessonIds.includes(id)).length;
         const progress = Math.round((completed / quest.lessonIds.length) * 100);
         const firstLesson = quest.lessonIds.find((id) => !completedLessonIds.includes(id)) ?? quest.lessonIds[0];
-        const hasStarted = isAuthenticated && completed > 0;
-        const href = isAuthenticated
-          ? `/lesson/${firstLesson}`
-          : "/login?message=Please%20login%20to%20continue%20your%20learning%20journey.";
+        const hasStarted = completed > 0;
+        const isGuestAllowedQuest = quest.id === "frontend" && firstLesson === "1";
+        const guestLocked = !isAuthenticated && !isGuestAllowedQuest;
+        const href = `/lesson/${firstLesson}`;
 
         return (
           <article
@@ -63,16 +72,28 @@ export function QuestSelection({
                 <div className="h-3 rounded-full bg-violet transition-all" style={{ width: `${progress}%` }} />
               </div>
             </div>
-            <Link
-              className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-ink px-4 py-3 text-center font-bold text-paper transition hover:bg-ink/90 group-hover:-translate-y-0.5"
-              href={href}
-            >
-              {hasStarted ? copy.paths.continueQuest : copy.paths.startQuest}
-              <ChevronRight className="size-5" />
-            </Link>
+            {guestLocked ? (
+              <button
+                className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md border border-ink/15 bg-ink/5 px-4 py-3 text-center font-bold text-ink/70 transition"
+                onClick={() => setGuestMessage("Влез в акаунт, за да отключиш следващите мисии.")}
+                type="button"
+              >
+                {copy.paths.startQuest}
+                <ChevronRight className="size-5" />
+              </button>
+            ) : (
+              <Link
+                className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-ink px-4 py-3 text-center font-bold text-paper transition hover:bg-ink/90 group-hover:-translate-y-0.5"
+                href={href}
+              >
+                {hasStarted ? copy.paths.continueQuest : copy.paths.startQuest}
+                <ChevronRight className="size-5" />
+              </Link>
+            )}
           </article>
         );
       })}
+      </div>
     </div>
   );
 }

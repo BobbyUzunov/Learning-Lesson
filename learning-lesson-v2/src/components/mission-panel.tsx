@@ -1,17 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, Lightbulb, ScrollText } from "lucide-react";
 import type { GameLesson } from "@/lib/game-data";
-import { completeStoredLesson, getGameProgressStats } from "@/lib/game-progress";
+import { completeStoredLesson, getGameProgressStats, guestContinueKey } from "@/lib/game-progress";
 import { t, type Language } from "@/lib/i18n";
 
-export function MissionPanel({ language, lesson }: { language: Language; lesson: GameLesson }) {
+export function MissionPanel({
+  isAuthenticated,
+  language,
+  lesson
+}: {
+  isAuthenticated: boolean;
+  language: Language;
+  lesson: GameLesson;
+}) {
   const [solutionInput, setSolutionInput] = useState("");
   const [hintsUsed, setHintsUsed] = useState(0);
   const [showSolution, setShowSolution] = useState(false);
+  const [showGuestModal, setShowGuestModal] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
   const copy = t(language);
   const lessonHints = [lesson.hint1, lesson.hint2, lesson.hint3, lesson.hint]
     .filter((hint): hint is string => Boolean(hint?.trim()))
@@ -45,6 +56,9 @@ export function MissionPanel({ language, lesson }: { language: Language; lesson:
     const progress = completeStoredLesson(lesson.id);
     const stats = getGameProgressStats(progress);
     setMessage(`${copy.lesson.completeMessage} ${stats.level}.`);
+    if (!isAuthenticated && lesson.id === "1") {
+      setShowGuestModal(true);
+    }
   }
 
   function revealNextHint() {
@@ -150,6 +164,36 @@ export function MissionPanel({ language, lesson }: { language: Language; lesson:
         </pre>
       </div>
       {message ? <p className="rounded-md bg-violet/15 p-4 text-sm font-bold text-ink">{message}</p> : null}
+      {showGuestModal ? (
+        <div className="fixed inset-0 z-40 grid place-items-center bg-ink/50 px-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-soft">
+            <h3 className="text-2xl font-black">Браво! Завърши първата мисия 🎉</h3>
+            <p className="mt-3 text-sm leading-6 text-ink/75">
+              Създай безплатен акаунт, за да запазиш прогреса си, XP и отключените мисии.
+            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button
+                className="focus-ring rounded-md bg-ink px-4 py-3 text-sm font-bold text-paper transition hover:bg-ink/90"
+                onClick={() => router.push("/register")}
+                type="button"
+              >
+                Създай акаунт
+              </button>
+              <button
+                className="focus-ring rounded-md border border-ink/15 px-4 py-3 text-sm font-bold text-ink transition hover:bg-ink/5"
+                onClick={() => {
+                  window.localStorage.setItem(guestContinueKey, "1");
+                  setShowGuestModal(false);
+                  router.push("/paths");
+                }}
+                type="button"
+              >
+                Продължи като гост
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

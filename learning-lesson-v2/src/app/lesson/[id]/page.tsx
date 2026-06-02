@@ -1,14 +1,14 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { MissionPanel } from "@/components/mission-panel";
 import { getLesson } from "@/lib/data";
-import { getGameLesson, getQuestForLesson } from "@/lib/game-data";
+import { getFirstGameLesson, getGameLesson, getQuestForLesson } from "@/lib/game-data";
 import { getLessonExample } from "@/lib/learning";
 import { localizeGameLesson, localizeGameQuest, localizeLesson, localizePath, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getPathById } from "@/lib/learning";
-import { requireUser } from "@/lib/supabase/auth";
+import { getCurrentSession } from "@/lib/supabase/auth";
 
 type LessonPageProps = {
   params: Promise<{ id: string }>;
@@ -36,8 +36,12 @@ function withProgressiveHints(lesson: {
 export default async function LessonPage({ params }: LessonPageProps) {
   const language = await getLanguage();
   const copy = t(language);
-  await requireUser();
+  const session = await getCurrentSession();
   const { id } = await params;
+  const firstLesson = getFirstGameLesson();
+  if (!session.user && id !== firstLesson.id) {
+    redirect("/paths?guestLocked=1");
+  }
   const gameLesson = getGameLesson(id);
   const rawLegacyLesson = getLesson(id);
 
@@ -102,7 +106,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
             <code>{missionLesson.codeExample}</code>
           </pre>
         </section>
-        <MissionPanel language={language} lesson={missionLesson} />
+        <MissionPanel isAuthenticated={Boolean(session.user)} language={language} lesson={missionLesson} />
       </article>
     </main>
   );

@@ -5,9 +5,14 @@ import { getLanguage } from "@/lib/i18n-server";
 import { getCurrentSession } from "@/lib/supabase/auth";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 
-export default async function PathsPage() {
+type PathsPageProps = {
+  searchParams: Promise<{ guestLocked?: string }>;
+};
+
+export default async function PathsPage({ searchParams }: PathsPageProps) {
   const language = await getLanguage();
   const copy = t(language);
+  const params = await searchParams;
   const session = await getCurrentSession();
   const progressData = session.user ? await getCurrentUserProgress() : null;
   const completedLessonIds = progressData?.progress.filter((item) => item.completed).map((item) => item.lesson_id);
@@ -34,6 +39,7 @@ export default async function PathsPage() {
       <QuestSelection
         completedLessonIds={completedLessonIds}
         isAuthenticated={Boolean(session.user)}
+        showGuestLockMessage={Boolean(params.guestLocked)}
         language={language}
       />
     </main>

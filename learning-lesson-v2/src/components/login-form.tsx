@@ -3,6 +3,8 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogIn, UserPlus } from "lucide-react";
+import { clearStoredProgress, getStoredProgress, guestContinueKey, getGameProgressStats } from "@/lib/game-progress";
+import { xpPerLesson } from "@/lib/game-data";
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -58,15 +60,43 @@ export function LoginForm({
 
     const user = result.data.user;
     if (user) {
+      const guestProgress = getStoredProgress();
+      const guestCompletedLessonIds = guestProgress.completedLessonIds;
+      const guestXp = guestCompletedLessonIds.length * xpPerLesson;
+      const guestLevel = getGameProgressStats(guestProgress).level;
+      const completedRows = guestCompletedLessonIds.map((lessonId) => ({
+        user_id: user.id,
+        lesson_id: lessonId,
+        completed: true,
+        xp_earned: xpPerLesson,
+        completed_at: new Date().toISOString()
+      }));
+
+      if (completedRows.length > 0) {
+        await supabase.from("user_progress").upsert(completedRows, { onConflict: "user_id,lesson_id" });
+      }
+
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("xp,level")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      const nextXp = Math.max(existingProfile?.xp ?? 0, guestXp);
+      const nextLevel = Math.max(existingProfile?.level ?? 1, guestLevel);
       await supabase.from("profiles").upsert(
         {
           id: user.id,
           email: user.email,
-          xp: 0,
-          level: 1
+          xp: nextXp,
+          level: nextLevel
         },
         { onConflict: "id" }
       );
+      if (completedRows.length > 0) {
+        clearStoredProgress();
+      }
+      window.localStorage.removeItem(guestContinueKey);
     }
 
     setMessage(mode === "login" ? labels.loggedIn : labels.registered);

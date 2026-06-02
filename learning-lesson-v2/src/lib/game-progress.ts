@@ -8,6 +8,7 @@ export type GameProgress = {
 };
 
 const storageKey = "learning-lesson-v2-game-progress";
+export const guestContinueKey = "learning-lesson-v2-guest-continue";
 
 export function getStoredProgress(): GameProgress {
   if (typeof window === "undefined") {
@@ -49,6 +50,14 @@ export function completeStoredLesson(lessonId: string) {
 
   saveStoredProgress(nextProgress);
   return nextProgress;
+}
+
+export function clearStoredProgress() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(storageKey);
 }
 
 export function getGameProgressStats(progress: GameProgress) {
