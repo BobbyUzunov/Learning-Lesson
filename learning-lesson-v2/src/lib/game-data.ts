@@ -95,6 +95,19 @@ export const gameQuests: GameQuest[] = [
     rewardBadge: "Mobile Starter",
     rewardBadgeBg: "Mobile starter",
     lessonIds: ["1"]
+  },
+  {
+    id: "ai-product-builder",
+    title: "AI Product Builder",
+    titleBg: "AI Product Builder",
+    description: "Learn how to build real products using AI tools, Cursor, Supabase and Vercel.",
+    descriptionBg: "Научи как да изграждаш реални продукти с AI tools, Cursor, Supabase и Vercel.",
+    levels: 20,
+    difficulty: "Beginner friendly",
+    difficultyBg: "Подходящо за начинаещи",
+    rewardBadge: "Build real projects · XP rewards",
+    rewardBadgeBg: "Реални проекти · XP награди",
+    lessonIds: ["5"]
   }
 ];
 
