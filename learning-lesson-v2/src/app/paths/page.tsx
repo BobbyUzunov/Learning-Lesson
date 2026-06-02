@@ -24,6 +24,9 @@ export default async function PathsPage({ searchParams }: PathsPageProps) {
           <p className="text-sm font-bold uppercase text-mint">{copy.paths.badge}</p>
           <h1 className="mt-2 text-4xl font-black">{copy.paths.title}</h1>
           <p className="mt-3 max-w-2xl text-ink/70">{copy.paths.subtitle}</p>
+          <p className="mt-3 rounded-md bg-mint/15 px-3 py-2 text-sm font-semibold text-ink">
+            Пробвай първата мисия без регистрация. Създай акаунт, за да запазиш прогреса.
+          </p>
         </div>
         {!session.user ? (
           <div className="flex flex-col gap-2 sm:flex-row">

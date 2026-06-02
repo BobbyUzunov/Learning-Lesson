@@ -77,16 +77,9 @@ export function QuestSelection({
             </div>
             <div className="mt-4">
               <div className="flex justify-between text-sm font-bold text-ink/70">
-                <span>
-                  {availableMissions === 1 && plannedMissions > 1
-                    ? `1 налична мисия от ${plannedMissions} планирани`
-                    : `${completed}/${plannedMissions} мисии`}
-                </span>
+                <span>{`${availableMissions} наличн${availableMissions === 1 ? "а" : "и"} / ${plannedMissions} планирани мисии`}</span>
                 <span>{progress}%</span>
               </div>
-              <p className="mt-1 text-xs font-semibold text-ink/55">
-                {availableMissions} налична{availableMissions === 1 ? "" : "и"} / {plannedMissions} планирани
-              </p>
               <div className="mt-2 h-3 rounded-full bg-ink/10">
                 <div className="h-3 rounded-full bg-violet transition-all" style={{ width: `${progress}%` }} />
               </div>
