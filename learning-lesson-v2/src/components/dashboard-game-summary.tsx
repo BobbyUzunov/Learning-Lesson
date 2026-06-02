@@ -4,22 +4,33 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Flame, Target, Trophy } from "lucide-react";
 import { ContinueLearningButton } from "./continue-learning-button";
-import { getGameProgressStats, getStoredProgress } from "@/lib/game-progress";
+import { getGameProgressStats, getStoredProgress, toGameProgress } from "@/lib/game-progress";
 import { localizeGameLesson, localizeGameQuest, t, type Language } from "@/lib/i18n";
+import type { ProgressRecord } from "@/lib/types";
 
 type DashboardStats = ReturnType<typeof getGameProgressStats>;
 
-export function DashboardGameSummary({ language }: { language: Language }) {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
+export function DashboardGameSummary({
+  initialProgress,
+  language
+}: {
+  initialProgress?: ProgressRecord[];
+  language: Language;
+}) {
+  const initialStats = initialProgress ? getGameProgressStats(toGameProgress(initialProgress)) : null;
+  const [stats, setStats] = useState<DashboardStats | null>(initialStats);
   const copy = t(language);
 
   useEffect(() => {
-    setStats(getGameProgressStats(getStoredProgress()));
-  }, []);
+    if (!initialProgress) {
+      setStats(getGameProgressStats(getStoredProgress()));
+    }
+  }, [initialProgress]);
 
   const fallback = stats ?? getGameProgressStats({ completedLessonIds: [], currentStreak: 0, lastCompletedAt: null });
   const currentQuest = localizeGameQuest(fallback.currentQuest, language);
   const currentMission = localizeGameLesson(fallback.currentMission, language);
+  const completedLessonIds = initialProgress?.filter((item) => item.completed).map((item) => item.lesson_id);
 
   return (
     <div className="mt-8 grid gap-4">
@@ -30,7 +41,7 @@ export function DashboardGameSummary({ language }: { language: Language }) {
             <h2 className="mt-2 text-3xl font-black">{currentQuest.title}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-paper/75">{currentQuest.description}</p>
           </div>
-          <ContinueLearningButton label={copy.dashboard.continueLearning} />
+          <ContinueLearningButton completedLessonIds={completedLessonIds} label={copy.dashboard.continueLearning} />
         </div>
       </section>
 

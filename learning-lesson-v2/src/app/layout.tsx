@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { LogoutButton } from "@/components/logout-button";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
+import { getCurrentSession } from "@/lib/supabase/auth";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,11 +19,15 @@ export default async function RootLayout({
 }>) {
   const language = await getLanguage();
   const copy = t(language);
-  const navItems = [
-    { href: "/dashboard", label: copy.nav.dashboard },
-    { href: "/paths", label: copy.nav.paths },
-    { href: "/admin", label: copy.nav.admin }
-  ];
+  const session = await getCurrentSession();
+  const navItems = session.user
+    ? [
+        { href: "/dashboard", label: copy.nav.dashboard },
+        { href: "/paths", label: copy.nav.paths },
+        { href: "/profile", label: copy.nav.profile },
+        ...(session.isAdmin ? [{ href: "/admin", label: copy.nav.admin }] : [])
+      ]
+    : [{ href: "/paths", label: copy.nav.paths }];
 
   return (
     <html lang={language}>
@@ -43,9 +49,18 @@ export default async function RootLayout({
                 </Link>
               ))}
               <LanguageSwitcher language={language} />
-              <Link className="rounded-md bg-ink px-3 py-2 text-paper transition hover:bg-ink/90" href="/login">
-                {copy.nav.login}
-              </Link>
+              {session.user ? (
+                <LogoutButton label={copy.nav.logout} />
+              ) : (
+                <>
+                  <Link className="rounded-md px-3 py-2 text-ink/70 transition hover:bg-ink/5 hover:text-ink" href="/login">
+                    {copy.nav.login}
+                  </Link>
+                  <Link className="rounded-md bg-ink px-3 py-2 text-paper transition hover:bg-ink/90" href="/register">
+                    {copy.nav.register}
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
         </header>

@@ -18,8 +18,14 @@ type LoginLabels = {
   registered: string;
 };
 
-export function LoginForm({ labels }: { labels: LoginLabels }) {
-  const [mode, setMode] = useState<"login" | "register">("login");
+export function LoginForm({
+  initialMode = "login",
+  labels
+}: {
+  initialMode?: "login" | "register";
+  labels: LoginLabels;
+}) {
+  const [mode, setMode] = useState<"login" | "register">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -50,12 +56,22 @@ export function LoginForm({ labels }: { labels: LoginLabels }) {
       return;
     }
 
-    setMessage(mode === "login" ? labels.loggedIn : labels.registered);
-
-    if (mode === "login") {
-      router.push("/dashboard");
-      router.refresh();
+    const user = result.data.user;
+    if (user) {
+      await supabase.from("profiles").upsert(
+        {
+          id: user.id,
+          email: user.email,
+          xp: 0,
+          level: 1
+        },
+        { onConflict: "id" }
+      );
     }
+
+    setMessage(mode === "login" ? labels.loggedIn : labels.registered);
+    router.push("/dashboard");
+    router.refresh();
   }
 
   return (

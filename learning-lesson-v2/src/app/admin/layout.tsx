@@ -1,57 +1,13 @@
 import Link from "next/link";
-import { LockKeyhole } from "lucide-react";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
-import { hasSupabaseEnv } from "@/lib/supabase/env";
-import { createClient } from "@/lib/supabase/server";
-
-async function getAdminSession() {
-  if (!hasSupabaseEnv()) {
-    return { email: null, configured: false, allowed: false };
-  }
-
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  const email = user?.email ?? null;
-  const adminEmails = (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((item) => item.trim().toLowerCase())
-    .filter(Boolean);
-  const allowed = email ? adminEmails.length === 0 || adminEmails.includes(email.toLowerCase()) : false;
-
-  return { email, configured: true, allowed };
-}
+import { requireAdmin } from "@/lib/supabase/auth";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const language = await getLanguage();
   const copy = t(language);
-  const { email, configured, allowed } = await getAdminSession();
-
-  if (!configured || !email || !allowed) {
-    return (
-      <main className="mx-auto max-w-3xl px-4 py-12">
-        <div className="rounded-lg border border-ink/10 bg-white/80 p-6 shadow-soft">
-          <LockKeyhole className="size-8 text-violet" />
-          <h1 className="mt-4 text-3xl font-black">
-            {email ? copy.admin.permissionRequired : copy.admin.accessRequired}
-          </h1>
-          <p className="mt-3 leading-7 text-ink/70">
-            {email
-              ? copy.admin.allowlistMessage
-              : copy.admin.signInMessage}
-          </p>
-          {!email ? (
-            <Link className="mt-6 inline-flex rounded-md bg-ink px-4 py-3 font-bold text-paper" href="/login">
-              {copy.admin.goToLogin}
-            </Link>
-          ) : null}
-        </div>
-      </main>
-    );
-  }
+  const session = await requireAdmin();
+  const email = session.user.email;
 
   return (
     <main className="mx-auto grid max-w-6xl gap-6 px-4 py-8 lg:grid-cols-[220px_1fr]">

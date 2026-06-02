@@ -8,6 +8,7 @@ import { getLessonExample } from "@/lib/learning";
 import { localizeGameLesson, localizeGameQuest, localizeLesson, localizePath, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getPathById } from "@/lib/learning";
+import { requireUser } from "@/lib/supabase/auth";
 
 type LessonPageProps = {
   params: Promise<{ id: string }>;
@@ -16,6 +17,7 @@ type LessonPageProps = {
 export default async function LessonPage({ params }: LessonPageProps) {
   const language = await getLanguage();
   const copy = t(language);
+  await requireUser();
   const { id } = await params;
   const gameLesson = getGameLesson(id);
   const rawLegacyLesson = getLesson(id);

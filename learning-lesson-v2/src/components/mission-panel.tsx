@@ -10,9 +10,27 @@ export function MissionPanel({ language, lesson }: { language: Language; lesson:
   const [showHint, setShowHint] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const copy = t(language);
 
-  function completeMission() {
+  async function completeMission() {
+    setLoading(true);
+    setMessage(null);
+
+    const response = await fetch("/api/progress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lessonId: lesson.id })
+    });
+
+    setLoading(false);
+
+    if (response.ok) {
+      const result = (await response.json()) as { level?: number };
+      setMessage(`${copy.lesson.completeMessage} ${result.level ?? 1}.`);
+      return;
+    }
+
     const progress = completeStoredLesson(lesson.id);
     const stats = getGameProgressStats(progress);
     setMessage(`${copy.lesson.completeMessage} ${stats.level}.`);
@@ -41,11 +59,12 @@ export function MissionPanel({ language, lesson }: { language: Language; lesson:
         </button>
         <button
           className="focus-ring inline-flex items-center justify-center gap-2 rounded-md bg-mint px-4 py-3 font-bold text-ink transition hover:bg-mint/80"
+          disabled={loading}
           onClick={completeMission}
           type="button"
         >
           <CheckCircle2 className="size-5" />
-          {copy.lesson.completeMission}
+          {loading ? copy.login.working : copy.lesson.completeMission}
         </button>
       </div>
       {showHint ? <p className="mt-4 rounded-md bg-mint/15 p-4 text-sm leading-6 text-ink/75">{lesson.hint}</p> : null}

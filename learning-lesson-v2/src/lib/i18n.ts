@@ -64,7 +64,10 @@ export const dictionary = {
       dashboard: "Табло",
       paths: "Пътеки",
       admin: "Админ",
-      login: "Вход"
+      login: "Вход",
+      logout: "Изход",
+      profile: "Профил",
+      register: "Създай акаунт"
     },
     common: {
       lesson: "Урок",
@@ -190,7 +193,10 @@ export const dictionary = {
       dashboard: "Dashboard",
       paths: "Paths",
       admin: "Admin",
-      login: "Login"
+      login: "Login",
+      logout: "Logout",
+      profile: "Profile",
+      register: "Create Account"
     },
     common: {
       lesson: "Lesson",

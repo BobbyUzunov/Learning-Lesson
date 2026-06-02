@@ -7,13 +7,23 @@ import { gameQuests } from "@/lib/game-data";
 import { getStoredProgress } from "@/lib/game-progress";
 import { localizeGameQuest, t, type Language } from "@/lib/i18n";
 
-export function QuestSelection({ language }: { language: Language }) {
-  const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([]);
+export function QuestSelection({
+  completedLessonIds: initialCompletedLessonIds,
+  isAuthenticated,
+  language
+}: {
+  completedLessonIds?: string[];
+  isAuthenticated: boolean;
+  language: Language;
+}) {
+  const [completedLessonIds, setCompletedLessonIds] = useState<string[]>(initialCompletedLessonIds ?? []);
   const copy = t(language);
 
   useEffect(() => {
-    setCompletedLessonIds(getStoredProgress().completedLessonIds);
-  }, []);
+    if (!initialCompletedLessonIds && isAuthenticated) {
+      setCompletedLessonIds(getStoredProgress().completedLessonIds);
+    }
+  }, [initialCompletedLessonIds, isAuthenticated]);
 
   return (
     <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -22,7 +32,10 @@ export function QuestSelection({ language }: { language: Language }) {
         const completed = quest.lessonIds.filter((id) => completedLessonIds.includes(id)).length;
         const progress = Math.round((completed / quest.lessonIds.length) * 100);
         const firstLesson = quest.lessonIds.find((id) => !completedLessonIds.includes(id)) ?? quest.lessonIds[0];
-        const hasStarted = completed > 0;
+        const hasStarted = isAuthenticated && completed > 0;
+        const href = isAuthenticated
+          ? `/lesson/${firstLesson}`
+          : "/login?message=Please%20login%20to%20continue%20your%20learning%20journey.";
 
         return (
           <article
@@ -52,7 +65,7 @@ export function QuestSelection({ language }: { language: Language }) {
             </div>
             <Link
               className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-ink px-4 py-3 font-bold text-paper transition group-hover:bg-ink/90"
-              href={`/lesson/${firstLesson}`}
+              href={href}
             >
               {hasStarted ? copy.paths.continueQuest : copy.paths.startQuest}
               <ChevronRight className="size-5" />

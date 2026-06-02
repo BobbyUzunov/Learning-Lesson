@@ -4,10 +4,14 @@ import { ContinueLearningButton } from "@/components/continue-learning-button";
 import { learningPaths } from "@/lib/data";
 import { localizePath, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
+import { getCurrentSession } from "@/lib/supabase/auth";
+import { getCurrentUserProgress } from "@/lib/supabase/progress";
 
 export default async function HomePage() {
   const language = await getLanguage();
   const copy = t(language);
+  const session = await getCurrentSession();
+  const progressData = session.user ? await getCurrentUserProgress() : null;
   const paths = learningPaths.map((path) => localizePath(path, language));
   const icons = [Route, Trophy, ShieldCheck];
 
@@ -20,19 +24,37 @@ export default async function HomePage() {
           <p className="mt-5 max-w-2xl text-lg leading-8 text-ink/70">
             {copy.home.subtitle}
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link
-              className="inline-flex items-center justify-center gap-2 rounded-md bg-ink px-5 py-3 font-bold text-paper transition hover:bg-ink/90"
-              href="/paths"
-            >
-              {copy.home.startLearning}
-              <ArrowRight className="size-5" />
-            </Link>
-            <ContinueLearningButton
-              className="inline-flex items-center justify-center gap-2 rounded-md border border-ink/15 px-5 py-3 font-bold transition hover:bg-white/70"
-              label={copy.home.continueLearning}
-            />
-          </div>
+          {session.user ? (
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <ContinueLearningButton
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-ink px-5 py-3 font-bold text-paper transition hover:bg-ink/90"
+                completedLessonIds={progressData?.progress.filter((item) => item.completed).map((item) => item.lesson_id)}
+                label={copy.home.continueLearning}
+              />
+              <Link
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-ink/15 px-5 py-3 font-bold transition hover:bg-white/70"
+                href="/dashboard"
+              >
+                {copy.nav.dashboard}
+              </Link>
+            </div>
+          ) : (
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-ink px-5 py-3 font-bold text-paper transition hover:bg-ink/90"
+                href="/register"
+              >
+                {copy.nav.register}
+                <ArrowRight className="size-5" />
+              </Link>
+              <Link
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-ink/15 px-5 py-3 font-bold transition hover:bg-white/70"
+                href="/login"
+              >
+                {copy.nav.login}
+              </Link>
+            </div>
+          )}
         </div>
         <div className="rounded-lg border border-ink/10 bg-white/75 p-5 shadow-soft">
           <div className="grid gap-3">

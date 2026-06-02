@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { getLessonXp } from "@/lib/supabase/progress";
+import { xpPerLevel } from "@/lib/game-data";
 
 export async function POST(request: Request) {
   if (!hasSupabaseEnv()) {
@@ -23,12 +24,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
 
+  const xpEarned = getLessonXp(lessonId);
   const { error } = await supabase.from("user_progress").upsert(
     {
       user_id: user.id,
       lesson_id: lessonId,
       completed: true,
-      xp_earned: getLessonXp(lessonId),
+      xp_earned: xpEarned,
       completed_at: new Date().toISOString()
     },
     { onConflict: "user_id,lesson_id" }
@@ -38,5 +40,31 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true });
+  const { data: completedProgress, error: progressError } = await supabase
+    .from("user_progress")
+    .select("xp_earned")
+    .eq("user_id", user.id)
+    .eq("completed", true);
+
+  if (progressError) {
+    return NextResponse.json({ error: progressError.message }, { status: 500 });
+  }
+
+  const xp = (completedProgress ?? []).reduce((total, item) => total + (item.xp_earned ?? 0), 0);
+  const level = Math.floor(xp / xpPerLevel) + 1;
+  const { error: profileError } = await supabase.from("profiles").upsert(
+    {
+      id: user.id,
+      email: user.email,
+      xp,
+      level
+    },
+    { onConflict: "id" }
+  );
+
+  if (profileError) {
+    return NextResponse.json({ error: profileError.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true, level, xp });
 }

@@ -1,4 +1,5 @@
 import { gameLessons, gameQuests, xpPerLesson, xpPerLevel } from "./game-data";
+import type { ProgressRecord } from "./types";
 
 export type GameProgress = {
   completedLessonIds: string[];
@@ -68,5 +69,18 @@ export function getGameProgressStats(progress: GameProgress) {
     xpGoal: xpPerLevel,
     xpIntoLevel,
     xpPercent: Math.round((xpIntoLevel / xpPerLevel) * 100)
+  };
+}
+
+export function toGameProgress(progress: ProgressRecord[]): GameProgress {
+  return {
+    completedLessonIds: progress.filter((item) => item.completed).map((item) => item.lesson_id),
+    currentStreak: progress.some((item) => item.completed) ? 1 : 0,
+    lastCompletedAt:
+      progress
+        .map((item) => item.completed_at)
+        .filter(Boolean)
+        .sort()
+        .at(-1) ?? null
   };
 }

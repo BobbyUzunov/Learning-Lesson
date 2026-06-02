@@ -1,4 +1,6 @@
 import { lessons } from "@/lib/data";
+import { getGameProgressStats, toGameProgress } from "@/lib/game-progress";
+import { xpPerLesson } from "@/lib/game-data";
 import type { ProgressRecord } from "@/lib/types";
 import { createClient } from "./server";
 import { hasSupabaseEnv } from "./env";
@@ -39,5 +41,9 @@ export async function getCurrentUserProgress(): Promise<{
 }
 
 export function getLessonXp(lessonId: string) {
-  return lessons.find((lesson) => lesson.id === lessonId)?.xp ?? 0;
+  return lessons.find((lesson) => lesson.id === lessonId)?.xp ?? xpPerLesson;
+}
+
+export function getSupabaseGameStats(progress: ProgressRecord[]) {
+  return getGameProgressStats(toGameProgress(progress));
 }

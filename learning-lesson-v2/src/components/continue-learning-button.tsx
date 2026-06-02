@@ -4,20 +4,32 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { getStoredProgress, getGameProgressStats } from "@/lib/game-progress";
+import { gameLessons } from "@/lib/game-data";
 
 type ContinueLearningButtonProps = {
   className?: string;
+  completedLessonIds?: string[];
   label?: string;
 };
 
-export function ContinueLearningButton({ className, label = "Continue Learning" }: ContinueLearningButtonProps) {
+export function ContinueLearningButton({
+  className,
+  completedLessonIds,
+  label = "Continue Learning"
+}: ContinueLearningButtonProps) {
   const [href, setHref] = useState("/lesson/1");
 
   useEffect(() => {
+    if (completedLessonIds) {
+      const nextLesson = gameLessons.find((lesson) => !completedLessonIds.includes(lesson.id)) ?? gameLessons[0];
+      setHref(`/lesson/${nextLesson.id}`);
+      return;
+    }
+
     const progress = getStoredProgress();
     const stats = getGameProgressStats(progress);
     setHref(`/lesson/${stats.currentMission.id}`);
-  }, []);
+  }, [completedLessonIds]);
 
   return (
     <Link
