@@ -48,10 +48,13 @@ export const dictionary = {
     },
     home: {
       badge: "Версия 2 MVP",
+      title: "Become a Full-Stack Developer",
       subtitle:
-        "По-чиста основа за learning platform с вход, пътеки, уроци, XP, нива и Supabase progress.",
-      openDashboard: "Отвори таблото",
-      browsePaths: "Разгледай пътеките",
+        "Learn step-by-step through quests, XP, levels and real projects.",
+      startLearning: "Start Learning",
+      continueLearning: "Continue Learning",
+      openDashboard: "Continue Learning",
+      browsePaths: "Start Learning",
       features: [
         { title: "Структурирани пътеки", text: "Уроците са групирани в ясни tracks." },
         { title: "XP и нива", text: "Завършването на уроци дава видим прогрес." },
@@ -148,10 +151,13 @@ export const dictionary = {
     },
     home: {
       badge: "Version 2 MVP",
+      title: "Become a Full-Stack Developer",
       subtitle:
-        "A cleaner learning platform foundation with auth, paths, lessons, XP, levels, and Supabase progress.",
-      openDashboard: "Open dashboard",
-      browsePaths: "Browse paths",
+        "Learn step-by-step through quests, XP, levels and real projects.",
+      startLearning: "Start Learning",
+      continueLearning: "Continue Learning",
+      openDashboard: "Continue Learning",
+      browsePaths: "Start Learning",
       features: [
         { title: "Structured paths", text: "Lessons are grouped into clear tracks." },
         { title: "XP and levels", text: "Completion creates visible progression." },

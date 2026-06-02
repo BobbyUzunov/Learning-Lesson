@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Trophy, Route, ShieldCheck } from "lucide-react";
+import { ContinueLearningButton } from "@/components/continue-learning-button";
 import { learningPaths } from "@/lib/data";
 import { localizePath, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
@@ -15,26 +16,22 @@ export default async function HomePage() {
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-10 px-4 py-10 lg:grid-cols-[1.04fr_0.96fr]">
         <div>
           <p className="text-sm font-bold uppercase text-coral">{copy.home.badge}</p>
-          <h1 className="mt-3 max-w-3xl text-5xl font-black leading-tight sm:text-6xl">
-            Learning Lesson
-          </h1>
+          <h1 className="mt-3 max-w-3xl text-5xl font-black leading-tight sm:text-6xl">{copy.home.title}</h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-ink/70">
             {copy.home.subtitle}
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               className="inline-flex items-center justify-center gap-2 rounded-md bg-ink px-5 py-3 font-bold text-paper transition hover:bg-ink/90"
-              href="/dashboard"
-            >
-              {copy.home.openDashboard}
-              <ArrowRight className="size-5" />
-            </Link>
-            <Link
-              className="inline-flex items-center justify-center rounded-md border border-ink/15 px-5 py-3 font-bold transition hover:bg-white/70"
               href="/paths"
             >
-              {copy.home.browsePaths}
+              {copy.home.startLearning}
+              <ArrowRight className="size-5" />
             </Link>
+            <ContinueLearningButton
+              className="inline-flex items-center justify-center gap-2 rounded-md border border-ink/15 px-5 py-3 font-bold transition hover:bg-white/70"
+              label={copy.home.continueLearning}
+            />
           </div>
         </div>
         <div className="rounded-lg border border-ink/10 bg-white/75 p-5 shadow-soft">
