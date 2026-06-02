@@ -14,6 +14,25 @@ type LessonPageProps = {
   params: Promise<{ id: string }>;
 };
 
+function withProgressiveHints(lesson: {
+  hint?: string;
+  hint1?: string;
+  hint2?: string;
+  hint3?: string;
+  mission: string;
+  codeExample: string;
+}) {
+  const baseHint = lesson.hint1 ?? lesson.hint ?? "Разбий задачата на малки стъпки и започни от основната структура.";
+
+  return {
+    hint1: lesson.hint1 ?? baseHint,
+    hint2: lesson.hint2 ?? `${baseHint} Фокусирай се първо върху минимално работещ вариант по мисията.`,
+    hint3:
+      lesson.hint3 ??
+      `${baseHint} Ако блокираш, тръгни от примерната структура:\n${lesson.codeExample}\nи я адаптирай към "${lesson.mission}".`
+  };
+}
+
 export default async function LessonPage({ params }: LessonPageProps) {
   const language = await getLanguage();
   const copy = t(language);
@@ -32,7 +51,12 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const rawPath = legacyLesson ? getPathById(legacyLesson.pathId) : null;
   const path = rawPath ? localizePath(rawPath, language) : null;
   const missionLesson =
-    (gameLesson ? localizeGameLesson(gameLesson, language) : null) ??
+    (gameLesson
+      ? (() => {
+          const localized = localizeGameLesson(gameLesson, language);
+          return { ...localized, ...withProgressiveHints(localized) };
+        })()
+      : null) ??
     (legacyLesson
       ? {
           id: legacyLesson.id,
@@ -42,6 +66,11 @@ export default async function LessonPage({ params }: LessonPageProps) {
           codeExample: getLessonExample(legacyLesson.id),
           mission: copy.lesson.fallbackMission,
           hint: copy.lesson.fallbackHint,
+          ...withProgressiveHints({
+            hint: copy.lesson.fallbackHint,
+            mission: copy.lesson.fallbackMission,
+            codeExample: getLessonExample(legacyLesson.id)
+          }),
           solution: getLessonExample(legacyLesson.id)
         }
       : null);

@@ -22,8 +22,14 @@ export type GameLesson = {
   codeExample: string;
   mission: string;
   missionBg?: string;
-  hint: string;
+  hint?: string;
   hintBg?: string;
+  hint1?: string;
+  hint1Bg?: string;
+  hint2?: string;
+  hint2Bg?: string;
+  hint3?: string;
+  hint3Bg?: string;
   solution: string;
 };
 

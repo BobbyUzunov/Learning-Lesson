@@ -54,7 +54,10 @@ export function localizeGameLesson(lesson: GameLesson, language: Language): Game
     title: lesson.titleBg ?? lesson.title,
     explanation: lesson.explanationBg ?? lesson.explanation,
     mission: lesson.missionBg ?? lesson.mission,
-    hint: lesson.hintBg ?? lesson.hint
+    hint: lesson.hintBg ?? lesson.hint,
+    hint1: lesson.hint1Bg ?? lesson.hint1,
+    hint2: lesson.hint2Bg ?? lesson.hint2,
+    hint3: lesson.hint3Bg ?? lesson.hint3
   };
 }
 
