@@ -18,18 +18,18 @@ export default async function DashboardPage() {
           </p>
           <h1 className="mt-2 text-4xl font-black">{copy.dashboard.title}</h1>
           <p className="mt-3 max-w-2xl text-ink/70">
-            Track your level, XP, current quest, mission progress and streak.
+            {copy.dashboard.subtitle}
           </p>
         </div>
         <Link className="rounded-md bg-ink px-4 py-3 text-center font-bold text-paper" href="/paths">
-          Choose Quest
+          {copy.dashboard.chooseQuest}
         </Link>
       </div>
 
-      <DashboardGameSummary />
+      <DashboardGameSummary language={language} />
 
       <section className="mt-6 rounded-lg border border-ink/10 bg-white/70 p-4 text-sm leading-6 text-ink/70">
-        TODO Supabase Auth: replace localStorage progress with per-user Supabase progress after auth and profile roles are finalized.
+        {copy.dashboard.supabaseTodo}
       </section>
     </main>
   );

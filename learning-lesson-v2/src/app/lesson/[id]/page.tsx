@@ -5,7 +5,7 @@ import { MissionPanel } from "@/components/mission-panel";
 import { getLesson } from "@/lib/data";
 import { getGameLesson, getQuestForLesson } from "@/lib/game-data";
 import { getLessonExample } from "@/lib/learning";
-import { localizeLesson, localizePath, t } from "@/lib/i18n";
+import { localizeGameLesson, localizeGameQuest, localizeLesson, localizePath, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getPathById } from "@/lib/learning";
 
@@ -25,11 +25,12 @@ export default async function LessonPage({ params }: LessonPageProps) {
   }
 
   const legacyLesson = rawLegacyLesson ? localizeLesson(rawLegacyLesson, language) : null;
-  const quest = gameLesson ? getQuestForLesson(gameLesson.id) : null;
+  const rawQuest = gameLesson ? getQuestForLesson(gameLesson.id) : null;
+  const quest = rawQuest ? localizeGameQuest(rawQuest, language) : null;
   const rawPath = legacyLesson ? getPathById(legacyLesson.pathId) : null;
   const path = rawPath ? localizePath(rawPath, language) : null;
   const missionLesson =
-    gameLesson ??
+    (gameLesson ? localizeGameLesson(gameLesson, language) : null) ??
     (legacyLesson
       ? {
           id: legacyLesson.id,
@@ -37,8 +38,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
           title: legacyLesson.title,
           explanation: legacyLesson.content,
           codeExample: getLessonExample(legacyLesson.id),
-          mission: "Apply the main idea from this lesson in a small example.",
-          hint: "Keep the example small and focus on one concept.",
+          mission: copy.lesson.fallbackMission,
+          hint: copy.lesson.fallbackHint,
           solution: getLessonExample(legacyLesson.id)
         }
       : null);
@@ -62,15 +63,15 @@ export default async function LessonPage({ params }: LessonPageProps) {
             <h1 className="mt-2 text-4xl font-black">{missionLesson.title}</h1>
             <p className="mt-3 text-ink/70">{missionLesson.explanation}</p>
           </div>
-          <span className="w-fit rounded-md bg-mint/15 px-3 py-2 text-sm font-bold">Mission</span>
+          <span className="w-fit rounded-md bg-mint/15 px-3 py-2 text-sm font-bold">{copy.lesson.mission}</span>
         </div>
         <section className="mt-8 rounded-lg border border-ink/10 bg-ink p-4 text-paper">
-          <h2 className="font-black">Code Example</h2>
+          <h2 className="font-black">{copy.lesson.codeExample}</h2>
           <pre className="mt-3 overflow-x-auto rounded-md bg-black/20 p-4 text-sm leading-6">
             <code>{missionLesson.codeExample}</code>
           </pre>
         </section>
-        <MissionPanel lesson={missionLesson} />
+        <MissionPanel language={language} lesson={missionLesson} />
       </article>
     </main>
   );

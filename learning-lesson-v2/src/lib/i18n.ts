@@ -1,4 +1,5 @@
 import type { LearningPath, Lesson } from "./types";
+import type { GameLesson, GameQuest } from "./game-data";
 
 export type Language = "bg" | "en";
 
@@ -29,6 +30,34 @@ export function localizeLesson(lesson: Lesson, language: Language): Lesson {
   };
 }
 
+export function localizeGameQuest(quest: GameQuest, language: Language): GameQuest {
+  if (language === "en") {
+    return quest;
+  }
+
+  return {
+    ...quest,
+    title: quest.titleBg ?? quest.title,
+    description: quest.descriptionBg ?? quest.description,
+    difficulty: quest.difficultyBg ?? quest.difficulty,
+    rewardBadge: quest.rewardBadgeBg ?? quest.rewardBadge
+  };
+}
+
+export function localizeGameLesson(lesson: GameLesson, language: Language): GameLesson {
+  if (language === "en") {
+    return lesson;
+  }
+
+  return {
+    ...lesson,
+    title: lesson.titleBg ?? lesson.title,
+    explanation: lesson.explanationBg ?? lesson.explanation,
+    mission: lesson.missionBg ?? lesson.mission,
+    hint: lesson.hintBg ?? lesson.hint
+  };
+}
+
 export const dictionary = {
   bg: {
     nav: {
@@ -48,13 +77,13 @@ export const dictionary = {
     },
     home: {
       badge: "Версия 2 MVP",
-      title: "Become a Full-Stack Developer",
+      title: "Стани Full-Stack Developer",
       subtitle:
-        "Learn step-by-step through quests, XP, levels and real projects.",
-      startLearning: "Start Learning",
-      continueLearning: "Continue Learning",
-      openDashboard: "Continue Learning",
-      browsePaths: "Start Learning",
+        "Учи стъпка по стъпка чрез мисии, XP, нива и реални проекти.",
+      startLearning: "Започни учене",
+      continueLearning: "Продължи ученето",
+      openDashboard: "Продължи ученето",
+      browsePaths: "Започни учене",
       features: [
         { title: "Структурирани пътеки", text: "Уроците са групирани в ясни tracks." },
         { title: "XP и нива", text: "Завършването на уроци дава видим прогрес." },
@@ -65,23 +94,37 @@ export const dictionary = {
       title: "Табло",
       guest: "Гост",
       demo: "Демо режим",
-      subtitle: "Следи прогреса, отключвай уроци и продължавай от правилното място.",
+      subtitle: "Следи ниво, XP, текуща мисия, прогрес и серия.",
       continueLearning: "Продължи ученето",
       level: "Ниво",
       xp: "XP",
       completed: "Завършени",
       progress: "Прогрес",
       currentPath: "Текуща пътека",
+      currentQuest: "Текуща мисия",
+      currentMission: "Текущ урок",
+      userLevel: "Ниво на потребителя",
+      currentStreak: "Текуща серия",
+      lessonsCompleted: "Завършени уроци",
+      totalXp: "Общо XP",
+      openMission: "Отвори урока",
+      chooseQuest: "Избери мисия",
+      supabaseTodo:
+        "TODO Supabase Auth: замени localStorage прогреса с per-user Supabase progress, когато auth и profile roles са финализирани.",
       startLearning: "Започни учене",
       pickPath: "Избери пътека и завърши първия си урок.",
       nextLessons: "Следващи уроци",
       lessons: "урока"
     },
     paths: {
-      badge: "Learning пътеки",
-      title: "Избери пътека",
-      subtitle: "Всяка пътека отключва уроците по ред. Данните са чист MVP blueprint за v2.",
-      level: "Ниво"
+      badge: "Learning мисии",
+      title: "Избери мисия",
+      subtitle: "Всяка мисия отключва уроците по ред. Това е чист MVP blueprint за v2.",
+      level: "Ниво",
+      levels: "нива",
+      missions: "урока",
+      startQuest: "Започни мисия",
+      continueQuest: "Продължи мисия"
     },
     login: {
       badge: "Supabase Auth",
@@ -106,6 +149,15 @@ export const dictionary = {
       ],
       practice: "Практическа задача",
       example: "Пример",
+      mission: "Мисия",
+      missionTask: "Мисия / Задача",
+      codeExample: "Примерен код",
+      showHint: "Покажи подсказка",
+      showSolution: "Покажи решение",
+      completeMission: "Завърши мисията",
+      completeMessage: "Мисията е завършена. +100 XP. Вече си Ниво",
+      fallbackMission: "Приложи основната идея от този урок в малък пример.",
+      fallbackHint: "Дръж примера малък и се фокусирай върху една концепция.",
       lockedMessage: "Завърши предишния урок, за да отключиш този.",
       demoSave: "Свържи Supabase и влез в профил, за да пазиш реален прогрес.",
       complete: "Завърши урока",
@@ -175,6 +227,16 @@ export const dictionary = {
       completed: "Completed",
       progress: "Progress",
       currentPath: "Current path",
+      currentQuest: "Current Quest",
+      currentMission: "Current Mission",
+      userLevel: "User Level",
+      currentStreak: "Current Streak",
+      lessonsCompleted: "Lessons Completed",
+      totalXp: "Total XP",
+      openMission: "Open Mission",
+      chooseQuest: "Choose Quest",
+      supabaseTodo:
+        "TODO Supabase Auth: replace localStorage progress with per-user Supabase progress after auth and profile roles are finalized.",
       startLearning: "Start learning",
       pickPath: "Pick a learning path and complete your first lesson.",
       nextLessons: "Next lessons",
@@ -182,9 +244,13 @@ export const dictionary = {
     },
     paths: {
       badge: "Learning paths",
-      title: "Choose a path",
+      title: "Choose Your Quest",
       subtitle: "Each path unlocks one lesson at a time. This local data is a clean MVP blueprint for v2.",
-      level: "Level"
+      level: "Level",
+      levels: "levels",
+      missions: "missions",
+      startQuest: "Start Quest",
+      continueQuest: "Continue Quest"
     },
     login: {
       badge: "Supabase Auth",
@@ -209,6 +275,15 @@ export const dictionary = {
       ],
       practice: "Practice task",
       example: "Example",
+      mission: "Mission",
+      missionTask: "Mission / Task",
+      codeExample: "Code Example",
+      showHint: "Show Hint",
+      showSolution: "Show Solution",
+      completeMission: "Complete Mission",
+      completeMessage: "Mission complete. +100 XP. You are now Level",
+      fallbackMission: "Apply the main idea from this lesson in a small example.",
+      fallbackHint: "Keep the example small and focus on one concept.",
       lockedMessage: "Complete the previous lesson to unlock this one.",
       demoSave: "Connect Supabase and log in to save real progress.",
       complete: "Complete lesson",

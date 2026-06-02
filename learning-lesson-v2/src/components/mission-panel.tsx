@@ -4,21 +4,23 @@ import { useState } from "react";
 import { CheckCircle2, Lightbulb, ScrollText } from "lucide-react";
 import type { GameLesson } from "@/lib/game-data";
 import { completeStoredLesson, getGameProgressStats } from "@/lib/game-progress";
+import { t, type Language } from "@/lib/i18n";
 
-export function MissionPanel({ lesson }: { lesson: GameLesson }) {
+export function MissionPanel({ language, lesson }: { language: Language; lesson: GameLesson }) {
   const [showHint, setShowHint] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const copy = t(language);
 
   function completeMission() {
     const progress = completeStoredLesson(lesson.id);
     const stats = getGameProgressStats(progress);
-    setMessage(`Mission complete. +100 XP. You are now Level ${stats.level}.`);
+    setMessage(`${copy.lesson.completeMessage} ${stats.level}.`);
   }
 
   return (
     <section className="mt-6 rounded-lg border border-ink/10 bg-white/80 p-5">
-      <h2 className="text-2xl font-black">Mission / Task</h2>
+      <h2 className="text-2xl font-black">{copy.lesson.missionTask}</h2>
       <p className="mt-3 leading-7 text-ink/75">{lesson.mission}</p>
       <div className="mt-5 flex flex-col gap-3 sm:flex-row">
         <button
@@ -27,7 +29,7 @@ export function MissionPanel({ lesson }: { lesson: GameLesson }) {
           type="button"
         >
           <Lightbulb className="size-5" />
-          Show Hint
+          {copy.lesson.showHint}
         </button>
         <button
           className="focus-ring inline-flex items-center justify-center gap-2 rounded-md border border-ink/15 px-4 py-3 font-bold transition hover:bg-ink/5"
@@ -35,7 +37,7 @@ export function MissionPanel({ lesson }: { lesson: GameLesson }) {
           type="button"
         >
           <ScrollText className="size-5" />
-          Show Solution
+          {copy.lesson.showSolution}
         </button>
         <button
           className="focus-ring inline-flex items-center justify-center gap-2 rounded-md bg-mint px-4 py-3 font-bold text-ink transition hover:bg-mint/80"
@@ -43,7 +45,7 @@ export function MissionPanel({ lesson }: { lesson: GameLesson }) {
           type="button"
         >
           <CheckCircle2 className="size-5" />
-          Complete Mission
+          {copy.lesson.completeMission}
         </button>
       </div>
       {showHint ? <p className="mt-4 rounded-md bg-mint/15 p-4 text-sm leading-6 text-ink/75">{lesson.hint}</p> : null}
