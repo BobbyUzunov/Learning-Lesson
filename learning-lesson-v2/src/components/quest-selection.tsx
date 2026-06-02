@@ -20,26 +20,38 @@ export function QuestSelection({
 }) {
   const [completedLessonIds, setCompletedLessonIds] = useState<string[]>(initialCompletedLessonIds ?? []);
   const [guestMessage, setGuestMessage] = useState<string | null>(
-    showGuestLockMessage ? "Влез в акаунт, за да отключиш следващите мисии." : null
+    !isAuthenticated && showGuestLockMessage ? "Влез в акаунт, за да отключиш следващите мисии." : null
   );
   const copy = t(language);
 
   useEffect(() => {
+    if (isAuthenticated) {
+      setGuestMessage(null);
+      return;
+    }
+
     if (!initialCompletedLessonIds) {
       setCompletedLessonIds(getStoredProgress().completedLessonIds);
     }
-  }, [initialCompletedLessonIds]);
+  }, [initialCompletedLessonIds, isAuthenticated]);
 
   return (
     <div className="mt-8">
+      {!isAuthenticated ? (
+        <p className="mb-4 rounded-md bg-mint/15 px-4 py-3 text-sm font-bold text-ink">
+          Първата мисия е безплатна. Създай акаунт, за да запазиш прогреса и да отключиш останалите.
+        </p>
+      ) : null}
       {guestMessage ? (
         <p className="mb-4 rounded-md bg-violet/15 px-4 py-3 text-sm font-bold text-ink">{guestMessage}</p>
       ) : null}
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
       {gameQuests.map((rawQuest) => {
         const quest = localizeGameQuest(rawQuest, language);
+        const availableMissions = quest.lessonIds.length;
+        const plannedMissions = Math.max(quest.levels, availableMissions);
         const completed = quest.lessonIds.filter((id) => completedLessonIds.includes(id)).length;
-        const progress = Math.round((completed / quest.lessonIds.length) * 100);
+        const progress = Math.round((completed / plannedMissions) * 100);
         const firstLesson = quest.lessonIds.find((id) => !completedLessonIds.includes(id)) ?? quest.lessonIds[0];
         const hasStarted = completed > 0;
         const isGuestAllowedQuest = quest.id === "frontend" && firstLesson === "1";
@@ -65,9 +77,16 @@ export function QuestSelection({
             </div>
             <div className="mt-4">
               <div className="flex justify-between text-sm font-bold text-ink/70">
-                <span>{completed}/{quest.lessonIds.length} {copy.paths.missions}</span>
+                <span>
+                  {availableMissions === 1 && plannedMissions > 1
+                    ? `1 налична мисия от ${plannedMissions} планирани`
+                    : `${completed}/${plannedMissions} мисии`}
+                </span>
                 <span>{progress}%</span>
               </div>
+              <p className="mt-1 text-xs font-semibold text-ink/55">
+                {availableMissions} налична{availableMissions === 1 ? "" : "и"} / {plannedMissions} планирани
+              </p>
               <div className="mt-2 h-3 rounded-full bg-ink/10">
                 <div className="h-3 rounded-full bg-violet transition-all" style={{ width: `${progress}%` }} />
               </div>

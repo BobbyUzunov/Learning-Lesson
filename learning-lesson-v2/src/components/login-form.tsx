@@ -60,6 +60,7 @@ export function LoginForm({
 
     const user = result.data.user;
     if (user) {
+      await supabase.auth.getSession();
       const guestProgress = getStoredProgress();
       const guestCompletedLessonIds = guestProgress.completedLessonIds;
       const guestXp = guestCompletedLessonIds.length * xpPerLesson;
@@ -100,7 +101,7 @@ export function LoginForm({
     }
 
     setMessage(mode === "login" ? labels.loggedIn : labels.registered);
-    router.push("/dashboard");
+    router.replace("/dashboard");
     router.refresh();
   }
 

@@ -39,7 +39,7 @@ export default async function PathsPage({ searchParams }: PathsPageProps) {
       <QuestSelection
         completedLessonIds={completedLessonIds}
         isAuthenticated={Boolean(session.user)}
-        showGuestLockMessage={Boolean(params.guestLocked)}
+        showGuestLockMessage={!session.user && Boolean(params.guestLocked)}
         language={language}
       />
     </main>
