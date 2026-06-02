@@ -31,17 +31,51 @@ export function DashboardGameSummary({
   const currentQuest = localizeGameQuest(fallback.currentQuest, language);
   const currentMission = localizeGameLesson(fallback.currentMission, language);
   const completedLessonIds = initialProgress?.filter((item) => item.completed).map((item) => item.lesson_id);
+  const hasProgress = fallback.completedCount > 0;
+  const continueLabel = hasProgress ? copy.dashboard.continueLearning : "Start Your Journey";
 
   return (
     <div className="mt-8 grid gap-4">
       <section className="rounded-lg border border-ink/10 bg-ink p-5 text-paper shadow-soft">
-        <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
+        <div className="grid gap-6 lg:grid-cols-[1fr_280px] lg:items-center">
           <div>
-            <p className="text-sm font-bold uppercase text-mint">{copy.dashboard.currentQuest}</p>
+            <p className="text-sm font-bold uppercase text-mint">
+              {hasProgress ? copy.dashboard.continueLearning : continueLabel}
+            </p>
             <h2 className="mt-2 text-3xl font-black">{currentQuest.title}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-paper/75">{currentQuest.description}</p>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-paper/10 bg-paper/10 p-4">
+                <p className="text-xs font-bold uppercase text-paper/55">{copy.dashboard.currentQuest}</p>
+                <p className="mt-2 text-lg font-black">{currentQuest.title}</p>
+              </div>
+              <div className="rounded-lg border border-paper/10 bg-paper/10 p-4">
+                <p className="text-xs font-bold uppercase text-paper/55">{copy.dashboard.currentMission}</p>
+                <p className="mt-2 text-lg font-black">{currentMission.title}</p>
+              </div>
+            </div>
+
+            <div className="mt-5">
+              <div className="flex items-center justify-between text-sm font-bold text-paper/75">
+                <span>{copy.dashboard.progress}</span>
+                <span>{fallback.xpPercent}%</span>
+              </div>
+              <div className="mt-2 h-3 rounded-full bg-paper/15">
+                <div className="h-3 rounded-full bg-mint transition-all" style={{ width: `${fallback.xpPercent}%` }} />
+              </div>
+            </div>
           </div>
-          <ContinueLearningButton completedLessonIds={completedLessonIds} label={copy.dashboard.continueLearning} />
+
+          <div className="rounded-lg border border-paper/10 bg-paper/10 p-4">
+            <p className="text-sm font-bold text-paper/65">{copy.dashboard.lessonsCompleted}: {fallback.completedCount}</p>
+            <p className="mt-2 text-sm text-paper/65">{fallback.xpIntoLevel} / {fallback.xpGoal} XP</p>
+            <ContinueLearningButton
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-mint px-5 py-4 text-center text-lg font-black text-ink transition hover:-translate-y-0.5 hover:bg-mint/80"
+              completedLessonIds={completedLessonIds}
+              label={continueLabel}
+            />
+          </div>
         </div>
       </section>
 
