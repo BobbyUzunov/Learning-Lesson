@@ -37,12 +37,12 @@ export function MissionPanel({ language, lesson }: { language: Language; lesson:
   }
 
   return (
-    <section className="mt-6 rounded-lg border border-ink/10 bg-white/80 p-5">
+    <section className="mt-8 rounded-lg border border-ink/10 bg-white/80 p-5 shadow-sm sm:p-6">
       <h2 className="text-2xl font-black">{copy.lesson.missionTask}</h2>
       <p className="mt-3 leading-7 text-ink/75">{lesson.mission}</p>
-      <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+      <div className="mt-6 grid gap-3 sm:grid-cols-3">
         <button
-          className="focus-ring inline-flex items-center justify-center gap-2 rounded-md border border-ink/15 px-4 py-3 font-bold transition hover:bg-ink/5"
+          className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-4 py-3 text-center font-bold text-ink shadow-sm transition hover:-translate-y-0.5 hover:border-violet/40 hover:bg-ink/5 hover:shadow-soft"
           onClick={() => setShowHint((value) => !value)}
           type="button"
         >
@@ -50,7 +50,7 @@ export function MissionPanel({ language, lesson }: { language: Language; lesson:
           {copy.lesson.showHint}
         </button>
         <button
-          className="focus-ring inline-flex items-center justify-center gap-2 rounded-md border border-ink/15 px-4 py-3 font-bold transition hover:bg-ink/5"
+          className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-4 py-3 text-center font-bold text-ink shadow-sm transition hover:-translate-y-0.5 hover:border-violet/40 hover:bg-ink/5 hover:shadow-soft"
           onClick={() => setShowSolution((value) => !value)}
           type="button"
         >
@@ -58,7 +58,7 @@ export function MissionPanel({ language, lesson }: { language: Language; lesson:
           {copy.lesson.showSolution}
         </button>
         <button
-          className="focus-ring inline-flex items-center justify-center gap-2 rounded-md bg-mint px-4 py-3 font-bold text-ink transition hover:bg-mint/80"
+          className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-mint px-4 py-3 text-center font-black text-ink shadow-sm transition hover:-translate-y-0.5 hover:bg-mint/80 hover:shadow-soft disabled:translate-y-0 disabled:opacity-60"
           disabled={loading}
           onClick={completeMission}
           type="button"

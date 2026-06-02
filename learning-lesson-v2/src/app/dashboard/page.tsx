@@ -29,10 +29,6 @@ export default async function DashboardPage() {
       </div>
 
       <DashboardGameSummary initialProgress={progress} language={language} />
-
-      <section className="mt-6 rounded-lg border border-ink/10 bg-white/70 p-4 text-sm leading-6 text-ink/70">
-        {copy.dashboard.supabaseTodo}
-      </section>
     </main>
   );
 }

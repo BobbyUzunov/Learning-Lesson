@@ -94,20 +94,20 @@ export const gameQuests: GameQuest[] = [
     difficultyBg: "Начинаещ",
     rewardBadge: "Mobile Starter",
     rewardBadgeBg: "Mobile starter",
-    lessonIds: ["1"]
+    lessonIds: ["6"]
   },
   {
     id: "ai-product-builder",
     title: "AI Product Builder",
     titleBg: "AI Product Builder",
-    description: "Learn how to build real products using AI tools, Cursor, Supabase and Vercel.",
-    descriptionBg: "Научи как да изграждаш реални продукти с AI tools, Cursor, Supabase и Vercel.",
+    description: "Learn how to build real products using AI, Cursor, Supabase and Vercel.",
+    descriptionBg: "Научи как да изграждаш реални продукти с AI, Cursor, Supabase и Vercel.",
     levels: 20,
-    difficulty: "Beginner friendly",
+    difficulty: "Beginner Friendly",
     difficultyBg: "Подходящо за начинаещи",
-    rewardBadge: "Build real projects · XP rewards",
-    rewardBadgeBg: "Реални проекти · XP награди",
-    lessonIds: ["5"]
+    rewardBadge: "XP",
+    rewardBadgeBg: "XP",
+    lessonIds: ["7"]
   }
 ];
 
@@ -181,6 +181,34 @@ export const gameLessons: GameLesson[] = [
     hint: "Ask for JSON fields so the app can render them safely.",
     hintBg: "Поискай JSON полета, за да може app-ът да ги render-не безопасно.",
     solution: "Return JSON with title, summary, goals: string[] and quiz: {question, answer}[]"
+  },
+  {
+    id: "6",
+    questId: "mobile",
+    title: "Mobile First Mission",
+    titleBg: "Мисия: Mobile-first основи",
+    explanation: "Mobile-first design starts with the smallest screen and scales up only when the layout needs more space.",
+    explanationBg: "Mobile-first дизайнът започва от най-малкия екран и се разширява само когато layout-ът има нужда от повече място.",
+    codeExample: ".app-shell {\n  display: grid;\n  gap: 16px;\n  padding: 16px;\n}\n\n@media (min-width: 768px) {\n  .app-shell {\n    grid-template-columns: 240px 1fr;\n  }\n}",
+    mission: "Sketch a mobile-first layout for a learning dashboard with a header, progress area and lesson list.",
+    missionBg: "Скицирай mobile-first layout за learning dashboard с header, progress зона и списък с уроци.",
+    hint: "Start with one column, then add a wider layout only for tablet and desktop screens.",
+    hintBg: "Започни с една колона, после добави по-широк layout само за tablet и desktop екрани.",
+    solution: ".dashboard {\n  display: grid;\n  gap: 16px;\n}\n\n@media (min-width: 768px) {\n  .dashboard {\n    grid-template-columns: 280px 1fr;\n  }\n}"
+  },
+  {
+    id: "7",
+    questId: "ai-product-builder",
+    title: "AI Product Brief Mission",
+    titleBg: "Мисия: AI product brief",
+    explanation: "Every AI product needs a clear user problem, a small workflow and a reliable way to save data.",
+    explanationBg: "Всеки AI продукт има нужда от ясен user проблем, малък workflow и надежден начин за записване на данни.",
+    codeExample: "const productBrief = {\n  userProblem: 'Creators need faster lesson drafts.',\n  aiStep: 'Generate a structured lesson outline.',\n  stack: ['Cursor', 'Supabase', 'Vercel']\n};",
+    mission: "Write a short product brief for an AI-powered learning feature you can build with Cursor, Supabase and Vercel.",
+    missionBg: "Напиши кратък product brief за AI learning функция, която можеш да изградиш с Cursor, Supabase и Vercel.",
+    hint: "Include the user, the problem, the AI action, saved data and the first deploy target.",
+    hintBg: "Включи user-а, проблема, AI action-а, данните за запис и първата deploy цел.",
+    solution: "User: beginner developers. Problem: they need guided practice. AI action: generate one mission. Save: lesson progress in Supabase. Deploy: Vercel."
   }
 ];
 

@@ -26,7 +26,7 @@ export function QuestSelection({
   }, [initialCompletedLessonIds, isAuthenticated]);
 
   return (
-    <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
       {gameQuests.map((rawQuest) => {
         const quest = localizeGameQuest(rawQuest, language);
         const completed = quest.lessonIds.filter((id) => completedLessonIds.includes(id)).length;
@@ -39,7 +39,7 @@ export function QuestSelection({
 
         return (
           <article
-            className="group rounded-lg border border-ink/10 bg-white/80 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-soft"
+            className="group rounded-lg border border-ink/10 bg-white/80 p-5 shadow-sm transition hover:-translate-y-1 hover:border-violet/30 hover:bg-white hover:shadow-soft"
             key={quest.id}
           >
             <div className="flex items-start justify-between gap-3">
@@ -64,7 +64,7 @@ export function QuestSelection({
               </div>
             </div>
             <Link
-              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-ink px-4 py-3 font-bold text-paper transition group-hover:bg-ink/90"
+              className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-ink px-4 py-3 text-center font-bold text-paper transition hover:bg-ink/90 group-hover:-translate-y-0.5"
               href={href}
             >
               {hasStarted ? copy.paths.continueQuest : copy.paths.startQuest}
