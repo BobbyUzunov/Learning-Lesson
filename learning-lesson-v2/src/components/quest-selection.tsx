@@ -75,6 +75,12 @@ export function QuestSelection({
               <Award className="size-4 text-coral" />
               {quest.rewardBadge}
             </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-bold text-ink/65">
+              <span className="rounded-md bg-ink/5 px-2 py-2">Time: {quest.estimatedTime}</span>
+              <span className="rounded-md bg-ink/5 px-2 py-2">XP Rewards: {quest.xpReward}</span>
+              <span className="rounded-md bg-ink/5 px-2 py-2">Available: {availableMissions}</span>
+              <span className="rounded-md bg-ink/5 px-2 py-2">Planned: {plannedMissions}</span>
+            </div>
             <div className="mt-4">
               <div className="flex justify-between text-sm font-bold text-ink/70">
                 <span>{`${availableMissions} наличн${availableMissions === 1 ? "а" : "и"} / ${plannedMissions} планирани мисии`}</span>
@@ -90,7 +96,7 @@ export function QuestSelection({
                 onClick={() => setGuestMessage("Влез в акаунт, за да отключиш следващите мисии.")}
                 type="button"
               >
-                {copy.paths.startQuest}
+                {copy.common.locked}
                 <ChevronRight className="size-5" />
               </button>
             ) : (

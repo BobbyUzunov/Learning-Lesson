@@ -7,8 +7,11 @@ export type GameQuest = {
   levels: number;
   difficulty: string;
   difficultyBg?: string;
+  estimatedTime: string;
+  estimatedTimeBg?: string;
   rewardBadge: string;
   rewardBadgeBg?: string;
+  xpReward: number;
   lessonIds: string[];
 };
 
@@ -46,8 +49,11 @@ export const gameQuests: GameQuest[] = [
     levels: 8,
     difficulty: "Beginner",
     difficultyBg: "Начинаещ",
+    estimatedTime: "4-6 hours",
+    estimatedTimeBg: "4-6 часа",
     rewardBadge: "UI Apprentice",
     rewardBadgeBg: "UI чирак",
+    xpReward: 800,
     lessonIds: ["1", "2"]
   },
   {
@@ -59,8 +65,11 @@ export const gameQuests: GameQuest[] = [
     levels: 10,
     difficulty: "Intermediate",
     difficultyBg: "Средно",
+    estimatedTime: "6-8 hours",
+    estimatedTimeBg: "6-8 часа",
     rewardBadge: "API Builder",
     rewardBadgeBg: "API строител",
+    xpReward: 1000,
     lessonIds: ["3"]
   },
   {
@@ -72,8 +81,11 @@ export const gameQuests: GameQuest[] = [
     levels: 12,
     difficulty: "Intermediate",
     difficultyBg: "Средно",
+    estimatedTime: "8-10 hours",
+    estimatedTimeBg: "8-10 часа",
     rewardBadge: "Product Shipper",
     rewardBadgeBg: "Product shipper",
+    xpReward: 1200,
     lessonIds: ["4"]
   },
   {
@@ -85,8 +97,11 @@ export const gameQuests: GameQuest[] = [
     levels: 7,
     difficulty: "Advanced",
     difficultyBg: "Напреднал",
+    estimatedTime: "5-7 hours",
+    estimatedTimeBg: "5-7 часа",
     rewardBadge: "AI Explorer",
     rewardBadgeBg: "AI изследовател",
+    xpReward: 700,
     lessonIds: ["5"]
   },
   {
@@ -98,8 +113,11 @@ export const gameQuests: GameQuest[] = [
     levels: 6,
     difficulty: "Beginner",
     difficultyBg: "Начинаещ",
+    estimatedTime: "3-5 hours",
+    estimatedTimeBg: "3-5 часа",
     rewardBadge: "Mobile Starter",
     rewardBadgeBg: "Mobile starter",
+    xpReward: 600,
     lessonIds: ["6"]
   },
   {
@@ -111,8 +129,11 @@ export const gameQuests: GameQuest[] = [
     levels: 20,
     difficulty: "Beginner Friendly",
     difficultyBg: "Подходящо за начинаещи",
+    estimatedTime: "10-14 hours",
+    estimatedTimeBg: "10-14 часа",
     rewardBadge: "XP",
     rewardBadgeBg: "XP",
+    xpReward: 2000,
     lessonIds: ["7"]
   }
 ];

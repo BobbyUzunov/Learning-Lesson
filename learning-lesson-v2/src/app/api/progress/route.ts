@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { getLessonXp } from "@/lib/supabase/progress";
-import { xpPerLevel } from "@/lib/game-data";
+import { getLevelProgress } from "@/lib/game-progress";
 
 export async function POST(request: Request) {
   if (!hasSupabaseEnv()) {
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   }
 
   const xp = (completedProgress ?? []).reduce((total, item) => total + (item.xp_earned ?? 0), 0);
-  const level = Math.floor(xp / xpPerLevel) + 1;
+  const level = getLevelProgress(xp).level;
   const { error: profileError } = await supabase.from("profiles").upsert(
     {
       id: user.id,

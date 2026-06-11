@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Flame, Target, Trophy } from "lucide-react";
+import { Award, Flame, Gift, Target, Trophy } from "lucide-react";
 import { ContinueLearningButton } from "./continue-learning-button";
-import { getGameProgressStats, getStoredProgress, toGameProgress } from "@/lib/game-progress";
+import { DailyStreakCard } from "./daily-streak-card";
+import { getAchievements, getGameProgressStats, getStoredProgress, toGameProgress } from "@/lib/game-progress";
 import { localizeGameLesson, localizeGameQuest, t, type Language } from "@/lib/i18n";
 import type { ProgressRecord } from "@/lib/types";
 
@@ -33,9 +34,14 @@ export function DashboardGameSummary({
   const completedLessonIds = initialProgress?.filter((item) => item.completed).map((item) => item.lesson_id);
   const hasProgress = fallback.completedCount > 0;
   const continueLabel = hasProgress ? copy.dashboard.continueLearning : "Start Your Journey";
+  const recentAchievements = getAchievements({
+    completedLessonIds: completedLessonIds ?? [],
+    currentStreak: fallback.currentStreak,
+    lastCompletedAt: null
+  }).filter((achievement) => achievement.unlocked).slice(0, 3);
 
   return (
-    <div className="mt-8 grid gap-4">
+    <div className="mt-8 grid gap-5">
       <section className="rounded-lg border border-ink/10 bg-ink p-5 text-paper shadow-soft">
         <div className="grid gap-6 lg:grid-cols-[1fr_280px] lg:items-center">
           <div>
@@ -70,6 +76,10 @@ export function DashboardGameSummary({
           <div className="rounded-lg border border-paper/10 bg-paper/10 p-4">
             <p className="text-sm font-bold text-paper/65">{copy.dashboard.lessonsCompleted}: {fallback.completedCount}</p>
             <p className="mt-2 text-sm text-paper/65">{fallback.xpIntoLevel} / {fallback.xpGoal} XP</p>
+            <p className="mt-2 inline-flex items-center gap-2 rounded-md bg-paper/10 px-2 py-1 text-xs font-bold text-mint">
+              <Gift className="size-4" />
+              Next Reward: {fallback.nextReward}
+            </p>
             <ContinueLearningButton
               className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-mint px-5 py-4 text-center text-lg font-black text-ink transition hover:-translate-y-0.5 hover:bg-mint/80"
               completedLessonIds={completedLessonIds}
@@ -114,6 +124,33 @@ export function DashboardGameSummary({
           <p className="mt-3 text-4xl font-black">{fallback.currentStreak}</p>
           <p className="mt-2 text-sm text-ink/70">{copy.dashboard.lessonsCompleted}: {fallback.completedCount}</p>
           <p className="mt-1 text-sm text-ink/70">{copy.dashboard.totalXp}: {fallback.xp}</p>
+        </div>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-[1fr_2fr]">
+        <DailyStreakCard />
+        <div className="rounded-lg border border-ink/10 bg-white/80 p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-sm font-bold uppercase text-ink/60">
+            <Award className="size-4 text-coral" />
+            Recent Achievements
+          </div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            {(recentAchievements.length ? recentAchievements : getAchievements({
+              completedLessonIds: [],
+              currentStreak: 0,
+              lastCompletedAt: null
+            }).slice(0, 3)).map((achievement) => (
+              <div
+                className={`rounded-lg border p-3 ${
+                  achievement.unlocked ? "border-mint/30 bg-mint/15" : "border-ink/10 bg-ink/5 text-ink/45"
+                }`}
+                key={achievement.id}
+              >
+                <p className="text-sm font-black">{achievement.title}</p>
+                <p className="mt-1 text-xs leading-5">{achievement.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     </div>

@@ -40,6 +40,7 @@ export function localizeGameQuest(quest: GameQuest, language: Language): GameQue
     title: quest.titleBg ?? quest.title,
     description: quest.descriptionBg ?? quest.description,
     difficulty: quest.difficultyBg ?? quest.difficulty,
+    estimatedTime: quest.estimatedTimeBg ?? quest.estimatedTime,
     rewardBadge: quest.rewardBadgeBg ?? quest.rewardBadge
   };
 }

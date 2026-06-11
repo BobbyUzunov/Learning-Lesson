@@ -103,16 +103,21 @@ export function MissionPanel({
         </section>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <button
-          className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-4 py-3 text-center font-bold text-ink shadow-sm transition hover:-translate-y-0.5 hover:border-violet/40 hover:bg-ink/5 hover:shadow-soft"
-          onClick={revealNextHint}
-          type="button"
-        >
-          <Lightbulb className="size-5" />
-          {hintsUsed >= lessonHints.length ? "Всички подсказки" : `Подсказка ${Math.min(hintsUsed + 1, 3)}`}
-        </button>
-        <div className="relative">
+      <section className="rounded-lg border border-ink/10 bg-paper/70 p-4">
+        <div>
+          <p className="text-sm font-black uppercase text-ink/60">Mission completion area</p>
+          <p className="mt-1 text-sm text-ink/60">Напиши решение или отключи всички подсказки, за да завършиш мисията.</p>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <button
+            className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-4 py-3 text-center font-bold text-ink shadow-sm transition hover:-translate-y-0.5 hover:border-violet/40 hover:bg-ink/5 hover:shadow-soft"
+            onClick={revealNextHint}
+            type="button"
+          >
+            <Lightbulb className="size-5" />
+            {hintsUsed >= lessonHints.length ? "Всички подсказки" : `Hint ${Math.min(hintsUsed + 1, 3)}`}
+          </button>
+          <div className="relative">
           <button
             className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-4 py-3 text-center font-bold text-ink shadow-sm transition hover:-translate-y-0.5 hover:border-violet/40 hover:bg-ink/5 hover:shadow-soft disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
             disabled={!showSolution && !canViewSolution}
@@ -130,17 +135,18 @@ export function MissionPanel({
               type="button"
             />
           ) : null}
+          </div>
+          <button
+            className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-mint px-4 py-3 text-center font-black text-ink shadow-sm transition hover:-translate-y-0.5 hover:bg-mint/80 hover:shadow-soft disabled:translate-y-0 disabled:opacity-60"
+            disabled={loading}
+            onClick={completeMission}
+            type="button"
+          >
+            <CheckCircle2 className="size-5" />
+            {loading ? copy.login.working : copy.lesson.completeMission}
+          </button>
         </div>
-        <button
-          className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-mint px-4 py-3 text-center font-black text-ink shadow-sm transition hover:-translate-y-0.5 hover:bg-mint/80 hover:shadow-soft disabled:translate-y-0 disabled:opacity-60"
-          disabled={loading}
-          onClick={completeMission}
-          type="button"
-        >
-          <CheckCircle2 className="size-5" />
-          {loading ? copy.login.working : copy.lesson.completeMission}
-        </button>
-      </div>
+      </section>
 
       <div className="text-sm font-bold text-ink/70">Подсказки използвани: {hintsUsed} / 3</div>
       <div className="space-y-3">
