@@ -1,72 +1,200 @@
-# Learning Environment
+# 📚 Learning Lesson
 
-Среда за начинаещи: уроци, обяснения и редактор за код.
+> AI-assisted learning platform for learning programming through interactive lessons, practical exercises and real-world projects.
 
-| Раздел | Теми | Изпълнение в браузъра |
-|--------|------|------------------------|
-| **HTML & CSS** | **16** | ✅ Визуален преглед в iframe |
-| **JavaScript** | **18** | ✅ Пълно |
-| **Python** | **18** | ✅ Skulpt |
-| **Swift** | 19 | ⚡ Симулация + Xcode |
-| **Backend** | 19 | ✅ JS + `fetch` към API; сървър в терминал |
-| **AI & Tools** | **8** | ✅ JavaScript практика |
+![Next.js](https://img.shields.io/badge/Next.js-16-black)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES2025-yellow)
+![Node.js](https://img.shields.io/badge/Node.js-Backend-green)
+![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E)
+![Vercel](https://img.shields.io/badge/Vercel-Deployed-black)
+![Status](https://img.shields.io/badge/Status-Active-success)
 
-## Backend разделът покрива
+---
 
-- Node.js, npm, модули  
-- HTTP, Express, routes, middleware  
-- REST API, JSON, `.env`  
-- Файлове (`fs`), async/await  
-- **Next.js** – routing, API Routes  
-- fetch, бази данни, deploy, full-stack пътека  
+# 🚀 Live Demo
 
-## Стартиране
+**🌐 https://learning-lesson-v2.vercel.app**
+
+---
+
+# 📖 About
+
+Learning Lesson is an educational platform built to help beginners learn programming through interactive lessons, browser-based coding exercises and AI-assisted explanations.
+
+Instead of passively reading theory, users practice concepts immediately inside the browser while gradually building practical development skills.
+
+The project combines modern web technologies with AI-assisted development to create an engaging learning experience.
+
+---
+
+# ✨ Features
+
+- 📚 Interactive programming lessons
+- 💻 Browser-based coding exercises
+- 🤖 AI-assisted learning
+- 🌍 Responsive design
+- 🔐 User authentication
+- 📈 Learning progress tracking
+- 🧠 Practical coding challenges
+- ⚡ Fast Next.js application
+- ☁️ Supabase integration
+- 🚀 Production deployment on Vercel
+
+---
+
+# 🎓 Learning Paths
+
+- HTML & CSS
+- JavaScript
+- Python
+- Swift
+- Backend Development
+- AI & Developer Tools
+
+---
+
+# 💻 Tech Stack
+
+## Frontend
+
+- React
+- Next.js
+- JavaScript
+- HTML5
+- CSS3
+- Tailwind CSS
+
+## Backend
+
+- Node.js
+- Express
+- REST API
+
+## Database
+
+- Supabase
+
+## Deployment
+
+- Vercel
+
+## Development Tools
+
+- Git
+- GitHub
+- GitHub Actions
+- Cursor
+- ChatGPT
+- Codex
+
+---
+
+# 📸 Screenshots
+
+> Coming soon
+
+- Home
+- Lessons
+- Interactive Editor
+- Dashboard
+- Learning Progress
+
+---
+
+# 🚀 Getting Started
+
+Clone the repository
+
+```bash
+git clone https://github.com/BobbyUzunov/Learning-Lesson.git
+```
+
+Install dependencies
 
 ```bash
 npm install
-npm start
 ```
 
-Отвори: **http://localhost:3000**
+Run the project
 
-За backend уроци с `fetch("/api/test")` сървърът трябва да работи (`npm start`).
+```bash
+npm run dev
+```
 
-## Supabase
+Open
 
-1. Създай Supabase проект.
-2. Отвори Supabase SQL Editor и пусни `supabase-schema.sql`.
-3. За production във Vercel добави Environment Variables:
+```
+http://localhost:3000
+```
 
-```txt
+---
+
+# ⚙️ Environment Variables
+
+Create your own Supabase project and configure:
+
+```text
 SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 SUPABASE_ANON_KEY=YOUR_ANON_KEY
 ```
 
-Сайтът ги подава към браузъра през `/api/supabase-config`. Това са публични anon настройки, но RLS политиките в Supabase трябва да пазят данните.
+For production, configure these variables inside Vercel.
 
-За локален vanilla JS setup можеш временно да зададеш public anon config през browser console:
+---
 
-```js
-localStorage.setItem('SUPABASE_URL', 'https://YOUR_PROJECT.supabase.co');
-localStorage.setItem('SUPABASE_ANON_KEY', 'YOUR_ANON_KEY');
+# 🗄 Database
+
+The application uses **Supabase** for authentication and data storage.
+
+Run the SQL schema:
+
+```
+supabase-schema.sql
 ```
 
-или копирай `public/supabase-config.example.js` като `public/supabase-config.js` и попълни стойностите за локални тестове.
+before starting the application.
 
-Важно: anon key е публичен. За production защити writes с Supabase Auth admin роли или server route със `SUPABASE_SERVICE_ROLE_KEY`; не поставяй service role key в `public/` или в клиентски JavaScript.
+---
 
-## Файлове
+# 🛣 Roadmap
 
-- `script.js` + `lessons-js-more.js` – JavaScript (18 теми)  
-- `lessons-python.js` + `lessons-python-more.js` – Python (18 теми)  
-- `lessons-swift.js` – Swift  
-- `lessons-backend.js` – Node.js, Express, Next.js  
-- `lessons-web.js` – HTML & CSS (16 теми)  
-- `lessons-new.js` – AI & Tools практически уроци  
-- `supabase.js` – Supabase browser client + fallback helpers
-- `supabase-schema.sql` – SQL schema за Supabase
-- `server.js` – Express (обслужва сайта + `/api/test`)  
+- ✅ Interactive Lessons
+- ✅ AI Learning Section
+- ✅ Backend Learning Path
+- ✅ Supabase Integration
+- 🔄 Progress Synchronization
+- 🔄 User Dashboard
+- 🔄 Certificates
+- 🔄 AI Tutor
+- 🔄 Docker Support
+- 🔄 PostgreSQL
+- 🔄 Admin Dashboard
+- 🔄 Mobile Optimization
 
-## Спиране
+---
 
-`Ctrl+C` в терминала
+# 🤖 AI-Assisted Development
+
+This project is built using an AI-assisted workflow powered by:
+
+- Cursor
+- ChatGPT
+- Codex
+
+AI accelerates development while architecture, implementation, testing and product decisions are carefully reviewed and managed manually.
+
+---
+
+# 👨‍💻 Author
+
+**Boncho Uzunov**
+
+AI Product Builder | Full-Stack Developer
+
+GitHub
+
+https://github.com/BobbyUzunov
+
+---
+
+⭐ If you found this project interesting, consider giving it a Star.
