@@ -1,4 +1,3 @@
-import { getGameProgressStats, toGameProgress } from "@/lib/game-progress";
 import type { ProgressRecord } from "@/lib/types";
 import { createClient } from "./server";
 import { hasSupabaseEnv } from "./env";
@@ -41,8 +40,4 @@ export async function getCurrentUserProgress(): Promise<{
     isDemo: false,
     streakCount: profile?.streak_count ?? 0
   };
-}
-
-export function getSupabaseGameStats(progress: ProgressRecord[]) {
-  return getGameProgressStats(toGameProgress(progress));
 }

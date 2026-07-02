@@ -11,19 +11,16 @@ import {
 } from "@/lib/catalog/helpers";
 import { getStoredProgress } from "@/lib/game-progress";
 import { xpPerLesson } from "@/lib/game-data";
-import {
-  getProjectsForCourse,
-  isProjectSubmitted,
-  isProjectUnlocked,
-  localizeProject
-} from "@/lib/projects";
-import { formatLessonsProgress, formatMessage, localizeGameLesson, localizeGameQuest, t, type Language } from "@/lib/i18n";
-import { getLessonModuleIndex } from "@/lib/lesson-structure";
+import type { CourseProject } from "@/lib/projects/types";
+import { getProjectsForCourse, isProjectSubmitted, isProjectUnlocked, localizeProject } from "@/lib/projects/helpers";
+import { getLessonModuleIndex } from "@/lib/catalog/helpers";
+import { formatMessage, formatLessonsProgress, localizeGameLesson, localizeGameQuest, t, type Language } from "@/lib/i18n";
 
 export function SyllabusView({
   catalog,
   completedLessonIds: initialCompletedLessonIds,
   isAuthenticated,
+  projects,
   showGuestLockMessage = false,
   showLessonLockMessage = false,
   submittedProjectIds: initialSubmittedProjectIds = [],
@@ -32,6 +29,7 @@ export function SyllabusView({
   catalog: CourseCatalog;
   completedLessonIds?: string[];
   isAuthenticated: boolean;
+  projects: CourseProject[];
   showGuestLockMessage?: boolean;
   showLessonLockMessage?: boolean;
   submittedProjectIds?: string[];
@@ -175,7 +173,7 @@ export function SyllabusView({
                     }
 
                     const lesson = localizeGameLesson(rawLesson, language);
-                    const moduleNumber = getLessonModuleIndex(lessonId, quest.id);
+                    const moduleNumber = getLessonModuleIndex(lessonId, rawQuest);
                     const isCompleted = completedLessonIds.includes(lessonId);
                     const unlocked =
                       isCompleted ||
@@ -222,7 +220,7 @@ export function SyllabusView({
                       </li>
                     );
                   })}
-                  {getProjectsForCourse(quest.id).map((rawProject) => {
+                  {getProjectsForCourse(projects, quest.id).map((rawProject) => {
                     const project = localizeProject(rawProject, language);
                     const submitted = isProjectSubmitted(project.id, submittedProjectIds);
                     const unlocked = isAuthenticated && isProjectUnlocked(rawProject, completedLessonIds);

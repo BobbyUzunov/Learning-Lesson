@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getProjectById, isProjectUnlocked, validateProjectSubmissionInput } from "@/lib/projects";
+import { getCourseProjects } from "@/lib/projects/store";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -13,7 +14,8 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   const { projectId } = await context.params;
-  const project = getProjectById(projectId);
+  const { projects } = await getCourseProjects();
+  const project = getProjectById(projects, projectId);
 
   if (!project) {
     return NextResponse.json({ error: "Unknown project." }, { status: 404 });

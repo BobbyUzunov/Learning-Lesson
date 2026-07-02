@@ -6,12 +6,12 @@ import { LessonOutline } from "@/components/lesson-outline";
 import { LessonSection } from "@/components/lesson-section";
 import { MissionPanel } from "@/components/mission-panel";
 import { QuizGenerator } from "@/components/quiz-generator";
-import { getCourseCatalog, getFirstLesson, getQuestForLesson, isLessonUnlocked } from "@/lib/catalog";
+import { getCourseCatalog, getCatalogLesson, getFirstLesson, getQuestForLesson, isLessonUnlocked } from "@/lib/catalog";
 import { xpPerLesson } from "@/lib/game-data";
 import { formatMessage, localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { localizeLessonStructure } from "@/lib/lesson-structure";
-import { getLessonWithOverrides } from "@/lib/mission-content";
+import { getQuizContent } from "@/lib/quiz";
 import { getCurrentSession } from "@/lib/supabase/auth";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 
@@ -52,6 +52,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const session = await getCurrentSession();
   const { id } = await params;
   const catalog = await getCourseCatalog();
+  const quizContent = await getQuizContent();
   const firstLesson = getFirstLesson(catalog);
   const progressData = session.user ? await getCurrentUserProgress() : null;
   const completedLessonIds = progressData?.progress.filter((item) => item.completed).map((item) => item.lesson_id) ?? [];
@@ -60,7 +61,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
     redirect("/paths?guestLocked=1");
   }
 
-  const gameLesson = await getLessonWithOverrides(id);
+  const gameLesson = await getCatalogLesson(id);
 
   if (!gameLesson) {
     notFound();
@@ -109,6 +110,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
           <LessonSection number={3} title={copy.syllabus.sectionTask}>
             <MissionPanel
               completedLessonIds={completedLessonIds}
+              courses={catalog.courses}
               isAuthenticated={Boolean(session.user)}
               language={language}
               lesson={missionLesson}
@@ -116,7 +118,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
           </LessonSection>
 
           <LessonSection number={4} title={copy.syllabus.sectionCheck}>
-            <QuizGenerator language={language} lessonId={missionLesson.id} />
+            <QuizGenerator language={language} lessonId={missionLesson.id} quizContent={quizContent} />
           </LessonSection>
 
           <LessonKeyConcepts language={language} structure={structure} />

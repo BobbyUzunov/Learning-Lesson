@@ -33,6 +33,7 @@ export default async function HomePage() {
               <ContinueLearningButton
                 className="inline-flex items-center justify-center gap-2 rounded-md bg-ink px-5 py-3 font-bold text-paper transition hover:bg-ink/90"
                 completedLessonIds={progressData?.progress.filter((item) => item.completed).map((item) => item.lesson_id)}
+                courses={catalog.courses}
                 label={copy.home.continueLearning}
               />
               <Link

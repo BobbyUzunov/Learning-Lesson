@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { getDailyChallengeStatus } from "@/lib/daily-challenge";
-import { getGameLesson } from "@/lib/game-data";
+import { gameLessons } from "@/lib/game-data";
 import { localizeGameLesson, t, type Language } from "@/lib/i18n";
 import type { ProgressRecord } from "@/lib/types";
 
@@ -19,7 +19,7 @@ export function DailyChallengeCard({
 }) {
   const copy = t(language);
   const [status, setStatus] = useState(() => getDailyChallengeStatus(initialProgress));
-  const lesson = getGameLesson(status.lessonId);
+  const lesson = gameLessons.find((item) => item.id === status.lessonId);
   const localizedLesson = lesson ? localizeGameLesson(lesson, language) : null;
 
   useEffect(() => {

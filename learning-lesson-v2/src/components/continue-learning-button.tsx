@@ -4,32 +4,36 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { getStoredProgress, getGameProgressStats } from "@/lib/game-progress";
-import { gameLessons } from "@/lib/game-data";
+import type { GameQuest } from "@/lib/game-data";
+import { gameQuests } from "@/lib/game-data";
+import { getGlobalNextLessonFromCourses } from "@/lib/catalog/helpers";
 
 type ContinueLearningButtonProps = {
   className?: string;
   completedLessonIds?: string[];
+  courses?: GameQuest[];
   label: string;
 };
 
 export function ContinueLearningButton({
   className,
   completedLessonIds,
+  courses = gameQuests,
   label
 }: ContinueLearningButtonProps) {
   const [href, setHref] = useState("/lesson/1");
 
   useEffect(() => {
     if (completedLessonIds) {
-      const nextLesson = gameLessons.find((lesson) => !completedLessonIds.includes(lesson.id)) ?? gameLessons[0];
-      setHref(`/lesson/${nextLesson.id}`);
+      const nextLessonId = getGlobalNextLessonFromCourses(courses, completedLessonIds) ?? courses[0]?.lessonIds[0] ?? "1";
+      setHref(`/lesson/${nextLessonId}`);
       return;
     }
 
     const progress = getStoredProgress();
-    const stats = getGameProgressStats(progress);
+    const stats = getGameProgressStats(progress, undefined, courses);
     setHref(`/lesson/${stats.currentMission.id}`);
-  }, [completedLessonIds]);
+  }, [completedLessonIds, courses]);
 
   return (
     <Link

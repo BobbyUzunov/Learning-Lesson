@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SyllabusView } from "@/components/syllabus-view";
 import { getCourseCatalog } from "@/lib/catalog";
+import { getCourseProjects } from "@/lib/projects/store";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getCurrentSession } from "@/lib/supabase/auth";
@@ -19,6 +20,7 @@ export default async function PathsPage({ searchParams }: PathsPageProps) {
   const params = await searchParams;
   const session = await getCurrentSession();
   const catalog = await getCourseCatalog();
+  const { projects } = await getCourseProjects();
   const progressData = session.user ? await getCurrentUserProgress() : null;
   const submissions = session.user ? await getCurrentUserProjectSubmissions() : [];
   const completedLessonIds = progressData?.progress.filter((item) => item.completed).map((item) => item.lesson_id);
@@ -50,6 +52,7 @@ export default async function PathsPage({ searchParams }: PathsPageProps) {
         catalog={catalog}
         completedLessonIds={completedLessonIds}
         isAuthenticated={Boolean(session.user)}
+        projects={projects}
         showGuestLockMessage={!session.user && Boolean(params.guestLocked)}
         showLessonLockMessage={Boolean(session.user && params.lessonLocked)}
         submittedProjectIds={submittedProjectIds}

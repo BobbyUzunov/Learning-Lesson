@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getGameLesson, xpPerLesson } from "@/lib/game-data";
+import { getCatalogLesson } from "@/lib/catalog";
+import { xpPerLesson } from "@/lib/game-data";
 import { getLevelProgress } from "@/lib/game-progress";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "lessonId is required." }, { status: 400 });
   }
 
-  if (!getGameLesson(lessonId)) {
+  if (!(await getCatalogLesson(lessonId))) {
     return NextResponse.json({ error: "Unknown lesson." }, { status: 404 });
   }
 

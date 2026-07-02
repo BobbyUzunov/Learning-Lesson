@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CheckCircle2, Lightbulb, Lock, ScrollText } from "lucide-react";
 import type { GameLesson } from "@/lib/game-data";
-import { getGlobalNextLesson } from "@/lib/game-data";
+import type { GameQuest } from "@/lib/game-data";
+import { getGlobalNextLessonFromCourses } from "@/lib/catalog/helpers";
 import { completeStoredLesson, getGameProgressStats, getStoredProgress, guestContinueKey } from "@/lib/game-progress";
 import { formatMessage, t, type Language } from "@/lib/i18n";
 
@@ -12,11 +13,13 @@ const MIN_EFFORT_CHARS = 12;
 
 export function MissionPanel({
   completedLessonIds = [],
+  courses,
   isAuthenticated,
   language,
   lesson
 }: {
   completedLessonIds?: string[];
+  courses: GameQuest[];
   isAuthenticated: boolean;
   language: Language;
   lesson: GameLesson;
@@ -38,7 +41,7 @@ export function MissionPanel({
   const canViewSolution = hasEffort || allHintsUsed;
 
   function resolveNextLesson(updatedCompletedIds: string[]) {
-    return getGlobalNextLesson(updatedCompletedIds);
+    return getGlobalNextLessonFromCourses(courses, updatedCompletedIds);
   }
 
   function finishMissionSuccess(level: number, updatedCompletedIds: string[], options?: { showGuestModal?: boolean }) {

@@ -1,4 +1,4 @@
-import { getGameLesson, getQuestById, type GameLesson, type GameQuest } from "../game-data";
+import type { GameLesson, GameQuest } from "../game-data";
 import type { LessonMetadataFields } from "./types";
 import { lessonMetadataPatches } from "./patches";
 
@@ -54,13 +54,13 @@ function courseLabel(quest: GameQuest | null, language: "en" | "bg") {
   return language === "bg" ? quest.titleBg ?? quest.title : quest.title;
 }
 
-function previousLessonTitle(quest: GameQuest, moduleNumber: number, language: "en" | "bg") {
+function previousLessonTitle(quest: GameQuest, moduleNumber: number, language: "en" | "bg", lessons: GameLesson[]) {
   if (moduleNumber <= 1) {
     return null;
   }
 
   const previousId = quest.lessonIds[moduleNumber - 2];
-  const previous = previousId ? getGameLesson(previousId) : null;
+  const previous = previousId ? lessons.find((item) => item.id === previousId) : null;
   if (!previous) {
     return null;
   }
@@ -71,7 +71,8 @@ function previousLessonTitle(quest: GameQuest, moduleNumber: number, language: "
 export function generateLessonMetadata(
   lesson: GameLesson,
   quest: GameQuest | null,
-  moduleNumber: number
+  moduleNumber: number,
+  lessons: GameLesson[] = []
 ): LessonMetadataFields {
   const topicEn = cleanTitle(lesson.title);
   const topicBg = cleanTitle(lesson.titleBg ?? lesson.title);
@@ -79,8 +80,8 @@ export function generateLessonMetadata(
   const courseBg = courseLabel(quest, "bg");
   const missionEn = firstSentence(lesson.mission);
   const missionBg = firstSentence(lesson.missionBg ?? lesson.mission);
-  const prevEn = quest ? previousLessonTitle(quest, moduleNumber, "en") : null;
-  const prevBg = quest ? previousLessonTitle(quest, moduleNumber, "bg") : null;
+  const prevEn = quest ? previousLessonTitle(quest, moduleNumber, "en", lessons) : null;
+  const prevBg = quest ? previousLessonTitle(quest, moduleNumber, "bg", lessons) : null;
 
   return {
     readingTimeMinutes: estimateReadingTime(lesson),
@@ -110,10 +111,11 @@ export function generateLessonMetadata(
 export function resolveLessonMetadata(
   lesson: GameLesson,
   quest: GameQuest | null,
-  moduleNumber: number
+  moduleNumber: number,
+  lessons: GameLesson[] = []
 ): Required<LessonMetadataFields> {
   const patch = lessonMetadataPatches[lesson.id];
-  const generated = generateLessonMetadata(lesson, quest, moduleNumber);
+  const generated = generateLessonMetadata(lesson, quest, moduleNumber, lessons);
 
   return {
     readingTimeMinutes: lesson.readingTimeMinutes ?? patch?.readingTimeMinutes ?? generated.readingTimeMinutes ?? 8,
@@ -127,16 +129,16 @@ export function resolveLessonMetadata(
   };
 }
 
-export function enrichLessonWithMetadata(lesson: GameLesson, quest: GameQuest | null, moduleNumber: number): GameLesson {
-  const metadata = resolveLessonMetadata(lesson, quest, moduleNumber);
+export function enrichLessonWithMetadata(
+  lesson: GameLesson,
+  quest: GameQuest | null,
+  moduleNumber: number,
+  lessons: GameLesson[] = []
+): GameLesson {
+  const metadata = resolveLessonMetadata(lesson, quest, moduleNumber, lessons);
 
   return {
     ...lesson,
     ...metadata
   };
-}
-
-export function getAllLessonIdsWithMetadata() {
-  const quest = getQuestById("ai-product-builder");
-  return quest?.lessonIds ?? [];
 }

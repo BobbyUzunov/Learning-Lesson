@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Medal } from "lucide-react";
 import { getEarnedCertificates } from "@/lib/certificates";
-import { getQuestById } from "@/lib/game-data";
+import { getCourseCatalog, getQuestFromCatalog } from "@/lib/catalog";
+import { getCourseProjects } from "@/lib/projects/store";
 import { localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { toGameProgress } from "@/lib/game-progress";
@@ -16,7 +17,9 @@ type CertificatePageProps = {
 
 export default async function CertificatePage({ params }: CertificatePageProps) {
   const { questId } = await params;
-  const quest = getQuestById(questId);
+  const catalog = await getCourseCatalog();
+  const { projects } = await getCourseProjects();
+  const quest = getQuestFromCatalog(catalog, questId);
   if (!quest) {
     notFound();
   }
@@ -28,7 +31,7 @@ export default async function CertificatePage({ params }: CertificatePageProps) 
   const submissions = await getCurrentUserProjectSubmissions();
   const submittedProjectIds = toSubmittedProjectIds(submissions);
   const gameProgress = toGameProgress(progress);
-  const earned = getEarnedCertificates(gameProgress, language, progress, submittedProjectIds).find(
+  const earned = getEarnedCertificates(gameProgress, language, progress, submittedProjectIds, catalog.courses, projects).find(
     (item) => item.questId === questId
   );
 

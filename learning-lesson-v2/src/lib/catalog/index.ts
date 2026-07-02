@@ -2,7 +2,9 @@ import { unstable_noStore as noStore } from "next/cache";
 import { createClient } from "../supabase/server";
 import { hasSupabaseEnv } from "../supabase/env";
 import { getFallbackCatalog } from "./fallback";
-import { mapRowsToCatalog } from "./helpers";
+import { getLessonFromCatalog, mapRowsToCatalog } from "./helpers";
+import { seedProjectsToDatabase } from "../projects/store";
+import { seedQuizToDatabase } from "../quiz";
 import { buildCatalogSeedPayload } from "./seed-payload";
 import type { CourseCatalog, CourseRow, LessonMetadataRow, LessonRow } from "./types";
 
@@ -51,6 +53,16 @@ export async function getCourseCatalog(): Promise<CourseCatalog> {
   return fromDatabase ?? getFallbackCatalog();
 }
 
+export async function getCatalogLessons() {
+  const catalog = await getCourseCatalog();
+  return catalog.lessons;
+}
+
+export async function getCatalogLesson(id: string) {
+  const catalog = await getCourseCatalog();
+  return getLessonFromCatalog(catalog, id) ?? null;
+}
+
 export async function seedCatalogToDatabase() {
   if (!hasSupabaseEnv()) {
     throw new Error("Supabase env is not configured.");
@@ -86,11 +98,25 @@ export async function seedCatalogToDatabase() {
   };
 }
 
+export async function seedAllContentToDatabase() {
+  const catalog = await seedCatalogToDatabase();
+  const [quiz, projects] = await Promise.all([seedQuizToDatabase(), seedProjectsToDatabase()]);
+
+  return {
+    ...catalog,
+    quizQuestions: quiz.questions,
+    lessonQuizTopics: quiz.lessonTopics,
+    projects: projects.projects
+  };
+}
+
 export type { CourseCatalog, CourseCatalogSource } from "./types";
 export {
   getFirstLesson,
   getGlobalNextLesson,
+  getGlobalNextLessonFromCourses,
   getLessonFromCatalog,
+  getLessonModuleIndex,
   getLessonOrderInQuest,
   getLessonUnlockRule,
   getNextLessonInQuest,

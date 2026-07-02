@@ -1,15 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { gameQuests } from "./game-data";
+import { fallbackCourseProjects } from "./projects/fallback-data";
 import {
   courseCertificateRequirementsMet,
   getProjectById,
   isProjectUnlocked,
   validateProjectSubmissionInput
-} from "./projects";
+} from "./projects/helpers";
 
 describe("projects", () => {
   it("unlocks product brief after lesson 7", () => {
-    const project = getProjectById("aipb-product-brief");
+    const project = getProjectById(fallbackCourseProjects, "aipb-product-brief");
     expect(project).toBeTruthy();
     expect(isProjectUnlocked(project!, ["7"])).toBe(true);
     expect(isProjectUnlocked(project!, [])).toBe(false);
@@ -20,12 +21,14 @@ describe("projects", () => {
     expect(quest).toBeTruthy();
 
     const lessonsComplete = quest!.lessonIds;
-    expect(courseCertificateRequirementsMet("ai-product-builder", lessonsComplete, [])).toBe(false);
-    expect(courseCertificateRequirementsMet("ai-product-builder", lessonsComplete, ["aipb-live-deploy"])).toBe(true);
+    expect(courseCertificateRequirementsMet(fallbackCourseProjects, "ai-product-builder", lessonsComplete, [])).toBe(false);
+    expect(
+      courseCertificateRequirementsMet(fallbackCourseProjects, "ai-product-builder", lessonsComplete, ["aipb-live-deploy"])
+    ).toBe(true);
   });
 
   it("validates deploy submission fields", () => {
-    const project = getProjectById("aipb-live-deploy");
+    const project = getProjectById(fallbackCourseProjects, "aipb-live-deploy");
     expect(project).toBeTruthy();
 
     expect(

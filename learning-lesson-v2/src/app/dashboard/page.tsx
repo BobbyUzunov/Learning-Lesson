@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { DashboardGameSummary } from "@/components/dashboard-game-summary";
-import { getCourseCatalog } from "@/lib/catalog";
+import { getCourseCatalog, getCatalogLessons } from "@/lib/catalog";
+import { getCourseProjects } from "@/lib/projects/store";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
-import { getAllLessonsWithOverrides } from "@/lib/mission-content";
 import { getCurrentUserProjectSubmissions, toSubmittedProjectIds } from "@/lib/supabase/project-submissions";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 import { requireUser } from "@/lib/supabase/auth";
@@ -15,9 +15,10 @@ export default async function DashboardPage() {
   const copy = t(language);
   await requireUser();
   const catalog = await getCourseCatalog();
+  const { projects } = await getCourseProjects();
   const [{ progress, streakCount }, lessons, submissions] = await Promise.all([
     getCurrentUserProgress(),
-    getAllLessonsWithOverrides(),
+    getCatalogLessons(),
     getCurrentUserProjectSubmissions()
   ]);
   const submittedProjectIds = toSubmittedProjectIds(submissions);
@@ -40,6 +41,7 @@ export default async function DashboardPage() {
         initialLessons={lessons}
         initialProgress={progress}
         initialStreak={streakCount}
+        projects={projects}
         submittedProjectIds={submittedProjectIds}
         language={language}
       />

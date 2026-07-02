@@ -4,7 +4,9 @@ import { DailyChallengeCard } from "@/components/daily-challenge-card";
 import { DailyStreakCard } from "@/components/daily-streak-card";
 import { ProgressChart } from "@/components/progress-chart";
 import { QuestCertificates } from "@/components/quest-certificates";
+import { getCourseCatalog } from "@/lib/catalog";
 import { getQuestCertificates } from "@/lib/certificates";
+import { getCourseProjects } from "@/lib/projects/store";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { requireUser } from "@/lib/supabase/auth";
@@ -17,15 +19,17 @@ export default async function ProfilePage() {
   const language = await getLanguage();
   const copy = t(language);
   const session = await requireUser();
+  const catalog = await getCourseCatalog();
+  const { projects } = await getCourseProjects();
   const { progress, streakCount } = await getCurrentUserProgress();
   const submissions = await getCurrentUserProjectSubmissions();
   const submittedProjectIds = toSubmittedProjectIds(submissions);
   const gameProgress = toGameProgress(progress, streakCount);
-  const stats = getGameProgressStats(gameProgress);
+  const stats = getGameProgressStats(gameProgress, catalog.lessons, catalog.courses);
   const completedCount = stats.completedCount;
   const currentPath = localizeGameQuest(stats.currentQuest, language);
-  const achievements = getAchievements(gameProgress, language, stats.currentStreak);
-  const certificates = getQuestCertificates(gameProgress, language, progress, submittedProjectIds);
+  const achievements = getAchievements(gameProgress, language, stats.currentStreak, catalog.courses);
+  const certificates = getQuestCertificates(gameProgress, language, progress, submittedProjectIds, catalog.courses, projects);
   const emailVerified = Boolean(session.user.email_confirmed_at);
   const name =
     session.profile?.display_name ??

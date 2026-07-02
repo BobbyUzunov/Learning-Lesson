@@ -161,6 +161,10 @@ export function getGlobalNextLesson(catalog: CourseCatalog, completedLessonIds: 
   return null;
 }
 
+export function getGlobalNextLessonFromCourses(courses: GameQuest[], completedLessonIds: Iterable<string>) {
+  return getGlobalNextLesson({ courses, lessons: [], source: "db" }, completedLessonIds);
+}
+
 export function getQuestLessons(catalog: CourseCatalog, questId: string) {
   const quest = getQuestFromCatalog(catalog, questId);
   if (!quest) {
@@ -189,4 +193,13 @@ export function getLessonOrderInQuest(catalog: CourseCatalog, lessonId: string) 
 
 export function getTotalAvailableXp(catalog: CourseCatalog, xpPerLesson: number) {
   return catalog.lessons.length * xpPerLesson;
+}
+
+export function getLessonModuleIndex(lessonId: string, quest: GameQuest | null) {
+  if (!quest) {
+    return 1;
+  }
+
+  const index = quest.lessonIds.indexOf(lessonId);
+  return index >= 0 ? index + 1 : 1;
 }

@@ -5,22 +5,30 @@ import { CheckCircle2, RefreshCw, Sparkles } from "lucide-react";
 import {
   generateQuizQuestions,
   getQuizTopicForLesson,
-  localizeQuizQuestion,
-  type QuizQuestion
-} from "@/lib/quiz-generator";
+  localizeQuizQuestion
+} from "@/lib/quiz/helpers";
+import type { QuizContent, QuizQuestion } from "@/lib/quiz/types";
 import { t, type Language } from "@/lib/i18n";
 
-export function QuizGenerator({ language, lessonId }: { language: Language; lessonId: string }) {
+export function QuizGenerator({
+  language,
+  lessonId,
+  quizContent
+}: {
+  language: Language;
+  lessonId: string;
+  quizContent: QuizContent;
+}) {
   const copy = t(language);
-  const topic = getQuizTopicForLesson(lessonId);
+  const topic = getQuizTopicForLesson(quizContent, lessonId);
   const [seed, setSeed] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(false);
 
   const questions = useMemo(() => {
     void seed;
-    return generateQuizQuestions(topic, 3);
-  }, [seed, topic]);
+    return generateQuizQuestions(quizContent, topic, 3);
+  }, [quizContent, seed, topic]);
 
   const correctCount = submitted
     ? questions.reduce((total, question) => total + (answers[question.id] === question.correctIndex ? 1 : 0), 0)

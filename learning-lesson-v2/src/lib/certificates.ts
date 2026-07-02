@@ -2,7 +2,9 @@ import { gameQuests, type GameQuest } from "./game-data";
 import type { GameProgress } from "./game-progress";
 import type { Language } from "./i18n";
 import { localizeGameQuest } from "./i18n";
-import { courseCertificateRequirementsMet } from "./projects";
+import { fallbackCourseProjects } from "./projects/fallback-data";
+import { courseCertificateRequirementsMet } from "./projects/helpers";
+import type { CourseProject } from "./projects/types";
 import type { ProgressRecord } from "./types";
 
 export type QuestCertificate = {
@@ -36,15 +38,17 @@ export function getQuestCertificates(
   gameProgress: GameProgress,
   language: Language,
   progressRecords: ProgressRecord[] = [],
-  submittedProjectIds: string[] = []
+  submittedProjectIds: string[] = [],
+  courses: GameQuest[] = gameQuests,
+  projects: CourseProject[] = fallbackCourseProjects
 ): QuestCertificate[] {
   const completed = new Set(gameProgress.completedLessonIds);
 
-  return gameQuests.map((quest) => {
+  return courses.map((quest) => {
     const localized = localizeGameQuest(quest, language);
     const completedCount = quest.lessonIds.filter((lessonId) => completed.has(lessonId)).length;
     const lessonsComplete = completedCount === quest.lessonIds.length;
-    const projectsComplete = courseCertificateRequirementsMet(quest.id, completed, submittedProjectIds);
+    const projectsComplete = courseCertificateRequirementsMet(projects, quest.id, completed, submittedProjectIds);
     const earned = lessonsComplete && projectsComplete;
 
     return {
@@ -63,9 +67,11 @@ export function getEarnedCertificates(
   gameProgress: GameProgress,
   language: Language,
   progressRecords: ProgressRecord[] = [],
-  submittedProjectIds: string[] = []
+  submittedProjectIds: string[] = [],
+  courses: GameQuest[] = gameQuests,
+  projects: CourseProject[] = fallbackCourseProjects
 ) {
-  return getQuestCertificates(gameProgress, language, progressRecords, submittedProjectIds).filter(
+  return getQuestCertificates(gameProgress, language, progressRecords, submittedProjectIds, courses, projects).filter(
     (certificate) => certificate.earned
   );
 }

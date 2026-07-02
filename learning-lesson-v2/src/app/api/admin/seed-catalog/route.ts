@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { seedCatalogToDatabase } from "@/lib/catalog";
+import { seedAllContentToDatabase } from "@/lib/catalog";
 import { requireAdminUser } from "@/lib/supabase/admin-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -15,7 +15,7 @@ export async function POST() {
   }
 
   try {
-    const result = await seedCatalogToDatabase();
+    const result = await seedAllContentToDatabase();
     revalidatePath("/");
     revalidatePath("/paths");
     revalidatePath("/dashboard");

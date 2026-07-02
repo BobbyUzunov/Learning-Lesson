@@ -1,4 +1,5 @@
-import { gameLessons, gameQuests, getGameLesson, getGlobalNextLesson, xpPerLesson, xpPerLevel, type GameLesson, type GameQuest } from "./game-data";
+import { gameLessons, gameQuests, xpPerLesson, xpPerLevel, type GameLesson, type GameQuest } from "./game-data";
+import { getGlobalNextLessonFromCourses } from "./catalog/helpers";
 import type { Language } from "./i18n";
 import { t } from "./i18n";
 import type { ProgressRecord } from "./types";
@@ -84,9 +85,9 @@ export function getGameProgressStats(
   const completedCount = progress.completedLessonIds.length;
   const xp = completedCount * xpPerLesson;
   const levelInfo = getLevelProgress(xp);
-  const nextLessonId = getGlobalNextLesson(progress.completedLessonIds);
   const lessonById = new Map(lessons.map((lesson) => [lesson.id, lesson]));
-  const currentMission = (nextLessonId ? lessonById.get(nextLessonId) ?? getGameLesson(nextLessonId) : lessons[0]) ?? lessons[0];
+  const nextLessonId = getGlobalNextLessonFromCourses(courses, progress.completedLessonIds);
+  const currentMission = (nextLessonId ? lessonById.get(nextLessonId) : lessons[0]) ?? lessons[0];
   const currentQuest = courses.find((quest) => quest.id === currentMission.questId) ?? courses[0];
   const courseCompleted = currentQuest.lessonIds.filter((id) => progress.completedLessonIds.includes(id)).length;
   const courseTotal = currentQuest.lessonIds.length;
@@ -141,21 +142,22 @@ export function getLevelProgress(xp: number) {
   };
 }
 
-export function getCurrentPath(progress: GameProgress) {
-  const stats = getGameProgressStats(progress);
+export function getCurrentPath(progress: GameProgress, courses: GameQuest[] = gameQuests, lessons: GameLesson[] = gameLessons) {
+  const stats = getGameProgressStats(progress, lessons, courses);
   return stats.currentQuest;
 }
 
 export function getAchievements(
   progress: GameProgress,
   language: Language = "en",
-  streakDays = progress.currentStreak
+  streakDays = progress.currentStreak,
+  courses: GameQuest[] = gameQuests
 ): Achievement[] {
   const completed = progress.completedLessonIds;
   const xp = completed.length * xpPerLesson;
   const copy = t(language);
   const hasCompletedQuest = (questId: string) => {
-    const quest = gameQuests.find((item) => item.id === questId);
+    const quest = courses.find((item) => item.id === questId);
     return Boolean(quest && quest.lessonIds.every((lessonId) => completed.includes(lessonId)));
   };
 

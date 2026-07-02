@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   getCourseCatalog,
+  getCatalogLessons,
   getLessonOrderInQuest,
   getLessonUnlockRule,
   getQuestLessons,
@@ -9,7 +10,6 @@ import {
 import { xpPerLesson } from "@/lib/game-data";
 import { localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
-import { getAllLessonsWithOverrides } from "@/lib/mission-content";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +18,7 @@ export default async function AdminPage() {
   const copy = t(language);
   const catalog = await getCourseCatalog();
   const quests = catalog.courses.map((quest) => localizeGameQuest(quest, language));
-  const lessons = await getAllLessonsWithOverrides();
+  const lessons = await getCatalogLessons();
   const localizedLessons = lessons.map((lesson) => localizeGameLesson(lesson, language));
 
   return (

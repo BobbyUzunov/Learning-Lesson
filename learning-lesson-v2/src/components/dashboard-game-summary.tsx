@@ -8,9 +8,9 @@ import { getGameProgressStats, getStoredProgress, toGameProgress } from "@/lib/g
 import { gameLessons, gameQuests } from "@/lib/game-data";
 import type { GameLesson, GameQuest } from "@/lib/game-data";
 import { formatMessage, formatLessonsProgress, localizeGameLesson, localizeGameQuest, t, type Language } from "@/lib/i18n";
-import { getLessonModuleIndex } from "@/lib/lesson-structure";
-import { resolveLessonMetadata } from "@/lib/lesson-metadata/generate";
-import { getNextPendingProject, localizeProject } from "@/lib/projects";
+import { getLessonModuleIndex } from "@/lib/catalog/helpers";
+import { getNextPendingProject, localizeProject } from "@/lib/projects/helpers";
+import type { CourseProject } from "@/lib/projects/types";
 import type { ProgressRecord } from "@/lib/types";
 
 type DashboardStats = ReturnType<typeof getGameProgressStats>;
@@ -20,6 +20,7 @@ export function DashboardGameSummary({
   initialLessons,
   initialProgress,
   initialStreak = 0,
+  projects,
   submittedProjectIds = [],
   language
 }: {
@@ -27,6 +28,7 @@ export function DashboardGameSummary({
   initialLessons?: GameLesson[];
   initialProgress?: ProgressRecord[];
   initialStreak?: number;
+  projects: CourseProject[];
   submittedProjectIds?: string[];
   language: Language;
 }) {
@@ -49,15 +51,10 @@ export function DashboardGameSummary({
   const currentLesson = localizeGameLesson(fallback.currentMission, language);
   const completedLessonIds = initialProgress?.filter((item) => item.completed).map((item) => item.lesson_id) ?? [];
   const hasProgress = fallback.completedCount > 0;
-  const pendingProject = getNextPendingProject(completedLessonIds, submittedProjectIds);
+  const pendingProject = getNextPendingProject(projects, completedLessonIds, submittedProjectIds);
   const localizedPendingProject = pendingProject ? localizeProject(pendingProject, language) : null;
-  const moduleNumber = getLessonModuleIndex(fallback.currentMission.id, fallback.currentQuest.id);
-  const metadata = resolveLessonMetadata(
-    fallback.currentMission,
-    fallback.currentQuest,
-    moduleNumber
-  );
-  const readingTime = language === "bg" ? metadata.readingTimeMinutes : metadata.readingTimeMinutes;
+  const moduleNumber = getLessonModuleIndex(fallback.currentMission.id, fallback.currentQuest);
+  const readingTime = fallback.currentMission.readingTimeMinutes ?? 8;
 
   return (
     <div className="mt-8 grid gap-5">

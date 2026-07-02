@@ -1,14 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { gameLessons, gameQuests, getQuestForLesson } from "../game-data";
-import { getLessonModuleIndex } from "../lesson-structure";
+import { gameLessons, gameQuests } from "../game-data";
+import { getFallbackCatalog } from "../catalog/fallback";
+import { getLessonModuleIndex, getQuestForLesson } from "../catalog/helpers";
 import { resolveLessonMetadata } from "./generate";
 
 describe("lesson metadata coverage", () => {
+  const catalog = getFallbackCatalog();
+
   it("provides metadata for every lesson", () => {
     for (const lesson of gameLessons) {
-      const quest = getQuestForLesson(lesson.id) ?? null;
-      const moduleNumber = quest ? getLessonModuleIndex(lesson.id, quest.id) : 1;
-      const metadata = resolveLessonMetadata(lesson, quest, moduleNumber);
+      const quest = getQuestForLesson(catalog, lesson.id) ?? null;
+      const moduleNumber = getLessonModuleIndex(lesson.id, quest);
+      const metadata = resolveLessonMetadata(lesson, quest, moduleNumber, catalog.lessons);
 
       expect(metadata.learningObjectives.length).toBeGreaterThanOrEqual(3);
       expect(metadata.learningObjectivesBg.length).toBeGreaterThanOrEqual(3);
@@ -26,7 +29,7 @@ describe("lesson metadata coverage", () => {
       const lesson = gameLessons.find((item) => item.id === lessonId);
       expect(lesson).toBeTruthy();
 
-      const metadata = resolveLessonMetadata(lesson!, quest!, getLessonModuleIndex(lessonId, quest!.id));
+      const metadata = resolveLessonMetadata(lesson!, quest!, getLessonModuleIndex(lessonId, quest!), catalog.lessons);
       expect(metadata.learningObjectives[0]).not.toMatch(/Understand the core concept/i);
       expect(metadata.keyConcepts.length).toBeGreaterThanOrEqual(3);
     }
