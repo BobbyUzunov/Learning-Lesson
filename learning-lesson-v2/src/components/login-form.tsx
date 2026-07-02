@@ -15,6 +15,8 @@ type LoginLabels = {
   email: string;
   password: string;
   displayName: string;
+  emailPlaceholder: string;
+  displayNamePlaceholder: string;
   createAccount: string;
   working: string;
   missingConfig: string;
@@ -167,7 +169,7 @@ export function LoginForm({
             className="focus-ring mt-2 w-full rounded-md border border-ink/15 bg-white px-3 py-3"
             id="displayName"
             onChange={(event) => setDisplayName(event.target.value)}
-            placeholder="Bobby"
+            placeholder={labels.displayNamePlaceholder}
             type="text"
             value={displayName}
           />
@@ -180,7 +182,7 @@ export function LoginForm({
         className="focus-ring mt-2 w-full rounded-md border border-ink/15 bg-white px-3 py-3"
         id="email"
         onChange={(event) => setEmail(event.target.value)}
-        placeholder="you@example.com"
+        placeholder={labels.emailPlaceholder}
         required
         type="email"
         value={email}

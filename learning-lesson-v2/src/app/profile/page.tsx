@@ -18,7 +18,11 @@ export default async function ProfilePage() {
   const completedCount = stats.completedCount;
   const currentPath = localizeGameQuest(stats.currentQuest, language);
   const achievements = getAchievements(gameProgress, language, stats.currentStreak);
-  const name = session.profile?.display_name ?? session.profile?.email?.split("@")[0] ?? session.user.email?.split("@")[0] ?? "Learner";
+  const name =
+    session.profile?.display_name ??
+    session.profile?.email?.split("@")[0] ??
+    session.user.email?.split("@")[0] ??
+    copy.common.learner;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">

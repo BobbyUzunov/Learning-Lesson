@@ -77,7 +77,8 @@ export const dictionary = {
       locked: "Заключен",
       start: "Старт",
       openLesson: "Отвори урока",
-      backToPaths: "Назад към пътеките"
+      backToPaths: "Назад към пътеките",
+      learner: "Ученик"
     },
     home: {
       badge: "Версия 2 MVP",
@@ -121,7 +122,8 @@ export const dictionary = {
       startLearning: "Започни учене",
       pickPath: "Избери пътека и завърши първия си урок.",
       nextLessons: "Следващи уроци",
-      lessons: "урока"
+      lessons: "урока",
+      gameMvp: "Game MVP"
     },
     paths: {
       badge: "Learning мисии",
@@ -167,7 +169,9 @@ export const dictionary = {
       working: "Работи...",
       missingConfig: "Добави Supabase keys в .env.local, за да включиш auth.",
       loggedIn: "Влезе успешно. Пренасочвам към таблото.",
-      registered: "Акаунтът е създаден. Потвърди имейла, ако Supabase го изисква."
+      registered: "Акаунтът е създаден. Потвърди имейла, ако Supabase го изисква.",
+      emailPlaceholder: "you@example.com",
+      displayNamePlaceholder: "Bobby"
     },
     lesson: {
       understand: "Какво трябва да разбереш",
@@ -213,7 +217,8 @@ export const dictionary = {
       demoSave: "Свържи Supabase и влез в профил, за да пазиш реален прогрес.",
       complete: "Завърши урока",
       saved: "Запазено",
-      needsLogin: "Нужен е вход"
+      needsLogin: "Нужен е вход",
+      saveError: "Прогресът не беше запазен. Опитай отново след login."
     },
     admin: {
       accessRequired: "Нужен е админ достъп",
@@ -242,7 +247,14 @@ export const dictionary = {
       saveMission: "Запази мисията",
       missionSaved: "Мисията е запазена в Supabase.",
       missionSaveError: "Грешка при запис. Провери admin права и schema.",
-      viewMission: "Виж мисията"
+      viewMission: "Виж мисията",
+      titleEn: "Заглавие (EN)",
+      titleBg: "Заглавие (BG)",
+      missionEn: "Мисия (EN)",
+      missionBg: "Мисия (BG)",
+      explanationEn: "Обяснение (EN)",
+      explanationBg: "Обяснение (BG)",
+      solutionLabel: "Решение"
     },
     achievements: {
       "first-login": { title: "Първи вход", description: "Акаунтът е създаден и готов за учене." },
@@ -272,7 +284,8 @@ export const dictionary = {
       locked: "Locked",
       start: "Start",
       openLesson: "Open lesson",
-      backToPaths: "Back to paths"
+      backToPaths: "Back to paths",
+      learner: "Learner"
     },
     home: {
       badge: "Version 2 MVP",
@@ -316,7 +329,8 @@ export const dictionary = {
       startLearning: "Start learning",
       pickPath: "Pick a learning path and complete your first lesson.",
       nextLessons: "Next lessons",
-      lessons: "lessons"
+      lessons: "lessons",
+      gameMvp: "Game MVP"
     },
     paths: {
       badge: "Learning paths",
@@ -362,7 +376,9 @@ export const dictionary = {
       working: "Working...",
       missingConfig: "Add Supabase keys in .env.local to enable auth.",
       loggedIn: "Logged in. Redirecting to dashboard.",
-      registered: "Account created. Confirm email if required."
+      registered: "Account created. Confirm email if required.",
+      emailPlaceholder: "you@example.com",
+      displayNamePlaceholder: "Bobby"
     },
     lesson: {
       understand: "What you should understand",
@@ -408,7 +424,8 @@ export const dictionary = {
       demoSave: "Connect Supabase and log in to save real progress.",
       complete: "Complete lesson",
       saved: "Saved",
-      needsLogin: "Needs login"
+      needsLogin: "Needs login",
+      saveError: "Progress was not saved. Try again after logging in."
     },
     admin: {
       accessRequired: "Admin access required",
@@ -437,7 +454,14 @@ export const dictionary = {
       saveMission: "Save mission",
       missionSaved: "Mission saved to Supabase.",
       missionSaveError: "Save failed. Check admin role and database schema.",
-      viewMission: "View mission"
+      viewMission: "View mission",
+      titleEn: "Title (EN)",
+      titleBg: "Title (BG)",
+      missionEn: "Mission (EN)",
+      missionBg: "Mission (BG)",
+      explanationEn: "Explanation (EN)",
+      explanationBg: "Explanation (BG)",
+      solutionLabel: "Solution"
     },
     achievements: {
       "first-login": { title: "First Login", description: "Account created and ready to learn." },

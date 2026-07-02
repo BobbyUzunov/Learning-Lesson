@@ -22,7 +22,7 @@ export default async function DashboardPage() {
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-bold uppercase text-coral">
-            {userEmail ?? (isDemo ? copy.dashboard.demo : "Game MVP")}
+            {userEmail ?? (isDemo ? copy.dashboard.demo : copy.dashboard.gameMvp)}
           </p>
           <h1 className="mt-2 text-4xl font-black">{copy.dashboard.title}</h1>
           <p className="mt-3 max-w-2xl text-ink/70">

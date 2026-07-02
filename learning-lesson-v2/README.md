@@ -71,6 +71,8 @@ npm run lint     # ESLint
 npm run test     # Vitest unit tests
 ```
 
+CI runs `lint`, `test`, and `build` on pushes to `main` via GitHub Actions.
+
 ## Next steps
 
 - Expand mission count toward each quest's planned level target

@@ -39,6 +39,23 @@ export function MissionPanel({
     return getGlobalNextLesson(updatedCompletedIds);
   }
 
+  function finishMissionSuccess(level: number, updatedCompletedIds: string[], options?: { showGuestModal?: boolean }) {
+    const nextId = resolveNextLesson(updatedCompletedIds);
+    setNextLessonId(nextId);
+    setJustCompleted(true);
+    setMessage(`${copy.lesson.completeMessage} ${level}.`);
+    router.refresh();
+
+    if (options?.showGuestModal) {
+      setShowGuestModal(true);
+      return;
+    }
+
+    if (nextId) {
+      window.setTimeout(() => router.push(`/lesson/${nextId}`), 1800);
+    }
+  }
+
   async function completeMission() {
     if (!typedSomething && hintsUsed < lessonHints.length) {
       setMessage(copy.lesson.completeBeforeFinish);
@@ -48,6 +65,16 @@ export function MissionPanel({
     setLoading(true);
     setMessage(null);
 
+    if (!isAuthenticated) {
+      const progress = completeStoredLesson(lesson.id);
+      const stats = getGameProgressStats(progress);
+      finishMissionSuccess(stats.level, progress.completedLessonIds, {
+        showGuestModal: lesson.id === "1"
+      });
+      setLoading(false);
+      return;
+    }
+
     const response = await fetch("/api/progress", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -56,34 +83,25 @@ export function MissionPanel({
 
     setLoading(false);
 
-    if (response.ok) {
-      const result = (await response.json()) as { level?: number };
-      const updatedCompletedIds = [...new Set([...completedLessonIds, lesson.id])];
-      const nextId = resolveNextLesson(updatedCompletedIds);
-      setNextLessonId(nextId);
-      setJustCompleted(true);
-      setMessage(`${copy.lesson.completeMessage} ${result.level ?? 1}.`);
-      router.refresh();
-      if (nextId) {
-        window.setTimeout(() => router.push(`/lesson/${nextId}`), 1800);
+    if (!response.ok) {
+      let errorMessage: string = copy.lesson.saveError;
+
+      try {
+        const body = (await response.json()) as { error?: string };
+        if (body.error) {
+          errorMessage = body.error;
+        }
+      } catch {
+        // Keep the localized fallback message.
       }
+
+      setMessage(errorMessage);
       return;
     }
 
-    const progress = completeStoredLesson(lesson.id);
-    const stats = getGameProgressStats(progress);
-    const nextId = resolveNextLesson(progress.completedLessonIds);
-    setNextLessonId(nextId);
-    setJustCompleted(true);
-    setMessage(`${copy.lesson.completeMessage} ${stats.level}.`);
-    router.refresh();
-    if (!isAuthenticated && lesson.id === "1") {
-      setShowGuestModal(true);
-      return;
-    }
-    if (nextId) {
-      window.setTimeout(() => router.push(`/lesson/${nextId}`), 1800);
-    }
+    const result = (await response.json()) as { level?: number };
+    const updatedCompletedIds = [...new Set([...completedLessonIds, lesson.id])];
+    finishMissionSuccess(result.level ?? 1, updatedCompletedIds);
   }
 
   function revealNextHint() {

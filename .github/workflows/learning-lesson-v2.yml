@@ -1,0 +1,43 @@
+name: Learning Lesson v2 CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "learning-lesson-v2/**"
+      - ".github/workflows/learning-lesson-v2.yml"
+  pull_request:
+    paths:
+      - "learning-lesson-v2/**"
+      - ".github/workflows/learning-lesson-v2.yml"
+
+defaults:
+  run:
+    working-directory: learning-lesson-v2
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: learning-lesson-v2/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key

@@ -9,13 +9,13 @@ import { gameLessons } from "@/lib/game-data";
 type ContinueLearningButtonProps = {
   className?: string;
   completedLessonIds?: string[];
-  label?: string;
+  label: string;
 };
 
 export function ContinueLearningButton({
   className,
   completedLessonIds,
-  label = "Continue Learning"
+  label
 }: ContinueLearningButtonProps) {
   const [href, setHref] = useState("/lesson/1");
 
