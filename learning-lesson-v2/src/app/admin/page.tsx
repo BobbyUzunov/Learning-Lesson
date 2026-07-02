@@ -1,5 +1,4 @@
 import {
-  gameLessons,
   gameQuests,
   getLessonOrderInQuest,
   getLessonUnlockRule,
@@ -9,12 +8,16 @@ import {
 } from "@/lib/game-data";
 import { localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
+import { getAllLessonsWithOverrides } from "@/lib/mission-content";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const language = await getLanguage();
   const copy = t(language);
   const quests = gameQuests.map((quest) => localizeGameQuest(quest, language));
-  const localizedLessons = gameLessons.map((lesson) => localizeGameLesson(lesson, language));
+  const lessons = await getAllLessonsWithOverrides();
+  const localizedLessons = lessons.map((lesson) => localizeGameLesson(lesson, language));
 
   return (
     <div>
@@ -30,7 +33,7 @@ export default async function AdminPage() {
         </div>
         <div className="rounded-lg bg-white/80 p-4">
           <p className="text-sm text-ink/60">{copy.admin.lessons}</p>
-          <p className="mt-2 text-3xl font-black">{gameLessons.length}</p>
+          <p className="mt-2 text-3xl font-black">{lessons.length}</p>
         </div>
         <div className="rounded-lg bg-white/80 p-4">
           <p className="text-sm text-ink/60">{copy.admin.totalXp}</p>

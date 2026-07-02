@@ -1,4 +1,4 @@
-import { gameLessons, gameQuests, xpPerLesson, xpPerLevel } from "./game-data";
+import { gameLessons, gameQuests, xpPerLesson, xpPerLevel, type GameLesson } from "./game-data";
 import type { Language } from "./i18n";
 import { t } from "./i18n";
 import type { ProgressRecord } from "./types";
@@ -76,11 +76,11 @@ export function clearStoredProgress() {
   window.localStorage.removeItem(storageKey);
 }
 
-export function getGameProgressStats(progress: GameProgress) {
+export function getGameProgressStats(progress: GameProgress, lessons: GameLesson[] = gameLessons) {
   const completedCount = progress.completedLessonIds.length;
   const xp = completedCount * xpPerLesson;
   const levelInfo = getLevelProgress(xp);
-  const firstIncompleteLesson = gameLessons.find((lesson) => !progress.completedLessonIds.includes(lesson.id)) ?? gameLessons[0];
+  const firstIncompleteLesson = lessons.find((lesson) => !progress.completedLessonIds.includes(lesson.id)) ?? lessons[0];
   const currentQuest = gameQuests.find((quest) => quest.id === firstIncompleteLesson.questId) ?? gameQuests[0];
 
   return {

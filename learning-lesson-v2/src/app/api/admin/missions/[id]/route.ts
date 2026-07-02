@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getGameLesson } from "@/lib/game-data";
 import { toMissionOverrideRow, type MissionOverrideInput } from "@/lib/mission-content";
 import { createClient } from "@/lib/supabase/server";
@@ -46,5 +47,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true });
+  revalidatePath(`/lesson/${id}`);
+  revalidatePath("/admin");
+  revalidatePath(`/admin/missions/${id}`);
+  revalidatePath("/dashboard");
+  revalidatePath("/paths");
+
+  return NextResponse.json({ ok: true, lessonId: id });
 }

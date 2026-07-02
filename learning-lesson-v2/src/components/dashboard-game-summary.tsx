@@ -6,33 +6,38 @@ import { Award, Flame, Gift, Target, Trophy } from "lucide-react";
 import { ContinueLearningButton } from "./continue-learning-button";
 import { DailyStreakCard } from "./daily-streak-card";
 import { getAchievements, getGameProgressStats, getStoredProgress, toGameProgress } from "@/lib/game-progress";
+import { gameLessons } from "@/lib/game-data";
+import type { GameLesson } from "@/lib/game-data";
 import { localizeGameLesson, localizeGameQuest, t, type Language } from "@/lib/i18n";
 import type { ProgressRecord } from "@/lib/types";
 
 type DashboardStats = ReturnType<typeof getGameProgressStats>;
 
 export function DashboardGameSummary({
+  initialLessons,
   initialProgress,
   initialStreak = 0,
   language
 }: {
+  initialLessons?: GameLesson[];
   initialProgress?: ProgressRecord[];
   initialStreak?: number;
   language: Language;
 }) {
+  const lessons = initialLessons ?? gameLessons;
   const initialStats = initialProgress
-    ? getGameProgressStats(toGameProgress(initialProgress, initialStreak))
+    ? getGameProgressStats(toGameProgress(initialProgress, initialStreak), lessons)
     : null;
   const [stats, setStats] = useState<DashboardStats | null>(initialStats);
   const copy = t(language);
 
   useEffect(() => {
     if (!initialProgress) {
-      setStats(getGameProgressStats(getStoredProgress()));
+      setStats(getGameProgressStats(getStoredProgress(), lessons));
     }
-  }, [initialProgress]);
+  }, [initialProgress, lessons]);
 
-  const fallback = stats ?? getGameProgressStats({ completedLessonIds: [], currentStreak: 0, lastCompletedAt: null });
+  const fallback = stats ?? getGameProgressStats({ completedLessonIds: [], currentStreak: 0, lastCompletedAt: null }, lessons);
   const currentQuest = localizeGameQuest(fallback.currentQuest, language);
   const currentMission = localizeGameLesson(fallback.currentMission, language);
   const completedLessonIds = initialProgress?.filter((item) => item.completed).map((item) => item.lesson_id);

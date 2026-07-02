@@ -6,6 +6,8 @@ import { localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getLessonWithOverrides } from "@/lib/mission-content";
 
+export const dynamic = "force-dynamic";
+
 type AdminMissionPageProps = {
   params: Promise<{ id: string }>;
 };

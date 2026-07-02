@@ -7,6 +7,8 @@ import { getFirstGameLesson, getQuestForLesson, isLessonUnlocked, xpPerLesson } 
 import { formatMessage, localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getLessonWithOverrides } from "@/lib/mission-content";
+
+export const dynamic = "force-dynamic";
 import { getCurrentSession } from "@/lib/supabase/auth";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 

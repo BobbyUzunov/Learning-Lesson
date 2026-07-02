@@ -2,14 +2,20 @@ import Link from "next/link";
 import { DashboardGameSummary } from "@/components/dashboard-game-summary";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
+import { getAllLessonsWithOverrides } from "@/lib/mission-content";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 import { requireUser } from "@/lib/supabase/auth";
+
+export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const language = await getLanguage();
   const copy = t(language);
   await requireUser();
-  const { progress, userEmail, isDemo, streakCount } = await getCurrentUserProgress();
+  const [{ progress, userEmail, isDemo, streakCount }, lessons] = await Promise.all([
+    getCurrentUserProgress(),
+    getAllLessonsWithOverrides()
+  ]);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
@@ -28,7 +34,7 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      <DashboardGameSummary initialProgress={progress} initialStreak={streakCount} language={language} />
+      <DashboardGameSummary initialLessons={lessons} initialProgress={progress} initialStreak={streakCount} language={language} />
     </main>
   );
 }

@@ -3,6 +3,7 @@ import { getGameLesson, xpPerLesson } from "@/lib/game-data";
 import { getLevelProgress } from "@/lib/game-progress";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { ensureUserProfile } from "@/lib/supabase/profile";
 
 export async function POST(request: Request) {
   if (!hasSupabaseEnv()) {
@@ -26,6 +27,11 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  }
+
+  const { error: ensureError } = await ensureUserProfile(supabase, user);
+  if (ensureError) {
+    return NextResponse.json({ error: ensureError.message }, { status: 500 });
   }
 
   const xpEarned = xpPerLesson;

@@ -1,15 +1,9 @@
 import { redirect } from "next/navigation";
 import { createClient } from "./server";
 import { hasSupabaseEnv } from "./env";
+import { ensureUserProfile, type ProfileRow } from "./profile";
 
-export type UserProfile = {
-  id: string;
-  email: string | null;
-  role: "user" | "admin" | string;
-  xp: number;
-  level: number;
-  created_at?: string;
-};
+export type UserProfile = ProfileRow;
 
 export async function getCurrentSession() {
   if (!hasSupabaseEnv()) {
@@ -25,17 +19,15 @@ export async function getCurrentSession() {
     return { configured: true, user: null, profile: null, isAdmin: false };
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id,email,role,xp,level,created_at")
-    .eq("id", user.id)
-    .maybeSingle();
+  const { profile } = await ensureUserProfile(supabase, user);
 
   const normalizedProfile =
     profile ??
     ({
       id: user.id,
+      auth_user_id: user.id,
       email: user.email ?? null,
+      display_name: user.email?.split("@")[0] ?? "Learner",
       role: "user",
       xp: 0,
       level: 1
@@ -44,7 +36,7 @@ export async function getCurrentSession() {
   return {
     configured: true,
     user,
-    profile: normalizedProfile as UserProfile,
+    profile: normalizedProfile,
     isAdmin: normalizedProfile.role === "admin"
   };
 }

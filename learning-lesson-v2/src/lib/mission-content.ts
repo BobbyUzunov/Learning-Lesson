@@ -1,6 +1,7 @@
-import { getGameLesson, type GameLesson } from "./game-data";
+import { gameLessons, getGameLesson, type GameLesson } from "./game-data";
 import { createClient } from "./supabase/server";
 import { hasSupabaseEnv } from "./supabase/env";
+import { unstable_noStore as noStore } from "next/cache";
 
 type MissionOverrideRow = {
   id: string;
@@ -41,14 +42,49 @@ function mergeLesson(base: GameLesson, override: MissionOverrideRow): GameLesson
   };
 }
 
-export async function getLessonWithOverrides(id: string) {
-  const base = getGameLesson(id);
-  if (!base || !hasSupabaseEnv()) {
-    return base ?? null;
+async function getMissionOverridesMap() {
+  if (!hasSupabaseEnv()) {
+    return new Map<string, MissionOverrideRow>();
   }
 
+  noStore();
   const supabase = await createClient();
-  const { data } = await supabase.from("game_missions").select("*").eq("id", id).maybeSingle();
+  const { data, error } = await supabase.from("game_missions").select("*");
+
+  if (error) {
+    console.error("Failed to load mission overrides:", error.message);
+    return new Map<string, MissionOverrideRow>();
+  }
+
+  return new Map((data ?? []).map((row) => [row.id as string, row as MissionOverrideRow]));
+}
+
+export async function getAllLessonsWithOverrides() {
+  const overrides = await getMissionOverridesMap();
+  return gameLessons.map((lesson) => {
+    const override = overrides.get(lesson.id);
+    return override ? mergeLesson(lesson, override) : lesson;
+  });
+}
+
+export async function getLessonWithOverrides(id: string) {
+  const base = getGameLesson(id);
+  if (!base) {
+    return null;
+  }
+
+  if (!hasSupabaseEnv()) {
+    return base;
+  }
+
+  noStore();
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("game_missions").select("*").eq("id", id).maybeSingle();
+
+  if (error) {
+    console.error(`Failed to load mission override for ${id}:`, error.message);
+    return base;
+  }
 
   if (!data) {
     return base;

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { ensureUserProfile } from "@/lib/supabase/profile";
 
 export async function POST() {
   if (!hasSupabaseEnv()) {
@@ -14,6 +15,11 @@ export async function POST() {
 
   if (!user) {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  }
+
+  const { error: ensureError } = await ensureUserProfile(supabase, user);
+  if (ensureError) {
+    return NextResponse.json({ error: ensureError.message }, { status: 500 });
   }
 
   const today = new Date().toISOString().slice(0, 10);
@@ -32,15 +38,14 @@ export async function POST() {
   const nextCount =
     previousVisit === today ? previousCount : previousVisit === yesterdayKey ? previousCount + 1 : 1;
 
-  const { error } = await supabase.from("profiles").upsert(
-    {
-      id: user.id,
-      email: user.email,
+  const { error } = await supabase
+    .from("profiles")
+    .update({
       streak_count: nextCount,
-      last_visit: today
-    },
-    { onConflict: "id" }
-  );
+      last_visit: today,
+      email: user.email
+    })
+    .eq("id", user.id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

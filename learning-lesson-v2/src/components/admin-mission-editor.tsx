@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { GameLesson } from "@/lib/game-data";
@@ -26,11 +27,13 @@ export function AdminMissionEditor({ language, lesson }: MissionEditorProps) {
   });
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   async function saveMission(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setMessage(null);
+    setSaved(false);
 
     const response = await fetch(`/api/admin/missions/${lesson.id}`, {
       method: "PATCH",
@@ -51,6 +54,7 @@ export function AdminMissionEditor({ language, lesson }: MissionEditorProps) {
     setLoading(false);
     setMessage(response.ok ? copy.admin.missionSaved : copy.admin.missionSaveError);
     if (response.ok) {
+      setSaved(true);
       router.refresh();
     }
   }
@@ -106,6 +110,15 @@ export function AdminMissionEditor({ language, lesson }: MissionEditorProps) {
       >
         {loading ? copy.login.working : copy.admin.saveMission}
       </button>
+      {saved ? (
+        <Link
+          className="focus-ring ml-3 inline-block rounded-md border border-ink/15 px-4 py-3 text-sm font-bold"
+          href={`/lesson/${lesson.id}`}
+          target="_blank"
+        >
+          {copy.admin.viewMission}
+        </Link>
+      ) : null}
       {message ? <p className="text-sm font-bold text-ink/70">{message}</p> : null}
     </form>
   );

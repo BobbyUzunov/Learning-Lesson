@@ -28,6 +28,16 @@ add column if not exists created_at timestamptz not null default now();
 alter table public.profiles
 add column if not exists updated_at timestamptz not null default now();
 
+alter table public.profiles
+add column if not exists auth_user_id uuid references auth.users(id) on delete cascade;
+
+alter table public.profiles
+add column if not exists display_name text;
+
+update public.profiles
+set auth_user_id = id
+where auth_user_id is null;
+
 create table if not exists public.user_progress (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -95,6 +105,48 @@ begin
   return new;
 end;
 $$;
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (
+    id,
+    auth_user_id,
+    email,
+    display_name,
+    role,
+    xp,
+    level
+  )
+  values (
+    new.id,
+    new.id,
+    new.email,
+    coalesce(
+      nullif(trim(new.raw_user_meta_data->>'display_name'), ''),
+      nullif(trim(new.raw_user_meta_data->>'full_name'), ''),
+      nullif(trim(new.raw_user_meta_data->>'name'), ''),
+      split_part(coalesce(new.email, ''), '@', 1),
+      'Learner'
+    ),
+    'user',
+    0,
+    1
+  )
+  on conflict (id) do nothing;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute function public.handle_new_user();
 
 drop trigger if exists set_profiles_updated_at on public.profiles;
 create trigger set_profiles_updated_at
@@ -209,7 +261,7 @@ drop policy if exists "Anyone can read game missions" on public.game_missions;
 create policy "Anyone can read game missions"
 on public.game_missions
 for select
-to authenticated
+to anon, authenticated
 using (true);
 
 drop policy if exists "Admins can manage game missions" on public.game_missions;

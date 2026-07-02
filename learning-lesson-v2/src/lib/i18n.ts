@@ -162,6 +162,7 @@ export const dictionary = {
       register: "Регистрация",
       email: "Имейл",
       password: "Парола",
+      displayName: "Име за показване",
       createAccount: "Създай акаунт",
       working: "Работи...",
       missingConfig: "Добави Supabase keys в .env.local, за да включиш auth.",
@@ -240,7 +241,8 @@ export const dictionary = {
       editMission: "Редакция",
       saveMission: "Запази мисията",
       missionSaved: "Мисията е запазена в Supabase.",
-      missionSaveError: "Грешка при запис. Провери admin права и schema."
+      missionSaveError: "Грешка при запис. Провери admin права и schema.",
+      viewMission: "Виж мисията"
     },
     achievements: {
       "first-login": { title: "Първи вход", description: "Акаунтът е създаден и готов за учене." },
@@ -355,6 +357,7 @@ export const dictionary = {
       register: "Register",
       email: "Email",
       password: "Password",
+      displayName: "Display name",
       createAccount: "Create account",
       working: "Working...",
       missingConfig: "Add Supabase keys in .env.local to enable auth.",
@@ -433,7 +436,8 @@ export const dictionary = {
       editMission: "Edit",
       saveMission: "Save mission",
       missionSaved: "Mission saved to Supabase.",
-      missionSaveError: "Save failed. Check admin role and database schema."
+      missionSaveError: "Save failed. Check admin role and database schema.",
+      viewMission: "View mission"
     },
     achievements: {
       "first-login": { title: "First Login", description: "Account created and ready to learn." },
