@@ -1,20 +1,29 @@
 # Learning Lesson v1
 
-Първа версия на Learning Lesson — Express сървър с HTML/JS уроци в браузъра.
+Legacy version of Learning Lesson — an Express server with HTML/JS lessons in the browser.
 
-## Стартиране
+The active product is **[v2](../learning-lesson-v2/)**. This folder is kept for reference and the original learning environment.
+
+## Start locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-Отвори http://localhost:3000
+Open http://localhost:3000
 
-## Файлове
+## Project layout
 
-- `server.js` — Express backend
-- `index.html` — основна learning страница
-- `admin.html` — admin panel
-- `public/` — lesson scripts и клиентски код
-- `supabase-schema.sql` — Supabase schema за v1
+| Path | Purpose |
+|------|---------|
+| `server.js` | Express backend |
+| `index.html` | Main learning page |
+| `admin.html` | Admin panel |
+| `public/` | Lesson scripts and client code |
+| `supabase-schema.sql` | Supabase schema for v1 |
+
+## Notes
+
+- Default admin credentials are configured in `server.js` (change via environment variables for production).
+- Configure Supabase via `public/supabase-config.js` (see `public/supabase-config.example.js`).
