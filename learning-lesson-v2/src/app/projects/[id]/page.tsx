@@ -63,11 +63,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <span className="rounded-md bg-violet/15 p-3 text-violet">
             <Rocket className="size-6" />
           </span>
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-bold uppercase text-violet">
               {projectBadge} · {localizedCourse?.title ?? project.courseId}
             </p>
-            <h1 className="mt-2 text-4xl font-black">{project.title}</h1>
+            <h1 className="mt-2 break-words text-3xl font-black sm:text-4xl">{project.title}</h1>
             <p className="mt-3 leading-7 text-ink/75">{project.description}</p>
           </div>
         </div>

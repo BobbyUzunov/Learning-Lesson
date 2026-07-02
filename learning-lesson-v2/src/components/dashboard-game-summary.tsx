@@ -85,7 +85,7 @@ export function DashboardGameSummary({
               </span>
             </div>
 
-            <h2 className="mt-4 text-3xl font-black">{currentLesson.title}</h2>
+            <h2 className="mt-4 break-words text-2xl font-black sm:text-3xl">{currentLesson.title}</h2>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-ink/70">{currentQuest.description}</p>
 
             <div className="mt-5">

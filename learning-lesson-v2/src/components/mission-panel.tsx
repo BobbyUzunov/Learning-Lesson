@@ -250,11 +250,11 @@ export function MissionPanel({
 
       <div
         className={`overflow-hidden transition-all duration-300 ease-out ${
-          showSolution ? "max-h-[480px] opacity-100" : "max-h-0 opacity-0"
+          showSolution ? "max-h-[min(70vh,800px)] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
         <p className="mb-2 text-sm font-black uppercase text-ink/60">{copy.lesson.officialSolution}</p>
-        <pre className="overflow-x-auto rounded-md bg-ink p-4 text-sm leading-6 text-paper">
+        <pre className="max-h-[60vh] overflow-auto rounded-md bg-ink p-4 text-sm leading-6 text-paper">
           <code>{lesson.solution}</code>
         </pre>
       </div>

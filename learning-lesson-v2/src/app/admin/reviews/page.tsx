@@ -15,13 +15,14 @@ export default async function AdminReviewsPage() {
   return (
     <div>
       <p className="text-sm font-bold uppercase text-coral">{copy.admin.protected}</p>
-      <h1 className="mt-2 text-4xl font-black">{copy.admin.reviewsTitle}</h1>
+      <h1 className="mt-2 break-words text-3xl font-black sm:text-4xl">{copy.admin.reviewsTitle}</h1>
       <p className="mt-3 max-w-2xl text-ink/70">{copy.admin.reviewsSubtitle}</p>
 
-      <section className="mt-6 overflow-hidden rounded-lg border border-ink/10 bg-white/80">
+      <section className="mt-6 rounded-lg border border-ink/10 bg-white/80">
         {submissions.length === 0 ? (
           <p className="p-6 text-sm font-semibold text-ink/60">{copy.admin.reviewsEmpty}</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] border-collapse text-left text-sm">
             <thead className="bg-ink text-paper">
               <tr>
@@ -57,6 +58,7 @@ export default async function AdminReviewsPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </section>
     </div>

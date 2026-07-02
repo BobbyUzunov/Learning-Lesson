@@ -41,7 +41,7 @@ export default async function ProfilePage() {
       <section className="rounded-lg border border-ink/10 bg-white/80 p-6 shadow-soft">
         <UserCircle className="size-10 text-violet" />
         <p className="mt-4 text-sm font-bold uppercase text-coral">{copy.nav.profile}</p>
-        <h1 className="mt-2 break-words text-4xl font-black">{name}</h1>
+        <h1 className="mt-2 break-words text-3xl font-black sm:text-4xl">{name}</h1>
         <p className="mt-2 break-words text-sm font-bold text-ink/60">{session.user.email}</p>
         {!emailVerified ? (
           <Link className="mt-3 inline-flex rounded-md bg-coral/15 px-3 py-2 text-sm font-bold text-ink" href="/verify-email">

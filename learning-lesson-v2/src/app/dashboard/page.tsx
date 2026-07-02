@@ -28,7 +28,7 @@ export default async function DashboardPage() {
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-bold uppercase text-violet">{copy.dashboard.continueLearning}</p>
-          <h1 className="mt-2 text-4xl font-black">{copy.dashboard.title}</h1>
+          <h1 className="mt-2 break-words text-3xl font-black sm:text-4xl">{copy.dashboard.title}</h1>
           <p className="mt-3 max-w-2xl text-ink/70">{copy.dashboard.subtitle}</p>
         </div>
         <Link className="rounded-md border border-ink/15 px-4 py-3 text-center font-bold" href="/paths">

@@ -26,7 +26,7 @@ export default async function HomePage() {
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-10 px-4 py-10 lg:grid-cols-[1.04fr_0.96fr]">
         <div>
           <p className="text-sm font-bold uppercase tracking-wide text-violet">{copy.home.badge}</p>
-          <h1 className="mt-3 max-w-3xl text-5xl font-black leading-tight sm:text-6xl">{copy.home.title}</h1>
+          <h1 className="mt-3 max-w-3xl break-words text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">{copy.home.title}</h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-ink/70">{copy.home.subtitle}</p>
           {session.user ? (
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">

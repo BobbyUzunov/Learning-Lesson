@@ -35,7 +35,7 @@ export function LessonOutline({
         </span>
       </div>
 
-      <h1 className="mt-4 text-3xl font-black md:text-4xl">{lessonTitle}</h1>
+      <h1 className="mt-4 break-words text-3xl font-black md:text-4xl">{lessonTitle}</h1>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         <div className="rounded-md border border-ink/10 bg-white/80 p-4">

@@ -30,7 +30,7 @@ export default async function PathsPage({ searchParams }: PathsPageProps) {
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <p className="text-sm font-bold uppercase text-mint">{copy.paths.badge}</p>
-          <h1 className="mt-2 text-4xl font-black">{copy.paths.title}</h1>
+          <h1 className="mt-2 break-words text-3xl font-black sm:text-4xl">{copy.paths.title}</h1>
           <p className="mt-3 max-w-2xl text-ink/70">{copy.paths.subtitle}</p>
           {!session.user ? (
             <p className="mt-3 rounded-md bg-mint/15 px-3 py-2 text-sm font-semibold text-ink">{copy.paths.guestBanner}</p>
