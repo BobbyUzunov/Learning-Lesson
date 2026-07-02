@@ -106,6 +106,22 @@ begin
 end;
 $$;
 
+create or replace function public.derive_profile_display_name(
+  metadata jsonb,
+  user_email text
+)
+returns text
+language sql
+immutable
+as $$
+  select coalesce(
+    nullif(trim(metadata->>'display_name'), ''),
+    nullif(trim(metadata->>'full_name'), ''),
+    nullif(trim(metadata->>'name'), ''),
+    nullif(split_part(coalesce(user_email, ''), '@', 1), '')
+  );
+$$;
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -117,25 +133,13 @@ begin
     id,
     auth_user_id,
     email,
-    display_name,
-    role,
-    xp,
-    level
+    display_name
   )
   values (
     new.id,
     new.id,
     new.email,
-    coalesce(
-      nullif(trim(new.raw_user_meta_data->>'display_name'), ''),
-      nullif(trim(new.raw_user_meta_data->>'full_name'), ''),
-      nullif(trim(new.raw_user_meta_data->>'name'), ''),
-      split_part(coalesce(new.email, ''), '@', 1),
-      'Learner'
-    ),
-    'user',
-    0,
-    1
+    public.derive_profile_display_name(new.raw_user_meta_data, new.email)
   )
   on conflict (id) do nothing;
 

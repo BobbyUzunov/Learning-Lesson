@@ -53,10 +53,7 @@ export async function ensureUserProfile(
     id: user.id,
     auth_user_id: user.id,
     email: user.email ?? null,
-    display_name: deriveDisplayName(user, options?.displayName),
-    role: "user",
-    xp: 0,
-    level: 1
+    display_name: deriveDisplayName(user, options?.displayName) || null
   };
 
   const { data: inserted, error: insertError } = await supabase
