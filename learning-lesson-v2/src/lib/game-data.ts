@@ -54,7 +54,7 @@ export const gameQuests: GameQuest[] = [
     rewardBadge: "UI Apprentice",
     rewardBadgeBg: "UI чирак",
     xpReward: 800,
-    lessonIds: ["1", "2"]
+    lessonIds: ["1", "2", "8", "9", "10", "11", "12", "13"]
   },
   {
     id: "backend",
@@ -236,6 +236,94 @@ export const gameLessons: GameLesson[] = [
     hint: "Include the user, the problem, the AI action, saved data and the first deploy target.",
     hintBg: "Включи user-а, проблема, AI action-а, данните за запис и първата deploy цел.",
     solution: "User: beginner developers. Problem: they need guided practice. AI action: generate one mission. Save: lesson progress in Supabase. Deploy: Vercel."
+  },
+  {
+    id: "8",
+    questId: "frontend",
+    title: "JavaScript Variables Mission",
+    titleBg: "Мисия: JavaScript променливи",
+    explanation: "Variables store values your app can read and update while the learner interacts with the page.",
+    explanationBg: "Променливите пазят стойности, които app-ът чете и обновява, докато learner взаимодейства със страницата.",
+    codeExample: "const course = 'Frontend Quest';\nlet xp = 100;\nxp = xp + 25;\nconsole.log(course, xp);",
+    mission: "Create three variables for course name, current XP and completed missions count, then log them.",
+    missionBg: "Създай три променливи за име на курс, текущ XP и брой завършени мисии, после ги log-ни.",
+    hint1: "Use const for values that should not change and let for values that update.",
+    hint1Bg: "Използвай const за стойности, които не се променят, и let за тези, които се обновяват.",
+    hint2: "Keep the names clear: courseName, currentXp, completedMissions.",
+    hint2Bg: "Дръж имената ясни: courseName, currentXp, completedMissions.",
+    solution: "const courseName = 'Frontend Quest';\nlet currentXp = 100;\nlet completedMissions = 2;\nconsole.log(courseName, currentXp, completedMissions);"
+  },
+  {
+    id: "9",
+    questId: "frontend",
+    title: "JavaScript Functions Mission",
+    titleBg: "Мисия: JavaScript функции",
+    explanation: "Functions package reusable logic so your UI can award XP, unlock lessons and validate answers.",
+    explanationBg: "Функциите опаковат логика, за да може UI да дава XP, отключва уроци и проверява отговори.",
+    codeExample: "function addXp(currentXp, reward) {\n  return currentXp + reward;\n}",
+    mission: "Write a function that receives current XP and lesson reward, then returns the new total.",
+    missionBg: "Напиши функция, която приема текущ XP и награда от урок, после връща новия total.",
+    hint1: "Use return instead of console.log if the caller needs the result.",
+    hint1Bg: "Използвай return вместо console.log, ако извикващият код има нужда от резултата.",
+    solution: "function addXp(currentXp, reward) {\n  return currentXp + reward;\n}\n\nconst nextXp = addXp(100, 25);"
+  },
+  {
+    id: "10",
+    questId: "frontend",
+    title: "DOM Events Mission",
+    titleBg: "Мисия: DOM events",
+    explanation: "The DOM connects HTML to JavaScript. Events let buttons, forms and cards react to user actions.",
+    explanationBg: "DOM свързва HTML с JavaScript. Events карат бутони, форми и карти да реагират на действията на потребителя.",
+    codeExample: "const button = document.querySelector('#start');\nbutton.addEventListener('click', () => {\n  console.log('Mission started');\n});",
+    mission: "Write code that listens for a click on #complete-mission and logs a success message.",
+    missionBg: "Напиши код, който слуша за click върху #complete-mission и log-ва success съобщение.",
+    hint1: "First select the element, then attach addEventListener.",
+    hint1Bg: "Първо избери елемента, после добави addEventListener.",
+    solution: "const button = document.querySelector('#complete-mission');\nbutton.addEventListener('click', () => {\n  console.log('Mission complete');\n});"
+  },
+  {
+    id: "11",
+    questId: "frontend",
+    title: "Fetch Data Mission",
+    titleBg: "Мисия: Fetch данни",
+    explanation: "Modern frontends load lesson progress, quests and quiz questions from APIs using fetch.",
+    explanationBg: "Модерните frontend apps зареждат прогрес, quests и quiz въпроси от API-та чрез fetch.",
+    codeExample: "const response = await fetch('/api/progress');\nconst data = await response.json();",
+    mission: "Sketch an async function that loads progress from /api/progress and returns the JSON body.",
+    missionBg: "Скицирай async функция, която зарежда progress от /api/progress и връща JSON body.",
+    hint1: "Use await on both fetch and response.json().",
+    hint1Bg: "Използвай await и върху fetch, и върху response.json().",
+    solution: "async function loadProgress() {\n  const response = await fetch('/api/progress');\n  return response.json();\n}"
+  },
+  {
+    id: "12",
+    questId: "frontend",
+    title: "React Component Mission",
+    titleBg: "Мисия: React component",
+    explanation: "React components turn UI into reusable building blocks with props and predictable rendering.",
+    explanationBg: "React components превръщат UI в преизползваеми блокове с props и предвидим render.",
+    codeExample: "export function MissionCard({ title, xp }) {\n  return (\n    <article>\n      <h2>{title}</h2>\n      <p>{xp} XP</p>\n    </article>\n  );\n}",
+    mission: "Create a MissionCard component that receives title and xp props and renders them.",
+    missionBg: "Създай MissionCard component, който приема title и xp props и ги показва.",
+    hint1: "Destructure props in the function parameter list.",
+    hint1Bg: "Деструктурирай props в параметрите на функцията.",
+    solution: "export function MissionCard({ title, xp }) {\n  return (\n    <article className=\"card\">\n      <h2>{title}</h2>\n      <p>{xp} XP</p>\n    </article>\n  );\n}"
+  },
+  {
+    id: "13",
+    questId: "frontend",
+    title: "Quiz Generator Mission",
+    titleBg: "Мисия: Генератор за въпроси",
+    explanation: "A quiz generator picks a topic, filters a question bank and returns a small random practice set.",
+    explanationBg: "Генераторът за въпроси избира тема, филтрира банка от въпроси и връща малък случаен practice сет.",
+    codeExample: "function generateQuizQuestions(topic, count) {\n  const pool = questionBank.filter((q) => q.topic === topic);\n  return shuffle(pool).slice(0, count);\n}",
+    mission: "Write a generateQuizQuestions(topic, count) function that filters by topic and returns count random questions.",
+    missionBg: "Напиши generateQuizQuestions(topic, count), която филтрира по тема и връща count случайни въпроса.",
+    hint1: "Filter first, shuffle second, then slice to the requested count.",
+    hint1Bg: "Първо филтрирай, после shuffle, после slice до желания брой.",
+    hint2: "Each question should include options and one correct answer index.",
+    hint2Bg: "Всеки въпрос трябва да има options и един correct answer index.",
+    solution: "function generateQuizQuestions(topic, count, bank) {\n  const pool = bank.filter((question) => question.topic === topic);\n  return shuffle(pool).slice(0, count);\n}"
   }
 ];
 

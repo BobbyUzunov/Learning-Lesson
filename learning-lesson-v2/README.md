@@ -40,7 +40,7 @@ Run `supabase-schema.sql` in the Supabase SQL editor.
 All quests and missions live in `src/lib/game-data.ts`:
 
 - **6 quests** — Frontend, Backend, Full-Stack, AI, Mobile, AI Product Builder
-- **7 missions** with hints, code examples, and solutions
+- **13 missions** with hints, code examples, solutions, and quiz practice
 - **100 XP** per completed mission
 - Level thresholds in `src/lib/game-progress.ts`
 
@@ -51,6 +51,7 @@ Progress is stored in Supabase `user_progress` and `profiles`. Guests can comple
 - Supabase email/password auth
 - Guest-first onboarding
 - Mission panel with progressive hints and solution reveal
+- Quiz question generator with topic-based practice on every lesson page
 - Mission unlock rules within each quest
 - XP, levels, achievements, daily streak (local)
 - Progress API backed by Supabase

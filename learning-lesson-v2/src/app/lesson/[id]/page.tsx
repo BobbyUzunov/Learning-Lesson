@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { MissionPanel } from "@/components/mission-panel";
+import { QuizGenerator } from "@/components/quiz-generator";
 import {
   getFirstGameLesson,
   getGameLesson,
@@ -98,6 +99,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
           </pre>
         </section>
         <MissionPanel isAuthenticated={Boolean(session.user)} language={language} lesson={missionLesson} />
+        <QuizGenerator language={language} lessonId={missionLesson.id} />
       </article>
     </main>
   );

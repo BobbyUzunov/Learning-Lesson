@@ -147,6 +147,15 @@ export const dictionary = {
       title: "Дневна серия",
       milestone: "{count} дни"
     },
+    quiz: {
+      title: "Генератор за въпроси",
+      subtitle: "Практикувай темата на мисията със случайни quiz въпроси.",
+      regenerate: "Нови въпроси",
+      questionLabel: "Въпрос",
+      answerAll: "Отговори на всички въпроси, за да провериш резултата.",
+      checkAnswers: "Провери отговорите",
+      score: "Резултат"
+    },
     login: {
       badge: "Supabase Auth",
       title: "Вход или регистрация",
@@ -315,6 +324,15 @@ export const dictionary = {
     streak: {
       title: "Daily Streak",
       milestone: "{count} Days"
+    },
+    quiz: {
+      title: "Question Generator",
+      subtitle: "Practice the mission topic with random quiz questions.",
+      regenerate: "New questions",
+      questionLabel: "Question",
+      answerAll: "Answer all questions before checking your score.",
+      checkAnswers: "Check answers",
+      score: "Score"
     },
     login: {
       badge: "Supabase Auth",
