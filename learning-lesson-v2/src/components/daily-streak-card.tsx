@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Flame } from "lucide-react";
+import { formatMessage, formatStreakDays, t, type Language } from "@/lib/i18n";
 
 type StreakState = {
   count: number;
@@ -20,8 +21,15 @@ function getYesterdayKey(date: Date) {
   return toDateKey(yesterday);
 }
 
-export function DailyStreakCard({ compact = false }: { compact?: boolean }) {
+export function DailyStreakCard({
+  compact = false,
+  language = "en"
+}: {
+  compact?: boolean;
+  language?: Language;
+}) {
   const [streak, setStreak] = useState<StreakState>({ count: 1, lastVisit: null });
+  const copy = t(language);
 
   useEffect(() => {
     const today = toDateKey(new Date());
@@ -51,9 +59,9 @@ export function DailyStreakCard({ compact = false }: { compact?: boolean }) {
     <section className={compact ? "" : "rounded-lg border border-ink/10 bg-white/80 p-4 shadow-sm"}>
       <div className="flex items-center gap-2 text-sm font-bold uppercase text-ink/60">
         <Flame className="size-4 text-coral" />
-        Daily Streak
+        {copy.streak.title}
       </div>
-      <p className="mt-2 text-3xl font-black">🔥 {streak.count} Day{streak.count === 1 ? "" : "s"}</p>
+      <p className="mt-2 text-3xl font-black">🔥 {formatStreakDays(language, streak.count)}</p>
       <div className="mt-3 flex flex-wrap gap-2">
         {milestones.map((days) => (
           <span
@@ -62,7 +70,7 @@ export function DailyStreakCard({ compact = false }: { compact?: boolean }) {
             }`}
             key={days}
           >
-            🔥 {days} Day{days === 1 ? "" : "s"}
+            🔥 {formatMessage(copy.streak.milestone, { count: days })}
           </span>
         ))}
       </div>

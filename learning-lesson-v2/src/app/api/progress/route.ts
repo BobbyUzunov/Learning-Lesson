@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
+import { getGameLesson, xpPerLesson } from "@/lib/game-data";
+import { getLevelProgress } from "@/lib/game-progress";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
-import { getLessonXp } from "@/lib/supabase/progress";
-import { getLevelProgress } from "@/lib/game-progress";
 
 export async function POST(request: Request) {
   if (!hasSupabaseEnv()) {
@@ -15,6 +15,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "lessonId is required." }, { status: 400 });
   }
 
+  if (!getGameLesson(lessonId)) {
+    return NextResponse.json({ error: "Unknown lesson." }, { status: 404 });
+  }
+
   const supabase = await createClient();
   const {
     data: { user }
@@ -24,7 +28,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
 
-  const xpEarned = getLessonXp(lessonId);
+  const xpEarned = xpPerLesson;
   const { error } = await supabase.from("user_progress").upsert(
     {
       user_id: user.id,

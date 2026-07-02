@@ -1,15 +1,16 @@
 # Learning Lesson v2
 
-Clean MVP rebuild of the Learning Lesson platform using Next.js, React, TypeScript, Tailwind CSS, Supabase, and Vercel.
+Gamified learning platform built with Next.js, React, TypeScript, Tailwind CSS, and Supabase.
 
-## MVP Pages
+## Pages
 
-- `/`
-- `/login`
-- `/dashboard`
-- `/paths`
-- `/lesson/[id]`
-- `/admin`
+- `/` — landing with quest preview
+- `/login`, `/register` — auth
+- `/dashboard` — XP, level, current quest
+- `/paths` — quest selection
+- `/lesson/[id]` — mission workspace
+- `/profile` — stats and achievements
+- `/admin` — protected quest/lesson overview
 
 ## Local Setup
 
@@ -28,20 +29,31 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 
 Run `supabase-schema.sql` in the Supabase SQL editor to enable per-user lesson progress.
 
-## Current MVP Scope
+## Data Model
 
-- Supabase email/password login and register form
-- Local blueprint data for learning paths and lessons
-- Game-style lesson unlocks through `lockedBy`
-- XP and level summary
-- Progress save endpoint backed by Supabase `user_progress`
-- Read-only admin lesson table
-- Mobile-first Tailwind UI
+All quests and lessons live in `src/lib/game-data.ts`:
 
-## Next Build Steps
+- **6 quests** (Frontend, Backend, Full-Stack, AI, Mobile, AI Product Builder)
+- **7 missions** with hints, code examples, and solutions
+- **100 XP** per completed mission
+- Level thresholds in `src/lib/game-progress.ts`
 
-- Move paths and lessons into Supabase tables
-- Add protected route handling and admin role checks
-- Add lesson create/edit/delete forms
-- Add richer lesson content blocks and exercises
-- Add Vercel env setup and deployment checks
+Progress is stored in Supabase `user_progress` and `profiles`. Guests can try the first mission without an account; progress syncs on register/login.
+
+## Current Scope
+
+- Supabase email/password auth
+- Guest-first onboarding (first mission free)
+- Mission panel with progressive hints and solution reveal
+- XP, levels, achievements, daily streak (local)
+- Progress API backed by Supabase
+- Read-only admin table for quests and missions
+- BG/EN language switcher
+
+## Next Steps
+
+- Add remaining missions per quest (most quests are placeholders)
+- Move quests/lessons into Supabase tables
+- Admin CRUD for missions
+- Finish i18n cleanup for achievement titles in `game-progress.ts`
+- Sync daily streak to Supabase

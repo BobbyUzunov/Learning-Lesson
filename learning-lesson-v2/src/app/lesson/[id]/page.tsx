@@ -2,34 +2,44 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { MissionPanel } from "@/components/mission-panel";
-import { getLesson } from "@/lib/data";
-import { getFirstGameLesson, getGameLesson, getQuestForLesson } from "@/lib/game-data";
-import { getLessonExample } from "@/lib/learning";
-import { localizeGameLesson, localizeGameQuest, localizeLesson, localizePath, t } from "@/lib/i18n";
+import {
+  getFirstGameLesson,
+  getGameLesson,
+  getQuestForLesson,
+  isLessonUnlocked,
+  xpPerLesson
+} from "@/lib/game-data";
+import { formatMessage, localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
-import { getPathById } from "@/lib/learning";
 import { getCurrentSession } from "@/lib/supabase/auth";
+import { getCurrentUserProgress } from "@/lib/supabase/progress";
 
 type LessonPageProps = {
   params: Promise<{ id: string }>;
 };
 
-function withProgressiveHints(lesson: {
-  hint?: string;
-  hint1?: string;
-  hint2?: string;
-  hint3?: string;
-  mission: string;
-  codeExample: string;
-}) {
-  const baseHint = lesson.hint1 ?? lesson.hint ?? "Разбий задачата на малки стъпки и започни от основната структура.";
+function withProgressiveHints(
+  lesson: {
+    hint?: string;
+    hint1?: string;
+    hint2?: string;
+    hint3?: string;
+    mission: string;
+    codeExample: string;
+  },
+  copy: ReturnType<typeof t>
+) {
+  const baseHint = lesson.hint1 ?? lesson.hint ?? copy.lesson.defaultHint;
 
   return {
     hint1: lesson.hint1 ?? baseHint,
-    hint2: lesson.hint2 ?? `${baseHint} Фокусирай се първо върху минимално работещ вариант по мисията.`,
+    hint2: lesson.hint2 ?? `${baseHint} ${copy.lesson.defaultHint2}`,
     hint3:
       lesson.hint3 ??
-      `${baseHint} Ако блокираш, тръгни от примерната структура:\n${lesson.codeExample}\nи я адаптирай към "${lesson.mission}".`
+      formatMessage(copy.lesson.defaultHint3, {
+        codeExample: lesson.codeExample,
+        mission: lesson.mission
+      })
   };
 }
 
@@ -39,49 +49,30 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const session = await getCurrentSession();
   const { id } = await params;
   const firstLesson = getFirstGameLesson();
+
   if (!session.user && id !== firstLesson.id) {
     redirect("/paths?guestLocked=1");
   }
+
   const gameLesson = getGameLesson(id);
-  const rawLegacyLesson = getLesson(id);
 
-  if (!gameLesson && !rawLegacyLesson) {
+  if (!gameLesson) {
     notFound();
   }
 
-  const legacyLesson = rawLegacyLesson ? localizeLesson(rawLegacyLesson, language) : null;
-  const rawQuest = gameLesson ? getQuestForLesson(gameLesson.id) : null;
+  if (session.user) {
+    const { progress } = await getCurrentUserProgress();
+    const completedLessonIds = progress.filter((item) => item.completed).map((item) => item.lesson_id);
+
+    if (!isLessonUnlocked(id, completedLessonIds)) {
+      redirect("/paths?lessonLocked=1");
+    }
+  }
+
+  const rawQuest = getQuestForLesson(gameLesson.id);
   const quest = rawQuest ? localizeGameQuest(rawQuest, language) : null;
-  const rawPath = legacyLesson ? getPathById(legacyLesson.pathId) : null;
-  const path = rawPath ? localizePath(rawPath, language) : null;
-  const missionLesson =
-    (gameLesson
-      ? (() => {
-          const localized = localizeGameLesson(gameLesson, language);
-          return { ...localized, ...withProgressiveHints(localized) };
-        })()
-      : null) ??
-    (legacyLesson
-      ? {
-          id: legacyLesson.id,
-          questId: legacyLesson.pathId,
-          title: legacyLesson.title,
-          explanation: legacyLesson.content,
-          codeExample: getLessonExample(legacyLesson.id),
-          mission: copy.lesson.fallbackMission,
-          hint: copy.lesson.fallbackHint,
-          ...withProgressiveHints({
-            hint: copy.lesson.fallbackHint,
-            mission: copy.lesson.fallbackMission,
-            codeExample: getLessonExample(legacyLesson.id)
-          }),
-          solution: getLessonExample(legacyLesson.id)
-        }
-      : null);
-
-  if (!missionLesson) {
-    notFound();
-  }
+  const localized = localizeGameLesson(gameLesson, language);
+  const missionLesson = { ...localized, ...withProgressiveHints(localized, copy) };
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
@@ -93,7 +84,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div>
             <p className="text-sm font-bold uppercase text-violet">
-              {quest?.title ?? path?.title ?? copy.paths.badge} · 100 XP
+              {quest?.title ?? copy.paths.badge} · {xpPerLesson} XP
             </p>
             <h1 className="mt-2 text-4xl font-black">{missionLesson.title}</h1>
             <p className="mt-3 text-ink/70">{missionLesson.explanation}</p>

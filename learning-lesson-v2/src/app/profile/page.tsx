@@ -41,12 +41,12 @@ export default async function ProfilePage() {
             <p className="mt-2 text-3xl font-black">{completedCount}</p>
           </div>
           <div className="rounded-lg border border-ink/10 bg-paper/70 p-4">
-            <p className="text-sm font-bold text-ink/60">Level Progress</p>
+            <p className="text-sm font-bold text-ink/60">{copy.dashboard.levelProgress}</p>
             <p className="mt-2 text-3xl font-black">{stats.xpPercent}%</p>
           </div>
         </div>
         <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_2fr]">
-          <DailyStreakCard />
+          <DailyStreakCard language={language} />
           <section className="rounded-lg border border-ink/10 bg-paper/70 p-4">
             <div className="flex items-center gap-2 text-sm font-bold uppercase text-ink/60">
               <Route className="size-4 text-violet" />
@@ -59,7 +59,7 @@ export default async function ProfilePage() {
         <section className="mt-6 rounded-lg border border-ink/10 bg-paper/70 p-4">
           <div className="flex items-center gap-2 text-sm font-bold uppercase text-ink/60">
             <Award className="size-4 text-coral" />
-            Achievements
+            {copy.dashboard.achievements}
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {achievements.map((achievement) => (

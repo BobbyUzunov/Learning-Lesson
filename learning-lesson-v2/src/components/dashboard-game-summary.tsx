@@ -33,7 +33,7 @@ export function DashboardGameSummary({
   const currentMission = localizeGameLesson(fallback.currentMission, language);
   const completedLessonIds = initialProgress?.filter((item) => item.completed).map((item) => item.lesson_id);
   const hasProgress = fallback.completedCount > 0;
-  const continueLabel = hasProgress ? copy.dashboard.continueLearning : "Start Your Journey";
+  const continueLabel = hasProgress ? copy.dashboard.continueLearning : copy.dashboard.startJourney;
   const recentAchievements = getAchievements({
     completedLessonIds: completedLessonIds ?? [],
     currentStreak: fallback.currentStreak,
@@ -78,7 +78,7 @@ export function DashboardGameSummary({
             <p className="mt-2 text-sm text-paper/65">{fallback.xpIntoLevel} / {fallback.xpGoal} XP</p>
             <p className="mt-2 inline-flex items-center gap-2 rounded-md bg-paper/10 px-2 py-1 text-xs font-bold text-mint">
               <Gift className="size-4" />
-              Next Reward: {fallback.nextReward}
+              {copy.dashboard.nextReward}: {fallback.nextReward}
             </p>
             <ContinueLearningButton
               className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-mint px-5 py-4 text-center text-lg font-black text-ink transition hover:-translate-y-0.5 hover:bg-mint/80"
@@ -128,11 +128,11 @@ export function DashboardGameSummary({
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1fr_2fr]">
-        <DailyStreakCard />
+        <DailyStreakCard language={language} />
         <div className="rounded-lg border border-ink/10 bg-white/80 p-4 shadow-sm">
           <div className="flex items-center gap-2 text-sm font-bold uppercase text-ink/60">
             <Award className="size-4 text-coral" />
-            Recent Achievements
+            {copy.dashboard.recentAchievements}
           </div>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
             {(recentAchievements.length ? recentAchievements : getAchievements({

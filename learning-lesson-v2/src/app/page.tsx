@@ -1,18 +1,20 @@
 import Link from "next/link";
 import { ArrowRight, Trophy, Route, ShieldCheck } from "lucide-react";
 import { ContinueLearningButton } from "@/components/continue-learning-button";
-import { learningPaths } from "@/lib/data";
-import { localizePath, t } from "@/lib/i18n";
+import { gameQuests } from "@/lib/game-data";
+import { localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getCurrentSession } from "@/lib/supabase/auth";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
+
+const questColors = ["bg-mint", "bg-coral", "bg-violet", "bg-mint", "bg-coral", "bg-violet"];
 
 export default async function HomePage() {
   const language = await getLanguage();
   const copy = t(language);
   const session = await getCurrentSession();
   const progressData = session.user ? await getCurrentUserProgress() : null;
-  const paths = learningPaths.map((path) => localizePath(path, language));
+  const quests = gameQuests.slice(0, 3).map((quest) => localizeGameQuest(quest, language));
   const icons = [Route, Trophy, ShieldCheck];
 
   return (
@@ -58,17 +60,17 @@ export default async function HomePage() {
         </div>
         <div className="rounded-lg border border-ink/10 bg-white/75 p-5 shadow-soft">
           <div className="grid gap-3">
-            {paths.map((path) => (
+            {quests.map((quest, index) => (
               <Link
                 className="group rounded-lg border border-ink/10 bg-paper/70 p-4 transition hover:-translate-y-0.5 hover:bg-white"
                 href="/paths"
-                key={path.id}
+                key={quest.id}
               >
                 <div className="flex items-center gap-3">
-                  <span className={`size-3 rounded-full ${path.color}`} />
-                  <h2 className="font-bold">{path.title}</h2>
+                  <span className={`size-3 rounded-full ${questColors[index % questColors.length]}`} />
+                  <h2 className="font-bold">{quest.title}</h2>
                 </div>
-                <p className="mt-2 text-sm leading-6 text-ink/70">{path.description}</p>
+                <p className="mt-2 text-sm leading-6 text-ink/70">{quest.description}</p>
               </Link>
             ))}
           </div>

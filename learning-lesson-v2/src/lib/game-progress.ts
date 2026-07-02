@@ -47,7 +47,6 @@ export function saveStoredProgress(progress: GameProgress) {
     return;
   }
 
-  // TODO: Replace this local write with Supabase user_progress sync after auth roles are finalized.
   window.localStorage.setItem(storageKey, JSON.stringify(progress));
 }
 

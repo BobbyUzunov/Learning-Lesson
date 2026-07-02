@@ -1,34 +1,8 @@
-import type { LearningPath, Lesson } from "./types";
 import type { GameLesson, GameQuest } from "./game-data";
 
 export type Language = "bg" | "en";
 
 export const languageCookie = "ll_lang";
-
-export function localizePath(path: LearningPath, language: Language): LearningPath {
-  if (language === "en") {
-    return path;
-  }
-
-  return {
-    ...path,
-    title: path.titleBg ?? path.title,
-    description: path.descriptionBg ?? path.description
-  };
-}
-
-export function localizeLesson(lesson: Lesson, language: Language): Lesson {
-  if (language === "en") {
-    return lesson;
-  }
-
-  return {
-    ...lesson,
-    title: lesson.titleBg ?? lesson.title,
-    summary: lesson.summaryBg ?? lesson.summary,
-    content: lesson.contentBg ?? lesson.content
-  };
-}
 
 export function localizeGameQuest(quest: GameQuest, language: Language): GameQuest {
   if (language === "en") {
@@ -60,6 +34,29 @@ export function localizeGameLesson(lesson: GameLesson, language: Language): Game
     hint2: lesson.hint2Bg ?? lesson.hint2,
     hint3: lesson.hint3Bg ?? lesson.hint3
   };
+}
+
+export function formatMessage(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce((result, [key, value]) => {
+    return result.replace(new RegExp(`\\{${key}\\}`, "g"), String(value));
+  }, template);
+}
+
+export function formatMissionsProgress(language: Language, available: number, planned: number) {
+  if (language === "bg") {
+    const suffix = available === 1 ? "а" : "и";
+    return `${available} наличн${suffix} / ${planned} планирани мисии`;
+  }
+
+  return `${available} available / ${planned} planned missions`;
+}
+
+export function formatStreakDays(language: Language, count: number) {
+  if (language === "bg") {
+    return count === 1 ? `${count} ден` : `${count} дни`;
+  }
+
+  return count === 1 ? `${count} Day` : `${count} Days`;
 }
 
 export const dictionary = {
@@ -116,6 +113,11 @@ export const dictionary = {
       totalXp: "Общо XP",
       openMission: "Отвори урока",
       chooseQuest: "Избери мисия",
+      startJourney: "Започни пътуването",
+      nextReward: "Следваща награда",
+      recentAchievements: "Последни постижения",
+      achievements: "Постижения",
+      levelProgress: "Прогрес на ниво",
       supabaseTodo:
         "TODO Supabase Auth: замени localStorage прогреса с per-user Supabase progress, когато auth и profile roles са финализирани.",
       startLearning: "Започни учене",
@@ -131,7 +133,19 @@ export const dictionary = {
       levels: "нива",
       missions: "урока",
       startQuest: "Започни мисия",
-      continueQuest: "Продължи мисия"
+      continueQuest: "Продължи мисия",
+      guestBanner: "Пробвай първата мисия без регистрация. Създай акаунт, за да запазиш прогреса.",
+      guestFreeMission: "Първата мисия е безплатна. Създай акаунт, за да запазиш прогреса и да отключиш останалите.",
+      guestLockMessage: "Влез в акаунт, за да отключиш следващите мисии.",
+      lessonLockMessage: "Завърши предишната мисия, за да отключиш тази.",
+      timeLabel: "Време",
+      xpRewardsLabel: "XP награди",
+      availableLabel: "Налични",
+      plannedLabel: "Планирани"
+    },
+    streak: {
+      title: "Дневна серия",
+      milestone: "{count} дни"
     },
     login: {
       badge: "Supabase Auth",
@@ -163,6 +177,25 @@ export const dictionary = {
       showSolution: "Покажи решение",
       completeMission: "Завърши мисията",
       completeMessage: "Мисията е завършена. +100 XP. Вече си Ниво",
+      missionInstructions: "Мисия и инструкции",
+      yourSolution: "Твоето решение",
+      solutionPlaceholder: "Напиши своя код тук...",
+      missionCompletionArea: "Зона за завършване",
+      missionCompletionHint: "Напиши решение или отключи всички подсказки, за да завършиш мисията.",
+      allHintsRevealed: "Всички подсказки",
+      hintButton: "Подсказка {n}",
+      hintLabel: "Подсказка {n}:",
+      hintsUsed: "Подсказки използвани: {used} / {total}",
+      completeBeforeFinish: "Напиши решение или използвай подсказките преди да завършиш мисията.",
+      allHintsUnlocked: "Всички подсказки вече са отключени.",
+      tryFirstOrHint: "Опитай първо сам или използвай подсказка.",
+      defaultHint: "Разбий задачата на малки стъпки и започни от основната структура.",
+      defaultHint2: "Фокусирай се първо върху минимално работещ вариант по мисията.",
+      defaultHint3: "Ако блокираш, тръгни от примерната структура:\n{codeExample}\nи я адаптирай към \"{mission}\".",
+      guestModalTitle: "Браво! Завърши първата мисия 🎉",
+      guestModalBody: "Създай безплатен акаунт, за да запазиш прогреса си, XP и отключените мисии.",
+      guestModalRegister: "Създай акаунт",
+      guestModalContinue: "Продължи като гост",
       fallbackMission: "Приложи основната идея от този урок в малък пример.",
       fallbackHint: "Дръж примера малък и се фокусирай върху една концепция.",
       lockedMessage: "Завърши предишния урок, за да отключиш този.",
@@ -179,17 +212,21 @@ export const dictionary = {
       goToLogin: "Към вход",
       protected: "Защитен админ",
       title: "Админ за уроци",
-      subtitle: "Управление на MVP lesson blueprint, unlock ред, XP стойности и покритие на пътеките.",
+      subtitle: "Управление на quest blueprint, unlock ред, XP стойности и покритие на мисиите.",
+      quests: "Мисии",
       paths: "Пътеки",
       lessons: "Уроци",
       totalXp: "Общо XP",
+      questCoverage: "Покритие на мисии",
       pathCoverage: "Покритие на пътеки",
       lesson: "Урок",
+      quest: "Мисия",
       path: "Пътека",
       order: "Ред",
       unlockRule: "Unlock правило",
       open: "Отворен",
-      viewPaths: "Виж пътеки"
+      planned: "планирани",
+      viewPaths: "Виж мисиите"
     }
   },
   en: {
@@ -245,6 +282,11 @@ export const dictionary = {
       totalXp: "Total XP",
       openMission: "Open Mission",
       chooseQuest: "Choose Quest",
+      startJourney: "Start Your Journey",
+      nextReward: "Next Reward",
+      recentAchievements: "Recent Achievements",
+      achievements: "Achievements",
+      levelProgress: "Level Progress",
       supabaseTodo:
         "TODO Supabase Auth: replace localStorage progress with per-user Supabase progress after auth and profile roles are finalized.",
       startLearning: "Start learning",
@@ -260,7 +302,19 @@ export const dictionary = {
       levels: "levels",
       missions: "missions",
       startQuest: "Start Quest",
-      continueQuest: "Continue Quest"
+      continueQuest: "Continue Quest",
+      guestBanner: "Try the first mission without signing up. Create an account to save your progress.",
+      guestFreeMission: "The first mission is free. Create an account to save progress and unlock the rest.",
+      guestLockMessage: "Sign in to unlock the next missions.",
+      lessonLockMessage: "Complete the previous mission to unlock this one.",
+      timeLabel: "Time",
+      xpRewardsLabel: "XP Rewards",
+      availableLabel: "Available",
+      plannedLabel: "Planned"
+    },
+    streak: {
+      title: "Daily Streak",
+      milestone: "{count} Days"
     },
     login: {
       badge: "Supabase Auth",
@@ -292,6 +346,25 @@ export const dictionary = {
       showSolution: "Show Solution",
       completeMission: "Complete Mission",
       completeMessage: "Mission complete. +100 XP. You are now Level",
+      missionInstructions: "Mission & Instructions",
+      yourSolution: "Your solution",
+      solutionPlaceholder: "Write your code here...",
+      missionCompletionArea: "Mission completion area",
+      missionCompletionHint: "Write a solution or unlock all hints to complete the mission.",
+      allHintsRevealed: "All hints",
+      hintButton: "Hint {n}",
+      hintLabel: "Hint {n}:",
+      hintsUsed: "Hints used: {used} / {total}",
+      completeBeforeFinish: "Write a solution or use the hints before completing the mission.",
+      allHintsUnlocked: "All hints are already unlocked.",
+      tryFirstOrHint: "Try on your own first or use a hint.",
+      defaultHint: "Break the task into small steps and start with the core structure.",
+      defaultHint2: "Focus on a minimal working version of the mission first.",
+      defaultHint3: "If you are stuck, start from the example structure:\n{codeExample}\nand adapt it to \"{mission}\".",
+      guestModalTitle: "Great job! You finished the first mission 🎉",
+      guestModalBody: "Create a free account to save your progress, XP, and unlocked missions.",
+      guestModalRegister: "Create account",
+      guestModalContinue: "Continue as guest",
       fallbackMission: "Apply the main idea from this lesson in a small example.",
       fallbackHint: "Keep the example small and focus on one concept.",
       lockedMessage: "Complete the previous lesson to unlock this one.",
@@ -308,17 +381,21 @@ export const dictionary = {
       goToLogin: "Go to login",
       protected: "Protected admin",
       title: "Lessons admin",
-      subtitle: "Manage the MVP lesson blueprint, unlock order, XP values, and path coverage.",
+      subtitle: "Manage the quest blueprint, unlock order, XP values, and quest coverage.",
+      quests: "Quests",
       paths: "Paths",
       lessons: "Lessons",
       totalXp: "Total XP",
+      questCoverage: "Quest coverage",
       pathCoverage: "Path coverage",
       lesson: "Lesson",
+      quest: "Quest",
       path: "Path",
       order: "Order",
       unlockRule: "Unlock rule",
       open: "Open",
-      viewPaths: "View paths"
+      planned: "planned",
+      viewPaths: "View quests"
     }
   }
 } as const;
