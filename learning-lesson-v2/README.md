@@ -1,22 +1,34 @@
 # Learning Lesson v2
 
-Active version of Learning Lesson — a gamified learning platform built with Next.js, React, TypeScript, Tailwind CSS, and Supabase.
+Active version of Learning Lesson — a learning platform for shipping real products with structured courses, hands-on missions, quizzes, projects, and certificates.
 
 **Live:** https://learning-lesson-v2.vercel.app
 
 For repo overview and v1 legacy docs, see the [root README](../README.md).
 
-## Pages
+## What it is
+
+Learners follow sequential courses (Frontend → Backend → Full-Stack → AI → Mobile → AI Product Builder), complete lessons with theory + task + quiz, submit mini projects and a capstone, and earn certificates when requirements are met.
+
+Content is **DB-first** with code fallbacks: courses, lessons, metadata, quiz questions, and projects load from Supabase when configured.
+
+## Routes
 
 | Route | Description |
 |-------|-------------|
-| `/` | Landing with quest preview |
-| `/paths` | Quest selection |
-| `/lesson/[id]` | Mission workspace |
-| `/dashboard` | XP, level, current quest |
-| `/profile` | Stats and achievements |
-| `/login`, `/register` | Auth |
-| `/admin` | Protected quest/lesson overview |
+| `/` | Landing page with course preview |
+| `/paths` | Course syllabus and progress |
+| `/lesson/[id]` | Lesson workspace (theory, example, mission, quiz) |
+| `/projects/[id]` | Mini project or capstone submission |
+| `/dashboard` | Continue learning, XP, pending projects |
+| `/profile` | Stats, achievements, certificates |
+| `/certificate/[questId]` | Earned course certificate |
+| `/login`, `/register` | Supabase auth |
+| `/admin` | CMS — edit courses and lessons |
+| `/admin/courses/[id]` | Course editor |
+| `/admin/missions/[id]` | Lesson + metadata editor |
+| `/admin/reviews` | Capstone submission review queue |
+| `/admin/reviews/[id]` | Approve or request changes |
 
 ## Local setup
 
@@ -29,37 +41,57 @@ npm run dev
 Add to `.env.local`:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-Run `supabase-schema.sql` in the Supabase SQL editor.
+### Database
 
-## Data model
+Run migrations in order from `supabase/migrations/` in the Supabase SQL editor (or apply `supabase-schema.sql` for a full schema snapshot).
 
-All quests and missions live in `src/lib/game-data.ts`:
+Then seed content as an admin user:
 
-- **6 quests** — each quest now has multiple missions (42 total)
-- **42 missions** with hints, code examples, solutions, and quiz practice
-- **100 XP** per completed mission
-- Level thresholds in `src/lib/game-progress.ts`
+```javascript
+fetch('/api/admin/seed-catalog', { method: 'POST' }).then(r => r.json()).then(console.log)
+```
 
-Progress is stored in Supabase `user_progress` and `profiles`. Guests can complete the first mission without an account; progress syncs on register/login.
+Expected seed result: 6 courses, 63 lessons, quiz questions, 3 projects (2 mini + 1 capstone).
 
-## Current scope
+Set `profiles.role = 'admin'` for your user to access `/admin` and the seed endpoint.
 
-- Supabase email/password auth
-- Guest-first onboarding
-- Mission panel with progressive hints and solution reveal
-- Quiz question generator with topic-based practice on every lesson page
-- Mission unlock rules within each quest
-- XP, levels, achievements, daily streak synced to Supabase
-- Progress API backed by Supabase
-- Admin mission editor with Supabase overrides
-- Automatic profile creation on sign-up
-- Auth middleware for dashboard, profile, and admin routes
-- Vitest coverage for unlock rules, progress stats, and quiz generator
-- BG/EN language switcher
+## Architecture
+
+```
+src/lib/
+  game-data.ts       # Fallback/seed source for courses and lessons
+  catalog/           # DB-first courses, lessons, lesson_metadata
+  quiz/              # DB-first quiz questions and lesson→topic mapping
+  projects/          # DB-first course projects (mini + capstone)
+  supabase/          # Auth, progress, project submissions
+```
+
+Supabase tables include: `profiles`, `user_progress`, `courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `lesson_quiz_topics`, `course_projects`, `project_submissions`.
+
+## Content
+
+- **6 courses**, **63 lessons** (bilingual EN/BG)
+- **100 XP** per completed lesson
+- **Quiz** on every lesson page (topic-based question bank)
+- **Projects** on AI Product Builder: product brief (mini), live deploy (mini), capstone with admin review
+- **Certificates** require all lessons + required project submissions; capstone must be **approved**
+
+Guests can complete the first Frontend lesson without an account; progress syncs on register/login.
+
+## Features
+
+- Textbook-style lesson flow: theory → example → task → quiz
+- Lesson metadata: objectives, prerequisites, key concepts, reading time
+- Progressive hints and solution reveal in mission panel
+- Guest-first onboarding, mobile nav, BG/EN language switcher
+- XP, levels, achievements, daily streak and challenge
+- Admin CMS for courses, lessons, and metadata (writes to Supabase)
+- Admin review workflow for capstone submissions
+- Vitest unit tests; Playwright smoke test for mobile nav
 
 ## Scripts
 
@@ -71,9 +103,12 @@ npm run lint     # ESLint
 npm run test     # Vitest unit tests
 ```
 
-CI runs `lint`, `test`, and `build` on pushes to `main` via GitHub Actions.
+## Roadmap
 
-## Next steps
-
-- Expand mission count toward each quest's planned level target
-- E2E tests for auth and mission completion flows
+- [x] Course catalog in Supabase + admin CMS
+- [x] Quiz and projects in Supabase
+- [x] Mini projects + capstone + review flow
+- [x] Mobile layout polish
+- [ ] AI Mentor (lesson-scoped assistant)
+- [ ] Admin CMS for quiz and project content
+- [ ] E2E coverage for auth, lesson completion, and certificate flow

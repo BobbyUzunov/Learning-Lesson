@@ -1,6 +1,6 @@
 # Learning Lesson
 
-AI-assisted learning platform for programming — interactive missions, XP progression, and practical exercises in the browser.
+AI-assisted learning platform for programming — structured courses, hands-on missions, quizzes, projects, and certificates.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black)](https://learning-lesson-v2.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
@@ -14,33 +14,34 @@ AI-assisted learning platform for programming — interactive missions, XP progr
 
 ## About
 
-Learning Lesson helps beginners learn programming through structured quests, hands-on missions, and visible progress (XP, levels, achievements).
+Learning Lesson helps beginners learn programming by shipping real work — not just reading tutorials. Learners follow sequential courses, complete missions with hints and quizzes, submit projects (including a reviewed capstone on AI Product Builder), and earn certificates.
 
-The active version is **v2** — a gamified Next.js app with Supabase auth and per-user progress. **v1** is the original Express + HTML learning environment, kept in the repo for reference.
+The active product is **v2** — Next.js 15 + Supabase + Vercel. **v1** is the original Express + HTML environment, kept for reference.
 
 ---
 
 ## Repository structure
-
-This repo contains two versions of the project in separate folders:
 
 | Folder | Stack | Status |
 |--------|-------|--------|
 | [`learning-lesson-v2/`](learning-lesson-v2/) | Next.js 15, React 19, TypeScript, Tailwind, Supabase | **Active** — main product |
 | [`learning-lesson-v1/`](learning-lesson-v1/) | Node.js, Express, HTML/JS | Legacy — original MVP |
 
+Detailed v2 docs: [learning-lesson-v2/README.md](learning-lesson-v2/README.md)
+
 ---
 
 ## Features (v2)
 
-- Quest-based learning paths (Frontend, Backend, Full-Stack, AI, Mobile, AI Product Builder)
-- Mission workspace with code examples, progressive hints, and solutions
-- Guest mode — try the first mission without an account
-- Supabase email/password auth with progress sync on register/login
-- XP, levels, achievements, and dashboard
-- BG/EN language switcher
-- Protected admin overview for quests and missions
-- Mobile-first UI
+- **6 courses**, **63 lessons** — Frontend, Backend, Full-Stack, AI, Mobile, AI Product Builder (EN/BG)
+- DB-backed content catalog with admin CMS (courses, lessons, metadata)
+- Quiz question bank and course projects in Supabase
+- Lesson flow: theory, code example, mission, quiz
+- Mini projects + capstone with admin review and certificate gating
+- Guest mode — first Frontend lesson without an account
+- Supabase auth, per-user progress, XP, levels, achievements, daily streak
+- Mobile-first UI with responsive admin tables
+- Protected admin area: CMS, seed endpoint, capstone review queue
 
 ---
 
@@ -58,14 +59,12 @@ Open http://localhost:3000
 
 ### Environment variables
 
-Add to `learning-lesson-v2/.env.local`:
-
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-Run `learning-lesson-v2/supabase-schema.sql` in the Supabase SQL editor before testing auth and progress.
+Apply Supabase migrations from `learning-lesson-v2/supabase/migrations/` (in order), then seed via `/api/admin/seed-catalog` as an admin user. See [learning-lesson-v2/README.md](learning-lesson-v2/README.md) for details.
 
 ---
 
@@ -77,8 +76,6 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000
-
 Schema: `learning-lesson-v1/supabase-schema.sql`
 
 ---
@@ -88,12 +85,15 @@ Schema: `learning-lesson-v1/supabase-schema.sql`
 | Route | Description |
 |-------|-------------|
 | `/` | Landing page |
-| `/paths` | Quest selection |
-| `/lesson/[id]` | Mission workspace |
+| `/paths` | Course syllabus |
+| `/lesson/[id]` | Lesson workspace |
+| `/projects/[id]` | Project submission |
 | `/dashboard` | Progress summary |
-| `/profile` | Stats and achievements |
+| `/profile` | Stats, achievements, certificates |
+| `/certificate/[questId]` | Certificate view |
 | `/login`, `/register` | Auth |
-| `/admin` | Admin-only quest/lesson overview |
+| `/admin` | CMS dashboard |
+| `/admin/reviews` | Capstone review queue |
 
 ---
 
@@ -107,33 +107,31 @@ Schema: `learning-lesson-v1/supabase-schema.sql`
 
 ## Data model (v2)
 
-Quests and missions are defined in `learning-lesson-v2/src/lib/game-data.ts`:
+Content lives in Supabase (`courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `course_projects`) with fallbacks in `src/lib/game-data.ts` and related modules.
 
-- 6 quests, 7 missions (more planned per quest)
-- 100 XP per completed mission
-- Level thresholds in `src/lib/game-progress.ts`
-- User progress in Supabase tables `profiles` and `user_progress`
+User data: `profiles`, `user_progress`, `project_submissions`.
 
 ---
 
 ## Roadmap
 
-- [x] Gamified quest/mission flow
+- [x] Gamified course/lesson flow with unlock rules
 - [x] Supabase auth and progress API
-- [x] Guest-first onboarding
-- [x] i18n (BG/EN) for core UI
-- [x] Mission unlock rules
-- [ ] More missions per quest
-- [ ] Move quests/lessons to Supabase tables
-- [ ] Admin CRUD for missions
-- [ ] Sync daily streak to Supabase
-- [ ] Certificates and AI tutor
+- [x] Guest-first onboarding and i18n (BG/EN)
+- [x] Lesson metadata and syllabus view
+- [x] DB-backed catalog + admin CMS
+- [x] Quiz and projects in Supabase
+- [x] Mini projects, capstone, admin review, certificates
+- [x] Mobile layout improvements
+- [ ] AI Mentor (lesson-scoped assistant)
+- [ ] Admin CMS for quiz and project editing
+- [ ] E2E tests for core learner flows
 
 ---
 
 ## Deployment
 
-Deploy **v2** from the `learning-lesson-v2/` directory on Vercel. Set the same Supabase environment variables in the Vercel project settings.
+Deploy **v2** from the `learning-lesson-v2/` directory on Vercel. Set Supabase environment variables in the Vercel project settings.
 
 ---
 
