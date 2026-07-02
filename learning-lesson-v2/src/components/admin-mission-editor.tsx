@@ -23,7 +23,12 @@ export function AdminMissionEditor({ language, lesson }: MissionEditorProps) {
     explanationBg: lesson.explanationBg ?? "",
     codeExample: lesson.codeExample,
     solution: lesson.solution,
-    hint1: lesson.hint1 ?? lesson.hint ?? ""
+    hint1: lesson.hint1 ?? lesson.hint ?? "",
+    hint1Bg: lesson.hint1Bg ?? lesson.hintBg ?? "",
+    hint2: lesson.hint2 ?? "",
+    hint2Bg: lesson.hint2Bg ?? "",
+    hint3: lesson.hint3 ?? "",
+    hint3Bg: lesson.hint3Bg ?? ""
   });
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -38,17 +43,7 @@ export function AdminMissionEditor({ language, lesson }: MissionEditorProps) {
     const response = await fetch(`/api/admin/missions/${lesson.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: form.title,
-        titleBg: form.titleBg,
-        mission: form.mission,
-        missionBg: form.missionBg,
-        explanation: form.explanation,
-        explanationBg: form.explanationBg,
-        codeExample: form.codeExample,
-        solution: form.solution,
-        hint1: form.hint1
-      })
+      body: JSON.stringify(form)
     });
 
     setLoading(false);
@@ -59,6 +54,10 @@ export function AdminMissionEditor({ language, lesson }: MissionEditorProps) {
     }
   }
 
+  function updateField<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
+    setForm((current) => ({ ...current, [key]: value }));
+  }
+
   return (
     <form className="mt-6 space-y-4 rounded-lg border border-ink/10 bg-white/80 p-5" onSubmit={saveMission}>
       <div className="grid gap-4 md:grid-cols-2">
@@ -66,7 +65,7 @@ export function AdminMissionEditor({ language, lesson }: MissionEditorProps) {
           {copy.admin.titleEn}
           <input
             className="focus-ring mt-2 w-full rounded-md border border-ink/15 px-3 py-2"
-            onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+            onChange={(event) => updateField("title", event.target.value)}
             value={form.title}
           />
         </label>
@@ -74,7 +73,7 @@ export function AdminMissionEditor({ language, lesson }: MissionEditorProps) {
           {copy.admin.titleBg}
           <input
             className="focus-ring mt-2 w-full rounded-md border border-ink/15 px-3 py-2"
-            onChange={(event) => setForm((current) => ({ ...current, titleBg: event.target.value }))}
+            onChange={(event) => updateField("titleBg", event.target.value)}
             value={form.titleBg}
           />
         </label>
@@ -83,7 +82,7 @@ export function AdminMissionEditor({ language, lesson }: MissionEditorProps) {
         {copy.admin.missionEn}
         <textarea
           className="focus-ring mt-2 min-h-24 w-full rounded-md border border-ink/15 px-3 py-2"
-          onChange={(event) => setForm((current) => ({ ...current, mission: event.target.value }))}
+          onChange={(event) => updateField("mission", event.target.value)}
           value={form.mission}
         />
       </label>
@@ -91,18 +90,94 @@ export function AdminMissionEditor({ language, lesson }: MissionEditorProps) {
         {copy.admin.missionBg}
         <textarea
           className="focus-ring mt-2 min-h-24 w-full rounded-md border border-ink/15 px-3 py-2"
-          onChange={(event) => setForm((current) => ({ ...current, missionBg: event.target.value }))}
+          onChange={(event) => updateField("missionBg", event.target.value)}
           value={form.missionBg}
+        />
+      </label>
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="block text-sm font-bold">
+          {copy.admin.explanationEn}
+          <textarea
+            className="focus-ring mt-2 min-h-24 w-full rounded-md border border-ink/15 px-3 py-2"
+            onChange={(event) => updateField("explanation", event.target.value)}
+            value={form.explanation}
+          />
+        </label>
+        <label className="block text-sm font-bold">
+          {copy.admin.explanationBg}
+          <textarea
+            className="focus-ring mt-2 min-h-24 w-full rounded-md border border-ink/15 px-3 py-2"
+            onChange={(event) => updateField("explanationBg", event.target.value)}
+            value={form.explanationBg}
+          />
+        </label>
+      </div>
+      <label className="block text-sm font-bold">
+        {copy.admin.codeExampleLabel}
+        <textarea
+          className="focus-ring mt-2 min-h-32 w-full rounded-md border border-ink/15 bg-ink px-3 py-2 font-mono text-sm text-paper"
+          onChange={(event) => updateField("codeExample", event.target.value)}
+          value={form.codeExample}
         />
       </label>
       <label className="block text-sm font-bold">
         {copy.admin.solutionLabel}
         <textarea
           className="focus-ring mt-2 min-h-32 w-full rounded-md border border-ink/15 bg-ink px-3 py-2 font-mono text-sm text-paper"
-          onChange={(event) => setForm((current) => ({ ...current, solution: event.target.value }))}
+          onChange={(event) => updateField("solution", event.target.value)}
           value={form.solution}
         />
       </label>
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="block text-sm font-bold">
+          {copy.admin.hint1En}
+          <textarea
+            className="focus-ring mt-2 min-h-20 w-full rounded-md border border-ink/15 px-3 py-2"
+            onChange={(event) => updateField("hint1", event.target.value)}
+            value={form.hint1}
+          />
+        </label>
+        <label className="block text-sm font-bold">
+          {copy.admin.hint1Bg}
+          <textarea
+            className="focus-ring mt-2 min-h-20 w-full rounded-md border border-ink/15 px-3 py-2"
+            onChange={(event) => updateField("hint1Bg", event.target.value)}
+            value={form.hint1Bg}
+          />
+        </label>
+        <label className="block text-sm font-bold">
+          {copy.admin.hint2En}
+          <textarea
+            className="focus-ring mt-2 min-h-20 w-full rounded-md border border-ink/15 px-3 py-2"
+            onChange={(event) => updateField("hint2", event.target.value)}
+            value={form.hint2}
+          />
+        </label>
+        <label className="block text-sm font-bold">
+          {copy.admin.hint2Bg}
+          <textarea
+            className="focus-ring mt-2 min-h-20 w-full rounded-md border border-ink/15 px-3 py-2"
+            onChange={(event) => updateField("hint2Bg", event.target.value)}
+            value={form.hint2Bg}
+          />
+        </label>
+        <label className="block text-sm font-bold">
+          {copy.admin.hint3En}
+          <textarea
+            className="focus-ring mt-2 min-h-20 w-full rounded-md border border-ink/15 px-3 py-2"
+            onChange={(event) => updateField("hint3", event.target.value)}
+            value={form.hint3}
+          />
+        </label>
+        <label className="block text-sm font-bold">
+          {copy.admin.hint3Bg}
+          <textarea
+            className="focus-ring mt-2 min-h-20 w-full rounded-md border border-ink/15 px-3 py-2"
+            onChange={(event) => updateField("hint3Bg", event.target.value)}
+            value={form.hint3Bg}
+          />
+        </label>
+      </div>
       <button
         className="focus-ring rounded-md bg-ink px-4 py-3 text-sm font-bold text-paper disabled:opacity-60"
         disabled={loading}

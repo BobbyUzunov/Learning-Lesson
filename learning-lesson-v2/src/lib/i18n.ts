@@ -68,7 +68,10 @@ export const dictionary = {
       login: "Вход",
       logout: "Изход",
       profile: "Профил",
-      register: "Създай акаунт"
+      register: "Създай акаунт",
+      brand: "Learning Lesson",
+      openMenu: "Отвори меню",
+      closeMenu: "Затвори меню"
     },
     common: {
       lesson: "Урок",
@@ -78,7 +81,11 @@ export const dictionary = {
       start: "Старт",
       openLesson: "Отвори урока",
       backToPaths: "Назад към пътеките",
-      learner: "Ученик"
+      learner: "Ученик",
+      loading: "Зареждане...",
+      errorTitle: "Нещо се обърка",
+      tryAgain: "Опитай отново",
+      home: "Начало"
     },
     home: {
       badge: "Версия 2 MVP",
@@ -147,6 +154,39 @@ export const dictionary = {
       title: "Дневна серия",
       milestone: "{count} дни"
     },
+    dailyChallenge: {
+      title: "Дневно предизвикателство",
+      subtitle: "Всеки ден една различна мисия. Завърши я днес за бонус фокус.",
+      start: "Започни предизвикателството",
+      completed: "Днешното предизвикателство е завършено"
+    },
+    certificates: {
+      title: "Сертификат за мисия",
+      badge: "Learning Lesson",
+      awardedTo: "Награден на",
+      forQuest: "За завършена мисия",
+      earnedOn: "Получен на",
+      sectionTitle: "Сертификати",
+      earned: "Завършена мисия",
+      inProgress: "Завърши цяла мисия, за да получиш сертификат.",
+      view: "Виж сертификата"
+    },
+    verifyEmail: {
+      title: "Потвърди имейла",
+      subtitle: "Потвърди акаунта си, за да запазиш прогреса и да отключиш всички функции.",
+      verified: "Имейлът е потвърден. Готов си за учене.",
+      pending: "Изпратихме линк за потвърждение. Провери пощата си.",
+      resend: "Изпрати отново",
+      sent: "Нов линк за потвърждение е изпратен.",
+      working: "Работи...",
+      missingConfig: "Добави Supabase keys в .env.local, за да включиш auth.",
+      backToDashboard: "Към таблото"
+    },
+    profileChart: {
+      title: "XP по седмици",
+      xp: "XP",
+      lessons: "урока"
+    },
     quiz: {
       title: "Генератор за въпроси",
       subtitle: "Практикувай темата на мисията със случайни quiz въпроси.",
@@ -171,7 +211,21 @@ export const dictionary = {
       loggedIn: "Влезе успешно. Пренасочвам към таблото.",
       registered: "Акаунтът е създаден. Потвърди имейла, ако Supabase го изисква.",
       emailPlaceholder: "you@example.com",
-      displayNamePlaceholder: "Bobby"
+      displayNamePlaceholder: "Bobby",
+      forgotPassword: "Забравена парола?",
+      forgotTitle: "Възстанови парола",
+      forgotSubtitle: "Ще изпратим линк за нова парола на имейла ти.",
+      sendLink: "Изпрати линк",
+      sentMessage: "Провери имейла си за линк за нова парола.",
+      backToLogin: "Обратно към вход",
+      resetTitle: "Нова парола",
+      resetSubtitle: "Въведи нова парола за акаунта си.",
+      newPassword: "Нова парола",
+      confirmPassword: "Потвърди паролата",
+      updatePassword: "Обнови паролата",
+      mismatch: "Паролите не съвпадат.",
+      resetSuccess: "Паролата е обновена. Пренасочвам към таблото.",
+      sessionRequired: "Линкът е изтекъл или е невалиден. Поискай нов reset линк."
     },
     lesson: {
       understand: "Какво трябва да разбереш",
@@ -254,7 +308,14 @@ export const dictionary = {
       missionBg: "Мисия (BG)",
       explanationEn: "Обяснение (EN)",
       explanationBg: "Обяснение (BG)",
-      solutionLabel: "Решение"
+      solutionLabel: "Решение",
+      codeExampleLabel: "Примерен код",
+      hint1En: "Подсказка 1 (EN)",
+      hint1Bg: "Подсказка 1 (BG)",
+      hint2En: "Подсказка 2 (EN)",
+      hint2Bg: "Подсказка 2 (BG)",
+      hint3En: "Подсказка 3 (EN)",
+      hint3Bg: "Подсказка 3 (BG)"
     },
     achievements: {
       "first-login": { title: "Първи вход", description: "Акаунтът е създаден и готов за учене." },
@@ -275,7 +336,10 @@ export const dictionary = {
       login: "Login",
       logout: "Logout",
       profile: "Profile",
-      register: "Create Account"
+      register: "Create Account",
+      brand: "Learning Lesson",
+      openMenu: "Open menu",
+      closeMenu: "Close menu"
     },
     common: {
       lesson: "Lesson",
@@ -285,7 +349,11 @@ export const dictionary = {
       start: "Start",
       openLesson: "Open lesson",
       backToPaths: "Back to paths",
-      learner: "Learner"
+      learner: "Learner",
+      loading: "Loading...",
+      errorTitle: "Something went wrong",
+      tryAgain: "Try again",
+      home: "Home"
     },
     home: {
       badge: "Version 2 MVP",
@@ -354,6 +422,39 @@ export const dictionary = {
       title: "Daily Streak",
       milestone: "{count} Days"
     },
+    dailyChallenge: {
+      title: "Daily challenge",
+      subtitle: "One focused mission changes every day. Complete it today for bonus momentum.",
+      start: "Start today's challenge",
+      completed: "Today's challenge is complete"
+    },
+    certificates: {
+      title: "Quest certificate",
+      badge: "Learning Lesson",
+      awardedTo: "Awarded to",
+      forQuest: "For completing the quest",
+      earnedOn: "Earned on",
+      sectionTitle: "Certificates",
+      earned: "Quest completed",
+      inProgress: "Finish an entire quest to earn a certificate.",
+      view: "View certificate"
+    },
+    verifyEmail: {
+      title: "Verify your email",
+      subtitle: "Confirm your account to keep progress safe and unlock all features.",
+      verified: "Your email is verified. You are ready to learn.",
+      pending: "We sent a confirmation link. Check your inbox.",
+      resend: "Resend confirmation",
+      sent: "A new confirmation link has been sent.",
+      working: "Working...",
+      missingConfig: "Add Supabase keys in .env.local to enable auth.",
+      backToDashboard: "Back to dashboard"
+    },
+    profileChart: {
+      title: "Weekly XP",
+      xp: "XP",
+      lessons: "lessons"
+    },
     quiz: {
       title: "Question Generator",
       subtitle: "Practice the mission topic with random quiz questions.",
@@ -378,7 +479,21 @@ export const dictionary = {
       loggedIn: "Logged in. Redirecting to dashboard.",
       registered: "Account created. Confirm email if required.",
       emailPlaceholder: "you@example.com",
-      displayNamePlaceholder: "Bobby"
+      displayNamePlaceholder: "Bobby",
+      forgotPassword: "Forgot password?",
+      forgotTitle: "Reset password",
+      forgotSubtitle: "We will email you a link to choose a new password.",
+      sendLink: "Send reset link",
+      sentMessage: "Check your email for the password reset link.",
+      backToLogin: "Back to login",
+      resetTitle: "Choose a new password",
+      resetSubtitle: "Enter a new password for your account.",
+      newPassword: "New password",
+      confirmPassword: "Confirm password",
+      updatePassword: "Update password",
+      mismatch: "Passwords do not match.",
+      resetSuccess: "Password updated. Redirecting to dashboard.",
+      sessionRequired: "This reset link is invalid or expired. Request a new one."
     },
     lesson: {
       understand: "What you should understand",
@@ -461,7 +576,14 @@ export const dictionary = {
       missionBg: "Mission (BG)",
       explanationEn: "Explanation (EN)",
       explanationBg: "Explanation (BG)",
-      solutionLabel: "Solution"
+      solutionLabel: "Solution",
+      codeExampleLabel: "Code example",
+      hint1En: "Hint 1 (EN)",
+      hint1Bg: "Hint 1 (BG)",
+      hint2En: "Hint 2 (EN)",
+      hint2Bg: "Hint 2 (BG)",
+      hint3En: "Hint 3 (EN)",
+      hint3Bg: "Hint 3 (BG)"
     },
     achievements: {
       "first-login": { title: "First Login", description: "Account created and ready to learn." },

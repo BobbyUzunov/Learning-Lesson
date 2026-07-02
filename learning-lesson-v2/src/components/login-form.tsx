@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogIn, UserPlus } from "lucide-react";
 import { clearStoredProgress, getStoredProgress, guestContinueKey, getGameProgressStats } from "@/lib/game-progress";
@@ -22,6 +23,7 @@ type LoginLabels = {
   missingConfig: string;
   loggedIn: string;
   registered: string;
+  forgotPassword: string;
 };
 
 export function LoginForm({
@@ -97,6 +99,7 @@ export function LoginForm({
             email,
             password,
             options: {
+              emailRedirectTo: `${window.location.origin}/auth/callback?next=/verify-email`,
               data: {
                 display_name: displayName.trim() || email.split("@")[0]
               }
@@ -199,6 +202,11 @@ export function LoginForm({
         type="password"
         value={password}
       />
+      {mode === "login" ? (
+        <Link className="mt-2 inline-block text-sm font-bold text-ink/70 hover:text-ink" href="/forgot-password">
+          {labels.forgotPassword}
+        </Link>
+      ) : null}
       <button
         className="focus-ring mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-ink px-4 py-3 font-bold text-paper transition hover:bg-ink/90 disabled:opacity-60"
         disabled={loading}

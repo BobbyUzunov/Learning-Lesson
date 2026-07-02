@@ -445,7 +445,28 @@ const lessonTopicMap: Record<string, QuizTopic> = {
   "39": "product",
   "40": "product",
   "41": "product",
-  "42": "product"
+  "42": "product",
+  "43": "api",
+  "44": "api",
+  "45": "api",
+  "46": "api",
+  "47": "fullstack",
+  "48": "fullstack",
+  "49": "fullstack",
+  "50": "fullstack",
+  "51": "fullstack",
+  "52": "product",
+  "53": "product",
+  "54": "product",
+  "55": "product",
+  "56": "product",
+  "57": "product",
+  "58": "product",
+  "59": "product",
+  "60": "product",
+  "61": "product",
+  "62": "product",
+  "63": "product"
 };
 
 export function getQuizTopicForLesson(lessonId: string): QuizTopic {

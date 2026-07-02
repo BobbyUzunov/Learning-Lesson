@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { Award, Route, UserCircle } from "lucide-react";
+import { DailyChallengeCard } from "@/components/daily-challenge-card";
 import { DailyStreakCard } from "@/components/daily-streak-card";
+import { ProgressChart } from "@/components/progress-chart";
+import { QuestCertificates } from "@/components/quest-certificates";
+import { getQuestCertificates } from "@/lib/certificates";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { requireUser } from "@/lib/supabase/auth";
@@ -18,6 +22,8 @@ export default async function ProfilePage() {
   const completedCount = stats.completedCount;
   const currentPath = localizeGameQuest(stats.currentQuest, language);
   const achievements = getAchievements(gameProgress, language, stats.currentStreak);
+  const certificates = getQuestCertificates(gameProgress, language, progress);
+  const emailVerified = Boolean(session.user.email_confirmed_at);
   const name =
     session.profile?.display_name ??
     session.profile?.email?.split("@")[0] ??
@@ -31,6 +37,11 @@ export default async function ProfilePage() {
         <p className="mt-4 text-sm font-bold uppercase text-coral">{copy.nav.profile}</p>
         <h1 className="mt-2 break-words text-4xl font-black">{name}</h1>
         <p className="mt-2 break-words text-sm font-bold text-ink/60">{session.user.email}</p>
+        {!emailVerified ? (
+          <Link className="mt-3 inline-flex rounded-md bg-coral/15 px-3 py-2 text-sm font-bold text-ink" href="/verify-email">
+            {copy.verifyEmail.pending}
+          </Link>
+        ) : null}
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-lg border border-ink/10 bg-paper/70 p-4">
             <p className="text-sm font-bold text-ink/60">{copy.dashboard.userLevel}</p>
@@ -51,6 +62,9 @@ export default async function ProfilePage() {
         </div>
         <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_2fr]">
           <DailyStreakCard initialStreak={stats.currentStreak} isAuthenticated language={language} />
+          <DailyChallengeCard initialProgress={progress} isAuthenticated language={language} />
+        </div>
+        <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_2fr]">
           <section className="rounded-lg border border-ink/10 bg-paper/70 p-4">
             <div className="flex items-center gap-2 text-sm font-bold uppercase text-ink/60">
               <Route className="size-4 text-violet" />
@@ -59,6 +73,23 @@ export default async function ProfilePage() {
             <h2 className="mt-2 text-2xl font-black">{currentPath.title}</h2>
             <p className="mt-2 text-sm leading-6 text-ink/70">{currentPath.description}</p>
           </section>
+        </div>
+        <div className="mt-6">
+          <ProgressChart
+            lessonsLabel={copy.profileChart.lessons}
+            progress={progress}
+            title={copy.profileChart.title}
+            xpLabel={copy.profileChart.xp}
+          />
+        </div>
+        <div className="mt-6">
+          <QuestCertificates
+            certificates={certificates}
+            earnedLabel={copy.certificates.earned}
+            inProgressLabel={copy.certificates.inProgress}
+            title={copy.certificates.sectionTitle}
+            viewLabel={copy.certificates.view}
+          />
         </div>
         <section className="mt-6 rounded-lg border border-ink/10 bg-paper/70 p-4">
           <div className="flex items-center gap-2 text-sm font-bold uppercase text-ink/60">

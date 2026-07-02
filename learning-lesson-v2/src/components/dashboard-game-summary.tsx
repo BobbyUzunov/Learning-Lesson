@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Award, Flame, Gift, Target, Trophy } from "lucide-react";
+import { DailyChallengeCard } from "@/components/daily-challenge-card";
 import { ContinueLearningButton } from "./continue-learning-button";
 import { DailyStreakCard } from "./daily-streak-card";
 import { getAchievements, getGameProgressStats, getStoredProgress, toGameProgress } from "@/lib/game-progress";
@@ -144,7 +145,10 @@ export function DashboardGameSummary({
 
       <section className="grid gap-4 lg:grid-cols-[1fr_2fr]">
         <DailyStreakCard initialStreak={fallback.currentStreak} isAuthenticated={Boolean(initialProgress)} language={language} />
-        <div className="rounded-lg border border-ink/10 bg-white/80 p-4 shadow-sm">
+        <DailyChallengeCard initialProgress={initialProgress} isAuthenticated={Boolean(initialProgress)} language={language} />
+      </section>
+
+      <section className="rounded-lg border border-ink/10 bg-white/80 p-4 shadow-sm">
           <div className="flex items-center gap-2 text-sm font-bold uppercase text-ink/60">
             <Award className="size-4 text-coral" />
             {copy.dashboard.recentAchievements}
@@ -169,7 +173,6 @@ export function DashboardGameSummary({
               </div>
             ))}
           </div>
-        </div>
       </section>
     </div>
   );

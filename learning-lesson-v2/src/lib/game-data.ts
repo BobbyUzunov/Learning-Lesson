@@ -1,3 +1,5 @@
+import { phase2Lessons } from "./game-data-phase2-lessons";
+
 export type GameQuest = {
   id: string;
   title: string;
@@ -70,7 +72,7 @@ export const gameQuests: GameQuest[] = [
     rewardBadge: "API Builder",
     rewardBadgeBg: "API строител",
     xpReward: 1000,
-    lessonIds: ["3", "14", "15", "16", "17", "18"]
+    lessonIds: ["3", "14", "15", "16", "17", "18", "43", "44", "45", "46"]
   },
   {
     id: "fullstack",
@@ -86,7 +88,7 @@ export const gameQuests: GameQuest[] = [
     rewardBadge: "Product Shipper",
     rewardBadgeBg: "Product shipper",
     xpReward: 1200,
-    lessonIds: ["4", "19", "20", "21", "22", "23", "24"]
+    lessonIds: ["4", "19", "20", "21", "22", "23", "24", "47", "48", "49", "50", "51"]
   },
   {
     id: "ai",
@@ -134,7 +136,7 @@ export const gameQuests: GameQuest[] = [
     rewardBadge: "XP",
     rewardBadgeBg: "XP",
     xpReward: 2000,
-    lessonIds: ["7", "37", "38", "39", "40", "41", "42"]
+    lessonIds: ["7", "37", "38", "39", "40", "41", "42", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63"]
   }
 ];
 
@@ -730,7 +732,8 @@ export const gameLessons: GameLesson[] = [
     hint1: "Cover auth, learning loop, content, admin, mobile, and deploy.",
     hint1Bg: "Покрий auth, learning loop, content, admin, mobile и deploy.",
     solution: "1) Auth works 2) Guest + registered progress 3) Multiple quests 4) Admin edits visible 5) Mobile usable 6) Production deploy healthy."
-  }
+  },
+  ...phase2Lessons
 ];
 
 export function getGameLesson(id: string) {

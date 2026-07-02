@@ -18,6 +18,9 @@ describe("game-data unlock rules", () => {
     expect(isLessonUnlocked("14", [])).toBe(false);
     expect(isLessonUnlocked("14", ["3"])).toBe(true);
     expect(getLessonUnlockRule("20")).toBe("19");
+    expect(getLessonUnlockRule("43")).toBe("18");
+    expect(getLessonUnlockRule("47")).toBe("24");
+    expect(getLessonUnlockRule("52")).toBe("42");
   });
 
   it("returns the next incomplete lesson in quest order", () => {
