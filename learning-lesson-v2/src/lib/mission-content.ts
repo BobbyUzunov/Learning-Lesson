@@ -1,4 +1,5 @@
-import { gameLessons, getGameLesson, type GameLesson } from "./game-data";
+import { getCourseCatalog, getLessonFromCatalog } from "./catalog";
+import type { GameLesson } from "./game-data";
 import { createClient } from "./supabase/server";
 import { hasSupabaseEnv } from "./supabase/env";
 import { unstable_noStore as noStore } from "next/cache";
@@ -60,15 +61,17 @@ async function getMissionOverridesMap() {
 }
 
 export async function getAllLessonsWithOverrides() {
-  const overrides = await getMissionOverridesMap();
-  return gameLessons.map((lesson) => {
+  const [catalog, overrides] = await Promise.all([getCourseCatalog(), getMissionOverridesMap()]);
+
+  return catalog.lessons.map((lesson) => {
     const override = overrides.get(lesson.id);
     return override ? mergeLesson(lesson, override) : lesson;
   });
 }
 
 export async function getLessonWithOverrides(id: string) {
-  const base = getGameLesson(id);
+  const catalog = await getCourseCatalog();
+  const base = getLessonFromCatalog(catalog, id);
   if (!base) {
     return null;
   }

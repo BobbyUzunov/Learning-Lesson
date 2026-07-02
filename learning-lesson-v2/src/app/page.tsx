@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Database, Globe, Rocket, Route, ShieldCheck, Sparkles, Trophy } from "lucide-react";
 import { ContinueLearningButton } from "@/components/continue-learning-button";
-import { gameQuests } from "@/lib/game-data";
+import { getCourseCatalog } from "@/lib/catalog";
 import { localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getCurrentSession } from "@/lib/supabase/auth";
@@ -16,8 +16,9 @@ export default async function HomePage() {
   const language = await getLanguage();
   const copy = t(language);
   const session = await getCurrentSession();
+  const catalog = await getCourseCatalog();
   const progressData = session.user ? await getCurrentUserProgress() : null;
-  const quests = gameQuests.slice(0, 3).map((quest) => localizeGameQuest(quest, language));
+  const quests = catalog.courses.slice(0, 3).map((quest) => localizeGameQuest(quest, language));
   const icons = [Route, Trophy, ShieldCheck];
 
   return (

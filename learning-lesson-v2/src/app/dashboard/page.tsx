@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DashboardGameSummary } from "@/components/dashboard-game-summary";
+import { getCourseCatalog } from "@/lib/catalog";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getAllLessonsWithOverrides } from "@/lib/mission-content";
@@ -13,6 +14,7 @@ export default async function DashboardPage() {
   const language = await getLanguage();
   const copy = t(language);
   await requireUser();
+  const catalog = await getCourseCatalog();
   const [{ progress, streakCount }, lessons, submissions] = await Promise.all([
     getCurrentUserProgress(),
     getAllLessonsWithOverrides(),
@@ -34,6 +36,7 @@ export default async function DashboardPage() {
       </div>
 
       <DashboardGameSummary
+        courses={catalog.courses}
         initialLessons={lessons}
         initialProgress={progress}
         initialStreak={streakCount}

@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckCircle2, ChevronDown, ChevronRight, Circle, Lock, Rocket } from "lucide-react";
+import type { CourseCatalog } from "@/lib/catalog/types";
 import {
-  gameQuests,
-  getGameLesson,
+  getLessonFromCatalog,
   getNextLessonInQuest,
-  isLessonUnlocked,
-  xpPerLesson
-} from "@/lib/game-data";
+  isLessonUnlocked
+} from "@/lib/catalog/helpers";
 import { getStoredProgress } from "@/lib/game-progress";
+import { xpPerLesson } from "@/lib/game-data";
 import {
   getProjectsForCourse,
   isProjectSubmitted,
@@ -21,6 +21,7 @@ import { formatLessonsProgress, formatMessage, localizeGameLesson, localizeGameQ
 import { getLessonModuleIndex } from "@/lib/lesson-structure";
 
 export function SyllabusView({
+  catalog,
   completedLessonIds: initialCompletedLessonIds,
   isAuthenticated,
   showGuestLockMessage = false,
@@ -28,6 +29,7 @@ export function SyllabusView({
   submittedProjectIds: initialSubmittedProjectIds = [],
   language
 }: {
+  catalog: CourseCatalog;
   completedLessonIds?: string[];
   isAuthenticated: boolean;
   showGuestLockMessage?: boolean;
@@ -91,11 +93,11 @@ export function SyllabusView({
         <p className="rounded-md bg-violet/15 px-4 py-3 text-sm font-bold text-ink">{lockMessage}</p>
       ) : null}
 
-      {gameQuests.map((rawQuest) => {
+      {catalog.courses.map((rawQuest) => {
         const quest = localizeGameQuest(rawQuest, language);
         const completed = quest.lessonIds.filter((id) => completedLessonIds.includes(id)).length;
         const progress = Math.round((completed / quest.lessonIds.length) * 100);
-        const nextLesson = getNextLessonInQuest(quest.id, completedLessonIds);
+        const nextLesson = getNextLessonInQuest(catalog, quest.id, completedLessonIds);
         const isExpanded = expandedCourseId === quest.id;
         const hasStarted = completed > 0;
         const isGuestAllowedQuest = quest.id === "frontend" && nextLesson === "1";
@@ -167,7 +169,7 @@ export function SyllabusView({
                 <p className="mb-3 text-xs font-bold uppercase tracking-wide text-ink/50">{copy.syllabus.programTitle}</p>
                 <ol className="space-y-2">
                   {quest.lessonIds.map((lessonId) => {
-                    const rawLesson = getGameLesson(lessonId);
+                    const rawLesson = getLessonFromCatalog(catalog, lessonId);
                     if (!rawLesson) {
                       return null;
                     }
@@ -178,7 +180,7 @@ export function SyllabusView({
                     const unlocked =
                       isCompleted ||
                       (isAuthenticated
-                        ? isLessonUnlocked(lessonId, completedLessonIds)
+                        ? isLessonUnlocked(catalog, lessonId, completedLessonIds)
                         : quest.id === "frontend" && lessonId === "1");
                     const isCurrent = nextLesson === lessonId;
 

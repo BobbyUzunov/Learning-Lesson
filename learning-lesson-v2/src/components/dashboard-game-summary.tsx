@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { ArrowRight, BookOpen, Clock3, Rocket, Route } from "lucide-react";
 import { ContinueLearningButton } from "./continue-learning-button";
 import { getGameProgressStats, getStoredProgress, toGameProgress } from "@/lib/game-progress";
-import { gameLessons } from "@/lib/game-data";
-import type { GameLesson } from "@/lib/game-data";
+import { gameLessons, gameQuests } from "@/lib/game-data";
+import type { GameLesson, GameQuest } from "@/lib/game-data";
 import { formatMessage, formatLessonsProgress, localizeGameLesson, localizeGameQuest, t, type Language } from "@/lib/i18n";
 import { getLessonModuleIndex } from "@/lib/lesson-structure";
 import { resolveLessonMetadata } from "@/lib/lesson-metadata/generate";
@@ -16,32 +16,35 @@ import type { ProgressRecord } from "@/lib/types";
 type DashboardStats = ReturnType<typeof getGameProgressStats>;
 
 export function DashboardGameSummary({
+  courses: initialCourses,
   initialLessons,
   initialProgress,
   initialStreak = 0,
   submittedProjectIds = [],
   language
 }: {
+  courses?: GameQuest[];
   initialLessons?: GameLesson[];
   initialProgress?: ProgressRecord[];
   initialStreak?: number;
   submittedProjectIds?: string[];
   language: Language;
 }) {
+  const courses = initialCourses ?? gameQuests;
   const lessons = initialLessons ?? gameLessons;
   const initialStats = initialProgress
-    ? getGameProgressStats(toGameProgress(initialProgress, initialStreak), lessons)
+    ? getGameProgressStats(toGameProgress(initialProgress, initialStreak), lessons, courses)
     : null;
   const [stats, setStats] = useState<DashboardStats | null>(initialStats);
   const copy = t(language);
 
   useEffect(() => {
     if (!initialProgress) {
-      setStats(getGameProgressStats(getStoredProgress(), lessons));
+      setStats(getGameProgressStats(getStoredProgress(), lessons, courses));
     }
-  }, [initialProgress, lessons]);
+  }, [courses, initialProgress, lessons]);
 
-  const fallback = stats ?? getGameProgressStats({ completedLessonIds: [], currentStreak: 0, lastCompletedAt: null }, lessons);
+  const fallback = stats ?? getGameProgressStats({ completedLessonIds: [], currentStreak: 0, lastCompletedAt: null }, lessons, courses);
   const currentQuest = localizeGameQuest(fallback.currentQuest, language);
   const currentLesson = localizeGameLesson(fallback.currentMission, language);
   const completedLessonIds = initialProgress?.filter((item) => item.completed).map((item) => item.lesson_id) ?? [];
