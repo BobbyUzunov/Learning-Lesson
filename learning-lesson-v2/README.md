@@ -39,8 +39,8 @@ Run `supabase-schema.sql` in the Supabase SQL editor.
 
 All quests and missions live in `src/lib/game-data.ts`:
 
-- **6 quests** — Frontend, Backend, Full-Stack, AI, Mobile, AI Product Builder
-- **13 missions** with hints, code examples, solutions, and quiz practice
+- **6 quests** — each quest now has multiple missions (42 total)
+- **42 missions** with hints, code examples, solutions, and quiz practice
 - **100 XP** per completed mission
 - Level thresholds in `src/lib/game-progress.ts`
 
@@ -53,9 +53,12 @@ Progress is stored in Supabase `user_progress` and `profiles`. Guests can comple
 - Mission panel with progressive hints and solution reveal
 - Quiz question generator with topic-based practice on every lesson page
 - Mission unlock rules within each quest
-- XP, levels, achievements, daily streak (local)
+- XP, levels, achievements, daily streak synced to Supabase
 - Progress API backed by Supabase
-- Read-only admin table
+- Admin mission editor with Supabase overrides
+- Automatic profile creation on sign-up
+- Auth middleware for dashboard, profile, and admin routes
+- Vitest coverage for unlock rules, progress stats, and quiz generator
 - BG/EN language switcher
 
 ## Scripts
@@ -65,12 +68,10 @@ npm run dev      # development server
 npm run build    # production build
 npm run start    # production server
 npm run lint     # ESLint
+npm run test     # Vitest unit tests
 ```
 
 ## Next steps
 
-- Add remaining missions per quest
-- Move quests/lessons into Supabase tables
-- Admin CRUD for missions
-- Localize achievement titles
-- Sync daily streak to Supabase
+- Expand mission count toward each quest's planned level target
+- E2E tests for auth and mission completion flows

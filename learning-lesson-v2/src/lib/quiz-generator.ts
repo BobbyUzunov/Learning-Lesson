@@ -8,7 +8,11 @@ export type QuizTopic =
   | "fetch"
   | "react"
   | "api"
-  | "quiz-generator";
+  | "quiz-generator"
+  | "fullstack"
+  | "ai"
+  | "mobile"
+  | "product";
 
 export type QuizQuestion = {
   id: string;
@@ -200,6 +204,50 @@ const questionBank: QuizQuestion[] = [
     explanationBg: "Консистентният JSON улеснява render-а и error handling-а."
   },
   {
+    id: "api-2",
+    topic: "api",
+    question: "Which HTTP status code fits a missing required field?",
+    questionBg: "Кой HTTP status code е подходящ за липсващо задължително поле?",
+    options: ["200", "400", "404", "500"],
+    optionsBg: ["200", "400", "404", "500"],
+    correctIndex: 1,
+    explanation: "400 Bad Request tells the client the input was invalid.",
+    explanationBg: "400 Bad Request казва на клиента, че входът е невалиден."
+  },
+  {
+    id: "api-3",
+    topic: "api",
+    question: "Where should Supabase service role keys live?",
+    questionBg: "Къде трябва да живеят Supabase service role ключовете?",
+    options: ["In a public React component", "Server-only environment variables", "In README", "In CSS"],
+    optionsBg: ["В публичен React component", "Server-only environment variables", "В README", "В CSS"],
+    correctIndex: 1,
+    explanation: "Service role keys bypass RLS and must never ship to the browser.",
+    explanationBg: "Service role ключовете заобикалят RLS и никога не трябва да отиват в браузъра."
+  },
+  {
+    id: "api-4",
+    topic: "api",
+    question: "What should a protected route return when there is no session?",
+    questionBg: "Какво трябва да върне защитен route, когато няма сесия?",
+    options: ["200 with empty body", "401 Unauthorized", "302 to homepage", "500"],
+    optionsBg: ["200 с празно body", "401 Unauthorized", "302 към homepage", "500"],
+    correctIndex: 1,
+    explanation: "401 clearly signals that authentication is required.",
+    explanationBg: "401 ясно показва, че е нужна автентикация."
+  },
+  {
+    id: "api-5",
+    topic: "api",
+    question: "How do you read JSON from a Next.js route handler request?",
+    questionBg: "Как четеш JSON от request в Next.js route handler?",
+    options: ["request.text()", "await request.json()", "request.headers.json()", "JSON.parse(request)"],
+    optionsBg: ["request.text()", "await request.json()", "request.headers.json()", "JSON.parse(request)"],
+    correctIndex: 1,
+    explanation: "request.json() parses the body into a JavaScript object.",
+    explanationBg: "request.json() парсва body към JavaScript обект."
+  },
+  {
     id: "quiz-gen-1",
     topic: "quiz-generator",
     question: "What input does a quiz generator need at minimum?",
@@ -220,6 +268,138 @@ const questionBank: QuizQuestion[] = [
     correctIndex: 0,
     explanation: "Structured quiz objects let the app check answers and explain mistakes.",
     explanationBg: "Структурираните quiz обекти позволяват проверка и обяснение на грешки."
+  },
+  {
+    id: "fullstack-1",
+    topic: "fullstack",
+    question: "What happens first when a learner completes a mission?",
+    questionBg: "Какво се случва първо, когато learner завърши мисия?",
+    options: ["Database backup", "Client calls an API route", "CSS reload", "Git commit"],
+    optionsBg: ["Database backup", "Client вика API route", "CSS reload", "Git commit"],
+    correctIndex: 1,
+    explanation: "The UI sends the completion to an API route before data is persisted.",
+    explanationBg: "UI изпраща завършването към API route, преди данните да се запишат."
+  },
+  {
+    id: "fullstack-2",
+    topic: "fullstack",
+    question: "Where should guest progress live before login?",
+    questionBg: "Къде трябва да живее guest progress преди login?",
+    options: ["Supabase only", "localStorage", "Cookies only", "README"],
+    optionsBg: ["Само Supabase", "localStorage", "Само cookies", "README"],
+    correctIndex: 1,
+    explanation: "Guests can store progress locally until they authenticate and sync.",
+    explanationBg: "Guests могат да пазят progress локално, докато не се authenticate-нат и sync-нат."
+  },
+  {
+    id: "fullstack-3",
+    topic: "fullstack",
+    question: "Which routes should require authentication in this app?",
+    questionBg: "Кои routes трябва да изискват authentication в това app?",
+    options: ["/lesson/1", "/dashboard and /profile", "/paths only", "/register"],
+    optionsBg: ["/lesson/1", "/dashboard и /profile", "Само /paths", "/register"],
+    correctIndex: 1,
+    explanation: "Personal progress views should be protected while public onboarding stays open.",
+    explanationBg: "Личните progress изгледи трябва да са защитени, а public onboarding остава отворен."
+  },
+  {
+    id: "ai-1",
+    topic: "ai",
+    question: "Why ask AI for JSON output?",
+    questionBg: "Защо да искаш JSON output от AI?",
+    options: ["To slow the app", "So the app can parse fields safely", "To hide answers", "To remove hints"],
+    optionsBg: ["За да забави app-а", "За да parse-не полетата safely", "За да скрие отговори", "За да махне hints"],
+    correctIndex: 1,
+    explanation: "Structured JSON makes rendering and validation predictable.",
+    explanationBg: "Структурираният JSON прави render-а и validation предвидими."
+  },
+  {
+    id: "ai-2",
+    topic: "ai",
+    question: "What should never be sent to an AI provider?",
+    questionBg: "Какво никога не трябва да се изпраща към AI provider?",
+    options: ["Lesson topic", "Service role keys", "Beginner level", "HTML topic"],
+    optionsBg: ["Lesson topic", "Service role keys", "Beginner level", "HTML topic"],
+    correctIndex: 1,
+    explanation: "Secrets must stay on the server and out of prompts.",
+    explanationBg: "Secrets трябва да останат на сървъра и извън prompts."
+  },
+  {
+    id: "ai-3",
+    topic: "ai",
+    question: "What should you validate in AI quiz output?",
+    questionBg: "Какво трябва да валидираш в AI quiz output?",
+    options: ["Font color only", "correctIndex and options length", "Git branch", "Image size"],
+    optionsBg: ["Само font color", "correctIndex и options length", "Git branch", "Image size"],
+    correctIndex: 1,
+    explanation: "Bounds checks prevent broken quizzes from reaching learners.",
+    explanationBg: "Bounds checks спират счупени quizzes да стигнат до learners."
+  },
+  {
+    id: "mobile-1",
+    topic: "mobile",
+    question: "What is a good minimum touch target height?",
+    questionBg: "Каква е добра минимална touch target височина?",
+    options: ["12px", "48px", "2px", "200px"],
+    optionsBg: ["12px", "48px", "2px", "200px"],
+    correctIndex: 1,
+    explanation: "Around 44–48px is a common accessible tap target size.",
+    explanationBg: "Около 44–48px е често срещан accessible tap target размер."
+  },
+  {
+    id: "mobile-2",
+    topic: "mobile",
+    question: "What does width=device-width do?",
+    questionBg: "Какво прави width=device-width?",
+    options: ["Hides the navbar", "Matches layout width to the device screen", "Deletes CSS", "Adds XP"],
+    optionsBg: ["Скрива navbar", "Съпоставя layout width с device screen", "Изтрива CSS", "Добавя XP"],
+    correctIndex: 1,
+    explanation: "It prevents mobile browsers from rendering a tiny scaled desktop page.",
+    explanationBg: "Спира mobile browsers да render-ват намалена desktop страница."
+  },
+  {
+    id: "mobile-3",
+    topic: "mobile",
+    question: "How should quest cards behave on phones?",
+    questionBg: "Как трябва да се държат quest cards на телефони?",
+    options: ["Five columns", "Single column stack", "Horizontal scroll only", "Hidden"],
+    optionsBg: ["Пет колони", "Една колона", "Само horizontal scroll", "Скрити"],
+    correctIndex: 1,
+    explanation: "A single column keeps cards readable without sideways scrolling.",
+    explanationBg: "Една колона държи cards четими без horizontal scrolling."
+  },
+  {
+    id: "product-1",
+    topic: "product",
+    question: "What is a good first deploy goal for an MVP?",
+    questionBg: "Каква е добра първа deploy цел за MVP?",
+    options: ["Perfect design only", "Working auth and progress loop", "100 quests", "No database"],
+    optionsBg: ["Само perfect design", "Работещ auth и progress loop", "100 quests", "Без database"],
+    correctIndex: 1,
+    explanation: "Ship the core learning loop before adding every planned feature.",
+    explanationBg: "Ship-вай core learning loop, преди да добавиш всяка планирана feature."
+  },
+  {
+    id: "product-2",
+    topic: "product",
+    question: "Which tables store learner state in this app?",
+    questionBg: "Кои таблици пазят learner state в това app?",
+    options: ["profiles and user_progress", "Only CSS files", "Git branches", "Vercel logs"],
+    optionsBg: ["profiles и user_progress", "Само CSS files", "Git branches", "Vercel logs"],
+    correctIndex: 0,
+    explanation: "Profiles track XP and user metadata; user_progress stores completed lessons.",
+    explanationBg: "Profiles следят XP и user metadata; user_progress пази завършени уроци."
+  },
+  {
+    id: "product-3",
+    topic: "product",
+    question: "What makes a Cursor task prompt effective?",
+    questionBg: "Какво прави Cursor task prompt ефективен?",
+    options: ["Vague goals", "Clear scope and expected files", "No context", "Only emojis"],
+    optionsBg: ["Неясни цели", "Ясен scope и expected files", "Без context", "Само emojis"],
+    correctIndex: 1,
+    explanation: "Specific scope and file targets produce smaller, reviewable changes.",
+    explanationBg: "Конкретният scope и file targets дават по-малки, reviewable промени."
   }
 ];
 
@@ -233,10 +413,39 @@ const lessonTopicMap: Record<string, QuizTopic> = {
   "12": "react",
   "13": "quiz-generator",
   "3": "api",
-  "4": "api",
-  "5": "quiz-generator",
-  "6": "css",
-  "7": "quiz-generator"
+  "14": "api",
+  "15": "api",
+  "16": "api",
+  "17": "api",
+  "18": "api",
+  "4": "fullstack",
+  "19": "fullstack",
+  "20": "fullstack",
+  "21": "fullstack",
+  "22": "fullstack",
+  "23": "fullstack",
+  "24": "fullstack",
+  "5": "ai",
+  "25": "ai",
+  "26": "ai",
+  "27": "ai",
+  "28": "ai",
+  "29": "ai",
+  "30": "ai",
+  "6": "mobile",
+  "31": "mobile",
+  "32": "mobile",
+  "33": "mobile",
+  "34": "mobile",
+  "35": "mobile",
+  "36": "mobile",
+  "7": "product",
+  "37": "product",
+  "38": "product",
+  "39": "product",
+  "40": "product",
+  "41": "product",
+  "42": "product"
 };
 
 export function getQuizTopicForLesson(lessonId: string): QuizTopic {

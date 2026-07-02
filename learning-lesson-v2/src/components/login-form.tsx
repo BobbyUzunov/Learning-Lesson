@@ -24,10 +24,12 @@ type LoginLabels = {
 
 export function LoginForm({
   initialMode = "login",
-  labels
+  labels,
+  redirectPath = "/dashboard"
 }: {
   initialMode?: "login" | "register";
   labels: LoginLabels;
+  redirectPath?: string;
 }) {
   const [mode, setMode] = useState<"login" | "register">(initialMode);
   const [email, setEmail] = useState("");
@@ -134,7 +136,7 @@ export function LoginForm({
 
     setLoading(false);
     setMessage(mode === "login" ? labels.loggedIn : labels.registered);
-    router.replace("/dashboard");
+    router.replace(redirectPath.startsWith("/") ? redirectPath : "/dashboard");
     router.refresh();
   }
 

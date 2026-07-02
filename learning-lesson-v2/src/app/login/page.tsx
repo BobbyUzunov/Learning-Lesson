@@ -3,13 +3,14 @@ import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 
 type LoginPageProps = {
-  searchParams: Promise<{ message?: string }>;
+  searchParams: Promise<{ message?: string; redirect?: string }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const language = await getLanguage();
   const copy = t(language);
-  const { message } = await searchParams;
+  const { message, redirect } = await searchParams;
+  const redirectPath = redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : "/dashboard";
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
@@ -20,7 +21,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         {message ? <p className="mt-4 rounded-md bg-mint/15 px-3 py-2 text-sm font-bold text-ink">{message}</p> : null}
       </div>
       <div className="mt-8">
-        <LoginForm labels={copy.login} />
+        <LoginForm labels={copy.login} redirectPath={redirectPath} />
       </div>
     </main>
   );
