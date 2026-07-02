@@ -70,7 +70,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const missionLesson = { ...localized, ...withProgressiveHints(localized, copy) };
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
+    <main className="mx-auto max-w-5xl px-4 py-8">
       <Link className="inline-flex items-center gap-2 text-sm font-bold text-ink/70 hover:text-ink" href="/paths">
         <ArrowLeft className="size-4" />
         {copy.common.backToPaths}

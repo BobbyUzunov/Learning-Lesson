@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Trophy, Route, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, Database, Globe, Rocket, Route, ShieldCheck, Sparkles, Trophy } from "lucide-react";
 import { ContinueLearningButton } from "@/components/continue-learning-button";
 import { gameQuests } from "@/lib/game-data";
 import { localizeGameQuest, t } from "@/lib/i18n";
@@ -8,6 +8,7 @@ import { getCurrentSession } from "@/lib/supabase/auth";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 
 const questColors = ["bg-mint", "bg-coral", "bg-violet", "bg-mint", "bg-coral", "bg-violet"];
+const outcomeIcons = [Globe, Rocket, Database, Sparkles];
 
 export default async function HomePage() {
   const language = await getLanguage();
@@ -21,11 +22,9 @@ export default async function HomePage() {
     <main>
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-10 px-4 py-10 lg:grid-cols-[1.04fr_0.96fr]">
         <div>
-          <p className="text-sm font-bold uppercase text-coral">{copy.home.badge}</p>
+          <p className="text-sm font-bold uppercase tracking-wide text-violet">{copy.home.badge}</p>
           <h1 className="mt-3 max-w-3xl text-5xl font-black leading-tight sm:text-6xl">{copy.home.title}</h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-ink/70">
-            {copy.home.subtitle}
-          </p>
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-ink/70">{copy.home.subtitle}</p>
           {session.user ? (
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <ContinueLearningButton
@@ -76,16 +75,42 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-      <section className="border-y border-ink/10 bg-white/60">
+
+      <section className="border-y border-ink/10 bg-gradient-to-b from-violet/5 to-white/60">
+        <div className="mx-auto max-w-6xl px-4 py-10">
+          <h2 className="text-center text-3xl font-black sm:text-4xl">{copy.home.outcomesTitle}</h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {copy.home.outcomes.map((outcome, index) => {
+              const Icon = outcomeIcons[index];
+              return (
+                <div
+                  className="rounded-lg border border-ink/10 bg-white/80 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft"
+                  key={outcome}
+                >
+                  <span className="inline-flex size-11 items-center justify-center rounded-md bg-violet/10 text-violet">
+                    <Icon className="size-5" />
+                  </span>
+                  <div className="mt-4 flex items-start gap-2">
+                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-mint" />
+                    <p className="font-bold leading-6">{outcome}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-ink/10 bg-white/60">
         <div className="mx-auto grid max-w-6xl gap-4 px-4 py-8 md:grid-cols-3">
           {copy.home.features.map((item, index) => {
             const Icon = icons[index];
             return (
-            <div className="rounded-lg p-4" key={item.title}>
-              <Icon className="size-6 text-violet" />
-              <h3 className="mt-3 font-bold">{item.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-ink/70">{item.text}</p>
-            </div>
+              <div className="rounded-lg p-4" key={item.title}>
+                <Icon className="size-6 text-violet" />
+                <h3 className="mt-3 font-bold">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-ink/70">{item.text}</p>
+              </div>
             );
           })}
         </div>

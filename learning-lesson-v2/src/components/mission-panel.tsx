@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CheckCircle2, Lightbulb, ScrollText } from "lucide-react";
+import { ArrowRight, CheckCircle2, Lightbulb, Lock, ScrollText } from "lucide-react";
 import type { GameLesson } from "@/lib/game-data";
 import { getGlobalNextLesson } from "@/lib/game-data";
 import { completeStoredLesson, getGameProgressStats, getStoredProgress, guestContinueKey } from "@/lib/game-progress";
 import { formatMessage, t, type Language } from "@/lib/i18n";
+
+const MIN_EFFORT_CHARS = 12;
 
 export function MissionPanel({
   completedLessonIds = [],
@@ -29,11 +31,11 @@ export function MissionPanel({
   const [justCompleted, setJustCompleted] = useState(false);
   const router = useRouter();
   const copy = t(language);
-  const lessonHints = [lesson.hint1, lesson.hint2, lesson.hint3, lesson.hint]
-    .filter((hint): hint is string => Boolean(hint?.trim()))
-    .slice(0, 3);
-  const typedSomething = solutionInput.trim().length > 0;
-  const canViewSolution = hintsUsed >= 2 || typedSomething;
+  const lessonHints = [lesson.hint1, lesson.hint2, lesson.hint3].filter((hint): hint is string => Boolean(hint?.trim()));
+  const effortChars = solutionInput.trim().length;
+  const hasEffort = effortChars >= MIN_EFFORT_CHARS;
+  const allHintsUsed = hintsUsed >= lessonHints.length;
+  const canViewSolution = hasEffort || allHintsUsed;
 
   function resolveNextLesson(updatedCompletedIds: string[]) {
     return getGlobalNextLesson(updatedCompletedIds);
@@ -57,7 +59,7 @@ export function MissionPanel({
   }
 
   async function completeMission() {
-    if (!typedSomething && hintsUsed < lessonHints.length) {
+    if (!hasEffort && !allHintsUsed) {
       setMessage(copy.lesson.completeBeforeFinish);
       return;
     }
@@ -116,7 +118,7 @@ export function MissionPanel({
 
   function toggleSolution() {
     if (!showSolution && !canViewSolution) {
-      setMessage(copy.lesson.tryFirstOrHint);
+      setMessage(copy.lesson.solutionLocked);
       return;
     }
 
@@ -141,9 +143,14 @@ export function MissionPanel({
           <p className="mt-3 leading-7 text-ink/75">{lesson.mission}</p>
         </section>
         <section className="rounded-lg border border-ink/10 bg-white p-4 lg:col-span-3">
-          <label className="text-sm font-black uppercase tracking-wide text-ink/70" htmlFor="lesson-solution">
-            {copy.lesson.yourSolution}
-          </label>
+          <div className="flex items-center justify-between gap-3">
+            <label className="text-sm font-black uppercase tracking-wide text-ink/70" htmlFor="lesson-solution">
+              {copy.lesson.yourSolution}
+            </label>
+            <span className="text-xs font-bold text-ink/45">
+              {effortChars}/{MIN_EFFORT_CHARS}
+            </span>
+          </div>
           <textarea
             className="focus-ring mt-3 min-h-56 w-full rounded-md border border-ink/15 bg-ink px-4 py-3 font-mono text-sm leading-6 text-paper shadow-inner placeholder:text-paper/45 sm:min-h-64"
             id="lesson-solution"
@@ -170,25 +177,19 @@ export function MissionPanel({
               ? copy.lesson.allHintsRevealed
               : formatMessage(copy.lesson.hintButton, { n: Math.min(hintsUsed + 1, 3) })}
           </button>
-          <div className="relative">
           <button
-            className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-4 py-3 text-center font-bold text-ink shadow-sm transition hover:-translate-y-0.5 hover:border-violet/40 hover:bg-ink/5 hover:shadow-soft disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+            className={`focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md border px-4 py-3 text-center font-bold shadow-sm transition ${
+              canViewSolution
+                ? "border-ink/15 bg-white text-ink hover:-translate-y-0.5 hover:border-violet/40 hover:bg-ink/5 hover:shadow-soft"
+                : "cursor-not-allowed border-ink/10 bg-ink/5 text-ink/45"
+            }`}
             disabled={!showSolution && !canViewSolution}
             onClick={toggleSolution}
             type="button"
           >
-            <ScrollText className="size-5" />
+            {!canViewSolution && !showSolution ? <Lock className="size-5" /> : <ScrollText className="size-5" />}
             {copy.lesson.showSolution}
           </button>
-          {!showSolution && !canViewSolution ? (
-            <button
-              aria-label="solution-locked-overlay"
-              className="absolute inset-0"
-              onClick={() => setMessage(copy.lesson.tryFirstOrHint)}
-              type="button"
-            />
-          ) : null}
-          </div>
           <button
             className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-mint px-4 py-3 text-center font-black text-ink shadow-sm transition hover:-translate-y-0.5 hover:bg-mint/80 hover:shadow-soft disabled:translate-y-0 disabled:opacity-60"
             disabled={loading}
@@ -199,33 +200,62 @@ export function MissionPanel({
             {loading ? copy.login.working : copy.lesson.completeMission}
           </button>
         </div>
+        {!canViewSolution && !showSolution ? (
+          <p className="mt-3 text-xs font-bold text-ink/50">{copy.lesson.solutionLocked}</p>
+        ) : null}
       </section>
 
-      <div className="text-sm font-bold text-ink/70">
-        {formatMessage(copy.lesson.hintsUsed, { used: hintsUsed, total: 3 })}
-      </div>
-      <div className="space-y-3">
-        {lessonHints.slice(0, hintsUsed).map((hint, index) => (
-          <p
-            className="rounded-md border border-mint/30 bg-mint/15 p-4 text-sm leading-6 text-ink/80 opacity-100 transition-all duration-300 ease-out"
-            key={`${lesson.id}-hint-${index + 1}`}
-          >
-            <span className="mr-2 font-bold text-ink">
-              {formatMessage(copy.lesson.hintLabel, { n: index + 1 })}
-            </span>
-            {hint}
+      <section className="rounded-lg border border-ink/10 bg-white p-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-black uppercase text-ink/60">{copy.lesson.progressiveHints}</p>
+          <p className="text-xs font-bold text-ink/45">
+            {formatMessage(copy.lesson.hintsUsed, { used: hintsUsed, total: lessonHints.length })}
           </p>
-        ))}
-      </div>
+        </div>
+        <div className="mt-4 space-y-3">
+          {lessonHints.map((hint, index) => {
+            const unlocked = index < hintsUsed;
+            return (
+              <div
+                className={`rounded-md border p-4 text-sm leading-6 transition-all duration-300 ${
+                  unlocked
+                    ? "border-mint/30 bg-mint/15 text-ink/80"
+                    : "border-ink/10 bg-ink/5 text-ink/40"
+                }`}
+                key={`${lesson.id}-hint-${index + 1}`}
+              >
+                <div className="flex items-start gap-2">
+                  {unlocked ? (
+                    <Lightbulb className="mt-0.5 size-4 shrink-0 text-violet" />
+                  ) : (
+                    <Lock className="mt-0.5 size-4 shrink-0" />
+                  )}
+                  <div>
+                    <p className="font-bold text-ink">
+                      {formatMessage(copy.lesson.hintLabel, { n: index + 1 })}
+                    </p>
+                    <p className="mt-1">
+                      {unlocked ? hint : formatMessage(copy.lesson.hintLocked, { n: index + 1 })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       <div
         className={`overflow-hidden transition-all duration-300 ease-out ${
           showSolution ? "max-h-[480px] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
+        <p className="mb-2 text-sm font-black uppercase text-ink/60">{copy.lesson.officialSolution}</p>
         <pre className="overflow-x-auto rounded-md bg-ink p-4 text-sm leading-6 text-paper">
           <code>{lesson.solution}</code>
         </pre>
       </div>
+
       {message ? (
         <div className="space-y-3 rounded-md bg-violet/15 p-4">
           <p className="text-sm font-bold text-ink">{message}</p>
@@ -246,6 +276,7 @@ export function MissionPanel({
           ) : null}
         </div>
       ) : null}
+
       {showGuestModal ? (
         <div className="fixed inset-0 z-40 grid place-items-center bg-ink/50 px-4">
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-soft">
