@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminMissionEditor } from "@/components/admin-mission-editor";
-import { getQuestForLesson } from "@/lib/game-data";
+import { getQuestForLesson } from "@/lib/catalog/helpers";
+import { getCourseCatalog } from "@/lib/catalog";
 import { localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getLessonWithOverrides } from "@/lib/mission-content";
@@ -16,13 +17,14 @@ export default async function AdminMissionPage({ params }: AdminMissionPageProps
   const language = await getLanguage();
   const copy = t(language);
   const { id } = await params;
+  const catalog = await getCourseCatalog();
   const lesson = await getLessonWithOverrides(id);
 
   if (!lesson) {
     notFound();
   }
 
-  const quest = getQuestForLesson(lesson.id);
+  const quest = getQuestForLesson(catalog, lesson.id);
   const localizedLesson = localizeGameLesson(lesson, language);
   const localizedQuest = quest ? localizeGameQuest(quest, language) : null;
 

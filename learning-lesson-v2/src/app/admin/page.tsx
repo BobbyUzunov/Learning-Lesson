@@ -1,11 +1,12 @@
+import Link from "next/link";
 import {
-  gameQuests,
+  getCourseCatalog,
   getLessonOrderInQuest,
   getLessonUnlockRule,
   getQuestLessons,
-  getTotalAvailableXp,
-  xpPerLesson
-} from "@/lib/game-data";
+  getTotalAvailableXp
+} from "@/lib/catalog";
+import { xpPerLesson } from "@/lib/game-data";
 import { localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getAllLessonsWithOverrides } from "@/lib/mission-content";
@@ -15,7 +16,8 @@ export const dynamic = "force-dynamic";
 export default async function AdminPage() {
   const language = await getLanguage();
   const copy = t(language);
-  const quests = gameQuests.map((quest) => localizeGameQuest(quest, language));
+  const catalog = await getCourseCatalog();
+  const quests = catalog.courses.map((quest) => localizeGameQuest(quest, language));
   const lessons = await getAllLessonsWithOverrides();
   const localizedLessons = lessons.map((lesson) => localizeGameLesson(lesson, language));
 
@@ -23,12 +25,16 @@ export default async function AdminPage() {
     <div>
       <div>
         <p className="text-sm font-bold uppercase text-coral">{copy.admin.protected}</p>
-        <h1 className="mt-2 text-4xl font-black">{copy.admin.title}</h1>
-        <p className="mt-3 max-w-2xl text-ink/70">{copy.admin.subtitle}</p>
+        <h1 className="mt-2 text-4xl font-black">{copy.admin.cmsTitle}</h1>
+        <p className="mt-3 max-w-2xl text-ink/70">{copy.admin.cmsSubtitle}</p>
+        <p className="mt-3 inline-flex rounded-md bg-ink/5 px-3 py-2 text-xs font-bold uppercase text-ink/60">
+          {copy.admin.catalogSource}: {catalog.source === "db" ? copy.admin.catalogDb : copy.admin.catalogFallback}
+        </p>
       </div>
+
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <div className="rounded-lg bg-white/80 p-4">
-          <p className="text-sm text-ink/60">{copy.admin.quests}</p>
+          <p className="text-sm text-ink/60">{copy.admin.courses}</p>
           <p className="mt-2 text-3xl font-black">{quests.length}</p>
         </div>
         <div className="rounded-lg bg-white/80 p-4">
@@ -37,25 +43,30 @@ export default async function AdminPage() {
         </div>
         <div className="rounded-lg bg-white/80 p-4">
           <p className="text-sm text-ink/60">{copy.admin.totalXp}</p>
-          <p className="mt-2 text-3xl font-black">{getTotalAvailableXp()}</p>
+          <p className="mt-2 text-3xl font-black">{getTotalAvailableXp(catalog, xpPerLesson)}</p>
         </div>
       </div>
+
       <section className="mt-6 rounded-lg border border-ink/10 bg-white/80 p-5">
-        <h2 className="text-xl font-black">{copy.admin.questCoverage}</h2>
+        <h2 className="text-xl font-black">{copy.admin.courses}</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           {quests.map((quest) => {
-            const questLessons = getQuestLessons(quest.id);
+            const questLessons = getQuestLessons(catalog, quest.id);
             return (
               <div className="rounded-lg border border-ink/10 p-4" key={quest.id}>
                 <h3 className="font-bold">{quest.title}</h3>
                 <p className="mt-2 text-sm text-ink/70">
-                  {questLessons.length} {copy.dashboard.lessons} · {quest.levels} {copy.paths.levels} {copy.admin.planned}
+                  {questLessons.length} {copy.dashboard.lessons} · {quest.estimatedTime}
                 </p>
+                <Link className="mt-4 inline-flex text-sm font-bold text-violet hover:underline" href={`/admin/courses/${quest.id}`}>
+                  {copy.admin.editCourse}
+                </Link>
               </div>
             );
           })}
         </div>
       </section>
+
       <div className="mt-6 overflow-hidden rounded-lg border border-ink/10 bg-white/80">
         <table className="w-full min-w-[720px] border-collapse text-left text-sm">
           <thead className="bg-ink text-paper">
@@ -70,14 +81,14 @@ export default async function AdminPage() {
           </thead>
           <tbody>
             {localizedLessons.map((lesson) => {
-              const unlockRule = getLessonUnlockRule(lesson.id);
+              const unlockRule = getLessonUnlockRule(catalog, lesson.id);
               const quest = quests.find((item) => item.id === lesson.questId);
 
               return (
                 <tr className="border-t border-ink/10" key={lesson.id}>
                   <td className="px-4 py-3 font-bold">{lesson.title}</td>
                   <td className="px-4 py-3">{quest?.title}</td>
-                  <td className="px-4 py-3">{getLessonOrderInQuest(lesson.id)}</td>
+                  <td className="px-4 py-3">{getLessonOrderInQuest(catalog, lesson.id)}</td>
                   <td className="px-4 py-3">{xpPerLesson}</td>
                   <td className="px-4 py-3">{unlockRule ?? copy.admin.open}</td>
                   <td className="px-4 py-3">

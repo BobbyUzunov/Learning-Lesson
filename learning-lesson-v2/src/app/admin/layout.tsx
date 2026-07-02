@@ -16,7 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <p className="mt-2 break-words text-sm font-bold">{email}</p>
         <nav className="mt-5 grid gap-2 text-sm font-bold">
           <Link className="rounded-md bg-ink px-3 py-2 text-paper" href="/admin">
-            {copy.admin.lessons}
+            {copy.admin.cmsNav}
           </Link>
           <Link className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink" href="/paths">
             {copy.admin.viewPaths}
