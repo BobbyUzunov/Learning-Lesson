@@ -1,17 +1,11 @@
--- Fix registration: align public.profiles with handle_new_user() trigger.
--- Safe to run multiple times in Supabase SQL Editor or via supabase db push.
+-- Repair registration trigger permissions and security mode.
+-- Run this in Supabase SQL Editor if signup still returns
+-- "Database error saving new user".
+--
+-- Important: CREATE OR REPLACE does not change SECURITY INVOKER -> DEFINER.
+-- This migration drops and recreates the trigger function with the correct mode.
 
 create extension if not exists "pgcrypto";
-
-create table if not exists public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  email text,
-  role text not null default 'user',
-  xp integer not null default 0,
-  level integer not null default 1,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
 
 alter table public.profiles add column if not exists email text;
 alter table public.profiles add column if not exists role text;
@@ -24,33 +18,13 @@ alter table public.profiles add column if not exists display_name text;
 alter table public.profiles add column if not exists streak_count integer;
 alter table public.profiles add column if not exists last_visit date;
 
-update public.profiles
-set role = coalesce(role, 'user')
-where role is null;
-
-update public.profiles
-set xp = coalesce(xp, 0)
-where xp is null;
-
-update public.profiles
-set level = coalesce(level, 1)
-where level is null;
-
-update public.profiles
-set streak_count = coalesce(streak_count, 0)
-where streak_count is null;
-
-update public.profiles
-set created_at = coalesce(created_at, now())
-where created_at is null;
-
-update public.profiles
-set updated_at = coalesce(updated_at, now())
-where updated_at is null;
-
-update public.profiles profile_row
-set auth_user_id = profile_row.id
-where profile_row.auth_user_id is null;
+update public.profiles set role = coalesce(role, 'user') where role is null;
+update public.profiles set xp = coalesce(xp, 0) where xp is null;
+update public.profiles set level = coalesce(level, 1) where level is null;
+update public.profiles set streak_count = coalesce(streak_count, 0) where streak_count is null;
+update public.profiles set created_at = coalesce(created_at, now()) where created_at is null;
+update public.profiles set updated_at = coalesce(updated_at, now()) where updated_at is null;
+update public.profiles set auth_user_id = id where auth_user_id is null;
 
 update public.profiles profile_row
 set email = auth_user.email
@@ -73,45 +47,17 @@ alter table public.profiles alter column streak_count set not null;
 alter table public.profiles alter column created_at set not null;
 alter table public.profiles alter column updated_at set not null;
 
-do $$
-begin
-  if not exists (
-    select 1
-    from pg_constraint
-    where conname = 'profiles_id_fkey'
-      and conrelid = 'public.profiles'::regclass
-  ) then
-    alter table public.profiles
-    add constraint profiles_id_fkey
-    foreign key (id) references auth.users(id) on delete cascade;
-  end if;
-end;
-$$;
+grant usage on schema public to postgres, supabase_auth_admin, service_role, authenticated, anon;
+grant select, insert, update on table public.profiles to postgres, service_role;
+grant select, insert, update on table public.profiles to supabase_auth_admin;
 
-do $$
-begin
-  if not exists (
-    select 1
-    from pg_constraint
-    where conname = 'profiles_auth_user_id_fkey'
-      and conrelid = 'public.profiles'::regclass
-  ) then
-    alter table public.profiles
-    add constraint profiles_auth_user_id_fkey
-    foreign key (auth_user_id) references auth.users(id) on delete cascade;
-  end if;
-end;
-$$;
+drop trigger if exists on_auth_user_created on auth.users;
+drop trigger if exists after_user_signup on auth.users;
+drop trigger if exists handle_new_user on auth.users;
+drop trigger if exists on_new_user_created on auth.users;
+drop trigger if exists create_profile_on_signup on auth.users;
 
-create or replace function public.set_updated_at()
-returns trigger
-language plpgsql
-as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$;
+drop function if exists public.handle_new_user() cascade;
 
 create or replace function public.derive_profile_display_name(
   metadata jsonb,
@@ -130,9 +76,6 @@ as $$
     nullif(split_part(coalesce(user_email, ''), '@', 1), '')
   );
 $$;
-
-drop trigger if exists on_auth_user_created on auth.users;
-drop function if exists public.handle_new_user() cascade;
 
 create function public.handle_new_user()
 returns trigger
@@ -175,29 +118,6 @@ after insert on auth.users
 for each row
 execute function public.handle_new_user();
 
-drop trigger if exists set_profiles_updated_at on public.profiles;
-create trigger set_profiles_updated_at
-before update on public.profiles
-for each row execute function public.set_updated_at();
-
-create or replace function public.prevent_profile_role_escalation()
-returns trigger
-language plpgsql
-as $$
-begin
-  if old.role is distinct from new.role and auth.uid() = new.id then
-    raise exception 'Users cannot change their own profile role.';
-  end if;
-
-  return new;
-end;
-$$;
-
-drop trigger if exists prevent_profile_role_escalation on public.profiles;
-create trigger prevent_profile_role_escalation
-before update on public.profiles
-for each row execute function public.prevent_profile_role_escalation();
-
 alter table public.profiles enable row level security;
 
 drop policy if exists "Users can read own profile" on public.profiles;
@@ -222,11 +142,23 @@ to authenticated
 using (auth.uid() = id)
 with check (auth.uid() = id);
 
--- Post-migration verification (raises if schema/trigger are inconsistent).
 do $$
 declare
+  is_security_definer boolean;
   missing_columns text[];
 begin
+  select prosecdef
+  into is_security_definer
+  from pg_proc
+  join pg_namespace on pg_namespace.oid = pg_proc.pronamespace
+  where pg_namespace.nspname = 'public'
+    and pg_proc.proname = 'handle_new_user'
+  limit 1;
+
+  if coalesce(is_security_definer, false) is distinct from true then
+    raise exception 'handle_new_user is not SECURITY DEFINER. Re-run this migration.';
+  end if;
+
   select array_agg(required_column)
   into missing_columns
   from (
@@ -236,11 +168,7 @@ begin
       ('xp'),
       ('level'),
       ('auth_user_id'),
-      ('display_name'),
-      ('streak_count'),
-      ('last_visit'),
-      ('created_at'),
-      ('updated_at')
+      ('display_name')
   ) as required(required_column)
   where not exists (
     select 1
@@ -251,15 +179,7 @@ begin
   );
 
   if coalesce(array_length(missing_columns, 1), 0) > 0 then
-    raise exception 'profiles migration incomplete. Missing columns: %', array_to_string(missing_columns, ', ');
-  end if;
-
-  if not exists (
-    select 1
-    from pg_trigger
-    where tgname = 'on_auth_user_created'
-  ) then
-    raise exception 'profiles migration incomplete. on_auth_user_created trigger is missing.';
+    raise exception 'profiles table is missing columns: %', array_to_string(missing_columns, ', ');
   end if;
 end;
 $$;

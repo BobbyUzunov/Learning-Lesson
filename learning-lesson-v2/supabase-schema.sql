@@ -113,6 +113,8 @@ create or replace function public.derive_profile_display_name(
 returns text
 language sql
 immutable
+security invoker
+set search_path = public
 as $$
   select coalesce(
     nullif(trim(metadata->>'display_name'), ''),
@@ -122,7 +124,10 @@ as $$
   );
 $$;
 
-create or replace function public.handle_new_user()
+drop trigger if exists on_auth_user_created on auth.users;
+drop function if exists public.handle_new_user() cascade;
+
+create function public.handle_new_user()
 returns trigger
 language plpgsql
 security definer
@@ -141,13 +146,23 @@ begin
     new.email,
     public.derive_profile_display_name(new.raw_user_meta_data, new.email)
   )
-  on conflict (id) do nothing;
+  on conflict (id) do update
+  set
+    email = coalesce(excluded.email, public.profiles.email),
+    auth_user_id = coalesce(public.profiles.auth_user_id, excluded.auth_user_id),
+    display_name = coalesce(excluded.display_name, public.profiles.display_name);
 
   return new;
+exception
+  when others then
+    raise exception 'handle_new_user failed for %: %', new.id, sqlerrm;
 end;
 $$;
 
-drop trigger if exists on_auth_user_created on auth.users;
+alter function public.handle_new_user() owner to postgres;
+alter function public.handle_new_user() security definer;
+grant execute on function public.handle_new_user() to postgres, supabase_auth_admin, service_role;
+
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();
