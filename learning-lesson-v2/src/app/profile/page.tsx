@@ -12,12 +12,12 @@ export default async function ProfilePage() {
   const language = await getLanguage();
   const copy = t(language);
   const session = await requireUser();
-  const { progress } = await getCurrentUserProgress();
-  const gameProgress = toGameProgress(progress);
+  const { progress, streakCount } = await getCurrentUserProgress();
+  const gameProgress = toGameProgress(progress, streakCount);
   const stats = getGameProgressStats(gameProgress);
   const completedCount = stats.completedCount;
   const currentPath = localizeGameQuest(stats.currentQuest, language);
-  const achievements = getAchievements(gameProgress);
+  const achievements = getAchievements(gameProgress, language, stats.currentStreak);
   const name = session.profile?.email?.split("@")[0] ?? session.user.email?.split("@")[0] ?? "Learner";
 
   return (
@@ -46,7 +46,7 @@ export default async function ProfilePage() {
           </div>
         </div>
         <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_2fr]">
-          <DailyStreakCard language={language} />
+          <DailyStreakCard initialStreak={stats.currentStreak} isAuthenticated language={language} />
           <section className="rounded-lg border border-ink/10 bg-paper/70 p-4">
             <div className="flex items-center gap-2 text-sm font-bold uppercase text-ink/60">
               <Route className="size-4 text-violet" />

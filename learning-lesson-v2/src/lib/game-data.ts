@@ -411,6 +411,20 @@ export function getNextLessonInQuest(questId: string, completedLessonIds: Iterab
   return quest.lessonIds.at(-1) ?? null;
 }
 
+export function getGlobalNextLesson(completedLessonIds: Iterable<string>) {
+  const completed = new Set(completedLessonIds);
+
+  for (const quest of gameQuests) {
+    for (const lessonId of quest.lessonIds) {
+      if (!completed.has(lessonId) && isLessonUnlocked(lessonId, completed)) {
+        return lessonId;
+      }
+    }
+  }
+
+  return null;
+}
+
 export function getTotalAvailableXp() {
   return gameLessons.length * xpPerLesson;
 }

@@ -21,37 +21,57 @@ function getYesterdayKey(date: Date) {
   return toDateKey(yesterday);
 }
 
+function getLocalStreak(): StreakState {
+  const today = toDateKey(new Date());
+  const yesterday = getYesterdayKey(new Date());
+  const raw = window.localStorage.getItem(streakKey);
+  let previous: StreakState = { count: 0, lastVisit: null };
+  try {
+    previous = raw ? (JSON.parse(raw) as StreakState) : previous;
+  } catch {
+    previous = { count: 0, lastVisit: null };
+  }
+
+  return previous.lastVisit === today
+    ? previous
+    : {
+        count: previous.lastVisit === yesterday ? previous.count + 1 : 1,
+        lastVisit: today
+      };
+}
+
 export function DailyStreakCard({
   compact = false,
+  initialStreak = 0,
+  isAuthenticated = false,
   language = "en"
 }: {
   compact?: boolean;
+  initialStreak?: number;
+  isAuthenticated?: boolean;
   language?: Language;
 }) {
-  const [streak, setStreak] = useState<StreakState>({ count: 1, lastVisit: null });
+  const [streak, setStreak] = useState<StreakState>({ count: initialStreak || 1, lastVisit: null });
   const copy = t(language);
 
   useEffect(() => {
-    const today = toDateKey(new Date());
-    const yesterday = getYesterdayKey(new Date());
-    const raw = window.localStorage.getItem(streakKey);
-    let previous: StreakState = { count: 0, lastVisit: null };
-    try {
-      previous = raw ? (JSON.parse(raw) as StreakState) : previous;
-    } catch {
-      previous = { count: 0, lastVisit: null };
-    }
-    const next =
-      previous.lastVisit === today
-        ? previous
-        : {
-            count: previous.lastVisit === yesterday ? previous.count + 1 : 1,
-            lastVisit: today
-          };
+    async function syncStreak() {
+      if (isAuthenticated) {
+        const response = await fetch("/api/streak", { method: "POST" });
+        if (response.ok) {
+          const result = (await response.json()) as { streak?: number };
+          setStreak({ count: result.streak ?? 1, lastVisit: toDateKey(new Date()) });
+          return;
+        }
+      }
 
-    window.localStorage.setItem(streakKey, JSON.stringify(next));
-    setStreak(next);
-  }, []);
+      const next = getLocalStreak();
+      window.localStorage.setItem(streakKey, JSON.stringify(next));
+      setStreak(next);
+    }
+
+    void syncStreak();
+  }, [isAuthenticated]);
 
   const milestones = [1, 7, 30];
 

@@ -118,8 +118,6 @@ export const dictionary = {
       recentAchievements: "Последни постижения",
       achievements: "Постижения",
       levelProgress: "Прогрес на ниво",
-      supabaseTodo:
-        "TODO Supabase Auth: замени localStorage прогреса с per-user Supabase progress, когато auth и profile roles са финализирани.",
       startLearning: "Започни учене",
       pickPath: "Избери пътека и завърши първия си урок.",
       nextLessons: "Следващи уроци",
@@ -205,6 +203,9 @@ export const dictionary = {
       guestModalBody: "Създай безплатен акаунт, за да запазиш прогреса си, XP и отключените мисии.",
       guestModalRegister: "Създай акаунт",
       guestModalContinue: "Продължи като гост",
+      continueNextMission: "Към следващата мисия",
+      allMissionsComplete: "Завърши всички налични мисии. Избери нова quest от /paths.",
+      redirectingNext: "Пренасочвам към следващата мисия...",
       fallbackMission: "Приложи основната идея от този урок в малък пример.",
       fallbackHint: "Дръж примера малък и се фокусирай върху една концепция.",
       lockedMessage: "Завърши предишния урок, за да отключиш този.",
@@ -235,7 +236,21 @@ export const dictionary = {
       unlockRule: "Unlock правило",
       open: "Отворен",
       planned: "планирани",
-      viewPaths: "Виж мисиите"
+      viewPaths: "Виж мисиите",
+      editMission: "Редакция",
+      saveMission: "Запази мисията",
+      missionSaved: "Мисията е запазена в Supabase.",
+      missionSaveError: "Грешка при запис. Провери admin права и schema."
+    },
+    achievements: {
+      "first-login": { title: "Първи вход", description: "Акаунтът е създаден и готов за учене." },
+      "first-mission": { title: "Първа мисия", description: "Завърши първата си мисия." },
+      "first-path": { title: "Първа пътека", description: "Започни learning пътека." },
+      "100-xp": { title: "100 XP", description: "Спечели първите 100 XP." },
+      "500-xp": { title: "500 XP", description: "Достигни 500 XP." },
+      "7-day-streak": { title: "7 дни серия", description: "Учи 7 дни подред." },
+      "full-frontend": { title: "Frontend пътека", description: "Завърши всички Frontend мисии." },
+      "ai-builder-started": { title: "AI Builder старт", description: "Започни AI Product Builder пътеката." }
     }
   },
   en: {
@@ -296,8 +311,6 @@ export const dictionary = {
       recentAchievements: "Recent Achievements",
       achievements: "Achievements",
       levelProgress: "Level Progress",
-      supabaseTodo:
-        "TODO Supabase Auth: replace localStorage progress with per-user Supabase progress after auth and profile roles are finalized.",
       startLearning: "Start learning",
       pickPath: "Pick a learning path and complete your first lesson.",
       nextLessons: "Next lessons",
@@ -383,6 +396,9 @@ export const dictionary = {
       guestModalBody: "Create a free account to save your progress, XP, and unlocked missions.",
       guestModalRegister: "Create account",
       guestModalContinue: "Continue as guest",
+      continueNextMission: "Go to next mission",
+      allMissionsComplete: "You finished all available missions. Pick another quest from /paths.",
+      redirectingNext: "Redirecting to your next mission...",
       fallbackMission: "Apply the main idea from this lesson in a small example.",
       fallbackHint: "Keep the example small and focus on one concept.",
       lockedMessage: "Complete the previous lesson to unlock this one.",
@@ -413,7 +429,21 @@ export const dictionary = {
       unlockRule: "Unlock rule",
       open: "Open",
       planned: "planned",
-      viewPaths: "View quests"
+      viewPaths: "View quests",
+      editMission: "Edit",
+      saveMission: "Save mission",
+      missionSaved: "Mission saved to Supabase.",
+      missionSaveError: "Save failed. Check admin role and database schema."
+    },
+    achievements: {
+      "first-login": { title: "First Login", description: "Account created and ready to learn." },
+      "first-mission": { title: "First Mission", description: "Complete your first mission." },
+      "first-path": { title: "First Path", description: "Start a learning path." },
+      "100-xp": { title: "100 XP", description: "Earn your first 100 XP." },
+      "500-xp": { title: "500 XP", description: "Reach 500 XP." },
+      "7-day-streak": { title: "7 Day Streak", description: "Visit and learn for 7 days." },
+      "full-frontend": { title: "Full Frontend Path", description: "Complete all available Frontend missions." },
+      "ai-builder-started": { title: "AI Builder Started", description: "Start the AI Product Builder path." }
     }
   }
 } as const;

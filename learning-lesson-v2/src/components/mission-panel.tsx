@@ -2,16 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Lightbulb, ScrollText } from "lucide-react";
+import { ArrowRight, CheckCircle2, Lightbulb, ScrollText } from "lucide-react";
 import type { GameLesson } from "@/lib/game-data";
-import { completeStoredLesson, getGameProgressStats, guestContinueKey } from "@/lib/game-progress";
+import { getGlobalNextLesson } from "@/lib/game-data";
+import { completeStoredLesson, getGameProgressStats, getStoredProgress, guestContinueKey } from "@/lib/game-progress";
 import { formatMessage, t, type Language } from "@/lib/i18n";
 
 export function MissionPanel({
+  completedLessonIds = [],
   isAuthenticated,
   language,
   lesson
 }: {
+  completedLessonIds?: string[];
   isAuthenticated: boolean;
   language: Language;
   lesson: GameLesson;
@@ -22,6 +25,8 @@ export function MissionPanel({
   const [showGuestModal, setShowGuestModal] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [nextLessonId, setNextLessonId] = useState<string | null>(null);
+  const [justCompleted, setJustCompleted] = useState(false);
   const router = useRouter();
   const copy = t(language);
   const lessonHints = [lesson.hint1, lesson.hint2, lesson.hint3, lesson.hint]
@@ -29,6 +34,10 @@ export function MissionPanel({
     .slice(0, 3);
   const typedSomething = solutionInput.trim().length > 0;
   const canViewSolution = hintsUsed >= 2 || typedSomething;
+
+  function resolveNextLesson(updatedCompletedIds: string[]) {
+    return getGlobalNextLesson(updatedCompletedIds);
+  }
 
   async function completeMission() {
     if (!typedSomething && hintsUsed < lessonHints.length) {
@@ -49,17 +58,31 @@ export function MissionPanel({
 
     if (response.ok) {
       const result = (await response.json()) as { level?: number };
+      const updatedCompletedIds = [...new Set([...completedLessonIds, lesson.id])];
+      const nextId = resolveNextLesson(updatedCompletedIds);
+      setNextLessonId(nextId);
+      setJustCompleted(true);
       setMessage(`${copy.lesson.completeMessage} ${result.level ?? 1}.`);
       router.refresh();
+      if (nextId) {
+        window.setTimeout(() => router.push(`/lesson/${nextId}`), 1800);
+      }
       return;
     }
 
     const progress = completeStoredLesson(lesson.id);
     const stats = getGameProgressStats(progress);
+    const nextId = resolveNextLesson(progress.completedLessonIds);
+    setNextLessonId(nextId);
+    setJustCompleted(true);
     setMessage(`${copy.lesson.completeMessage} ${stats.level}.`);
     router.refresh();
     if (!isAuthenticated && lesson.id === "1") {
       setShowGuestModal(true);
+      return;
+    }
+    if (nextId) {
+      window.setTimeout(() => router.push(`/lesson/${nextId}`), 1800);
     }
   }
 
@@ -82,6 +105,14 @@ export function MissionPanel({
     setMessage(null);
     setShowSolution((value) => !value);
   }
+
+  const previewNextLesson =
+    nextLessonId ??
+    resolveNextLesson(
+      isAuthenticated
+        ? [...new Set([...completedLessonIds, lesson.id])]
+        : getStoredProgress().completedLessonIds
+    );
 
   return (
     <section className="mt-8 space-y-5 rounded-lg border border-ink/10 bg-white/85 p-4 shadow-sm sm:p-6">
@@ -177,7 +208,26 @@ export function MissionPanel({
           <code>{lesson.solution}</code>
         </pre>
       </div>
-      {message ? <p className="rounded-md bg-violet/15 p-4 text-sm font-bold text-ink">{message}</p> : null}
+      {message ? (
+        <div className="space-y-3 rounded-md bg-violet/15 p-4">
+          <p className="text-sm font-bold text-ink">{message}</p>
+          {nextLessonId ? (
+            <p className="text-sm text-ink/70">{copy.lesson.redirectingNext}</p>
+          ) : justCompleted ? (
+            <p className="text-sm text-ink/70">{copy.lesson.allMissionsComplete}</p>
+          ) : null}
+          {previewNextLesson ? (
+            <button
+              className="focus-ring inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2 text-sm font-bold text-paper"
+              onClick={() => router.push(`/lesson/${previewNextLesson}`)}
+              type="button"
+            >
+              {copy.lesson.continueNextMission}
+              <ArrowRight className="size-4" />
+            </button>
+          ) : null}
+        </div>
+      ) : null}
       {showGuestModal ? (
         <div className="fixed inset-0 z-40 grid place-items-center bg-ink/50 px-4">
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-soft">

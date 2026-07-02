@@ -3,15 +3,10 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { MissionPanel } from "@/components/mission-panel";
 import { QuizGenerator } from "@/components/quiz-generator";
-import {
-  getFirstGameLesson,
-  getGameLesson,
-  getQuestForLesson,
-  isLessonUnlocked,
-  xpPerLesson
-} from "@/lib/game-data";
+import { getFirstGameLesson, getQuestForLesson, isLessonUnlocked, xpPerLesson } from "@/lib/game-data";
 import { formatMessage, localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
+import { getLessonWithOverrides } from "@/lib/mission-content";
 import { getCurrentSession } from "@/lib/supabase/auth";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 
@@ -50,24 +45,21 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const session = await getCurrentSession();
   const { id } = await params;
   const firstLesson = getFirstGameLesson();
+  const progressData = session.user ? await getCurrentUserProgress() : null;
+  const completedLessonIds = progressData?.progress.filter((item) => item.completed).map((item) => item.lesson_id) ?? [];
 
   if (!session.user && id !== firstLesson.id) {
     redirect("/paths?guestLocked=1");
   }
 
-  const gameLesson = getGameLesson(id);
+  const gameLesson = await getLessonWithOverrides(id);
 
   if (!gameLesson) {
     notFound();
   }
 
-  if (session.user) {
-    const { progress } = await getCurrentUserProgress();
-    const completedLessonIds = progress.filter((item) => item.completed).map((item) => item.lesson_id);
-
-    if (!isLessonUnlocked(id, completedLessonIds)) {
-      redirect("/paths?lessonLocked=1");
-    }
+  if (session.user && !isLessonUnlocked(id, completedLessonIds)) {
+    redirect("/paths?lessonLocked=1");
   }
 
   const rawQuest = getQuestForLesson(gameLesson.id);
@@ -98,7 +90,12 @@ export default async function LessonPage({ params }: LessonPageProps) {
             <code>{missionLesson.codeExample}</code>
           </pre>
         </section>
-        <MissionPanel isAuthenticated={Boolean(session.user)} language={language} lesson={missionLesson} />
+        <MissionPanel
+          completedLessonIds={completedLessonIds}
+          isAuthenticated={Boolean(session.user)}
+          language={language}
+          lesson={missionLesson}
+        />
         <QuizGenerator language={language} lessonId={missionLesson.id} />
       </article>
     </main>

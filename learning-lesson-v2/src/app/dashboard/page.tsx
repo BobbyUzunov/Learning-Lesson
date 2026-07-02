@@ -9,7 +9,7 @@ export default async function DashboardPage() {
   const language = await getLanguage();
   const copy = t(language);
   await requireUser();
-  const { progress, userEmail, isDemo } = await getCurrentUserProgress();
+  const { progress, userEmail, isDemo, streakCount } = await getCurrentUserProgress();
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
@@ -28,7 +28,7 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      <DashboardGameSummary initialProgress={progress} language={language} />
+      <DashboardGameSummary initialProgress={progress} initialStreak={streakCount} language={language} />
     </main>
   );
 }

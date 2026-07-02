@@ -13,12 +13,16 @@ type DashboardStats = ReturnType<typeof getGameProgressStats>;
 
 export function DashboardGameSummary({
   initialProgress,
+  initialStreak = 0,
   language
 }: {
   initialProgress?: ProgressRecord[];
+  initialStreak?: number;
   language: Language;
 }) {
-  const initialStats = initialProgress ? getGameProgressStats(toGameProgress(initialProgress)) : null;
+  const initialStats = initialProgress
+    ? getGameProgressStats(toGameProgress(initialProgress, initialStreak))
+    : null;
   const [stats, setStats] = useState<DashboardStats | null>(initialStats);
   const copy = t(language);
 
@@ -34,11 +38,17 @@ export function DashboardGameSummary({
   const completedLessonIds = initialProgress?.filter((item) => item.completed).map((item) => item.lesson_id);
   const hasProgress = fallback.completedCount > 0;
   const continueLabel = hasProgress ? copy.dashboard.continueLearning : copy.dashboard.startJourney;
-  const recentAchievements = getAchievements({
-    completedLessonIds: completedLessonIds ?? [],
-    currentStreak: fallback.currentStreak,
-    lastCompletedAt: null
-  }).filter((achievement) => achievement.unlocked).slice(0, 3);
+  const recentAchievements = getAchievements(
+    {
+      completedLessonIds: completedLessonIds ?? [],
+      currentStreak: fallback.currentStreak,
+      lastCompletedAt: null
+    },
+    language,
+    fallback.currentStreak
+  )
+    .filter((achievement) => achievement.unlocked)
+    .slice(0, 3);
 
   return (
     <div className="mt-8 grid gap-5">
@@ -128,18 +138,21 @@ export function DashboardGameSummary({
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1fr_2fr]">
-        <DailyStreakCard language={language} />
+        <DailyStreakCard initialStreak={fallback.currentStreak} isAuthenticated={Boolean(initialProgress)} language={language} />
         <div className="rounded-lg border border-ink/10 bg-white/80 p-4 shadow-sm">
           <div className="flex items-center gap-2 text-sm font-bold uppercase text-ink/60">
             <Award className="size-4 text-coral" />
             {copy.dashboard.recentAchievements}
           </div>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            {(recentAchievements.length ? recentAchievements : getAchievements({
-              completedLessonIds: [],
-              currentStreak: 0,
-              lastCompletedAt: null
-            }).slice(0, 3)).map((achievement) => (
+            {(recentAchievements.length ? recentAchievements : getAchievements(
+              {
+                completedLessonIds: [],
+                currentStreak: 0,
+                lastCompletedAt: null
+              },
+              language
+            ).slice(0, 3)).map((achievement) => (
               <div
                 className={`rounded-lg border p-3 ${
                   achievement.unlocked ? "border-mint/30 bg-mint/15" : "border-ink/10 bg-ink/5 text-ink/45"

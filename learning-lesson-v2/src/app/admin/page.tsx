@@ -62,6 +62,7 @@ export default async function AdminPage() {
               <th className="px-4 py-3">{copy.admin.order}</th>
               <th className="px-4 py-3">XP</th>
               <th className="px-4 py-3">{copy.admin.unlockRule}</th>
+              <th className="px-4 py-3">{copy.admin.editMission}</th>
             </tr>
           </thead>
           <tbody>
@@ -76,6 +77,11 @@ export default async function AdminPage() {
                   <td className="px-4 py-3">{getLessonOrderInQuest(lesson.id)}</td>
                   <td className="px-4 py-3">{xpPerLesson}</td>
                   <td className="px-4 py-3">{unlockRule ?? copy.admin.open}</td>
+                  <td className="px-4 py-3">
+                    <a className="font-bold text-violet hover:underline" href={`/admin/missions/${lesson.id}`}>
+                      {copy.admin.editMission}
+                    </a>
+                  </td>
                 </tr>
               );
             })}

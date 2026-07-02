@@ -171,3 +171,65 @@ using (
       and admin_profile.role = 'admin'
   )
 );
+
+alter table public.profiles
+add column if not exists streak_count integer not null default 0;
+
+alter table public.profiles
+add column if not exists last_visit date;
+
+create table if not exists public.game_missions (
+  id text primary key,
+  quest_id text not null,
+  title text,
+  title_bg text,
+  explanation text,
+  explanation_bg text,
+  code_example text,
+  mission text,
+  mission_bg text,
+  solution text,
+  hint1 text,
+  hint1_bg text,
+  hint2 text,
+  hint2_bg text,
+  hint3 text,
+  hint3_bg text,
+  updated_at timestamptz not null default now()
+);
+
+drop trigger if exists set_game_missions_updated_at on public.game_missions;
+create trigger set_game_missions_updated_at
+before update on public.game_missions
+for each row execute function public.set_updated_at();
+
+alter table public.game_missions enable row level security;
+
+drop policy if exists "Anyone can read game missions" on public.game_missions;
+create policy "Anyone can read game missions"
+on public.game_missions
+for select
+to authenticated
+using (true);
+
+drop policy if exists "Admins can manage game missions" on public.game_missions;
+create policy "Admins can manage game missions"
+on public.game_missions
+for all
+to authenticated
+using (
+  exists (
+    select 1
+    from public.profiles admin_profile
+    where admin_profile.id = auth.uid()
+      and admin_profile.role = 'admin'
+  )
+)
+with check (
+  exists (
+    select 1
+    from public.profiles admin_profile
+    where admin_profile.id = auth.uid()
+      and admin_profile.role = 'admin'
+  )
+);
