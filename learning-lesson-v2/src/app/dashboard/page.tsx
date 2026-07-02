@@ -3,6 +3,7 @@ import { DashboardGameSummary } from "@/components/dashboard-game-summary";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getAllLessonsWithOverrides } from "@/lib/mission-content";
+import { getCurrentUserProjectSubmissions, toSubmittedProjectIds } from "@/lib/supabase/project-submissions";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 import { requireUser } from "@/lib/supabase/auth";
 
@@ -12,29 +13,33 @@ export default async function DashboardPage() {
   const language = await getLanguage();
   const copy = t(language);
   await requireUser();
-  const [{ progress, userEmail, isDemo, streakCount }, lessons] = await Promise.all([
+  const [{ progress, streakCount }, lessons, submissions] = await Promise.all([
     getCurrentUserProgress(),
-    getAllLessonsWithOverrides()
+    getAllLessonsWithOverrides(),
+    getCurrentUserProjectSubmissions()
   ]);
+  const submittedProjectIds = toSubmittedProjectIds(submissions);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <p className="text-sm font-bold uppercase text-coral">
-            {userEmail ?? (isDemo ? copy.dashboard.demo : copy.dashboard.gameMvp)}
-          </p>
+          <p className="text-sm font-bold uppercase text-violet">{copy.dashboard.continueLearning}</p>
           <h1 className="mt-2 text-4xl font-black">{copy.dashboard.title}</h1>
-          <p className="mt-3 max-w-2xl text-ink/70">
-            {copy.dashboard.subtitle}
-          </p>
+          <p className="mt-3 max-w-2xl text-ink/70">{copy.dashboard.subtitle}</p>
         </div>
-        <Link className="rounded-md bg-ink px-4 py-3 text-center font-bold text-paper" href="/paths">
-          {copy.dashboard.chooseQuest}
+        <Link className="rounded-md border border-ink/15 px-4 py-3 text-center font-bold" href="/paths">
+          {copy.dashboard.browseCourses}
         </Link>
       </div>
 
-      <DashboardGameSummary initialLessons={lessons} initialProgress={progress} initialStreak={streakCount} language={language} />
+      <DashboardGameSummary
+        initialLessons={lessons}
+        initialProgress={progress}
+        initialStreak={streakCount}
+        submittedProjectIds={submittedProjectIds}
+        language={language}
+      />
     </main>
   );
 }

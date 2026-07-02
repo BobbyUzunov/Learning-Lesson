@@ -1,16 +1,20 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { LessonKeyConcepts } from "@/components/lesson-key-concepts";
+import { LessonOutline } from "@/components/lesson-outline";
+import { LessonSection } from "@/components/lesson-section";
 import { MissionPanel } from "@/components/mission-panel";
 import { QuizGenerator } from "@/components/quiz-generator";
 import { getFirstGameLesson, getQuestForLesson, isLessonUnlocked, xpPerLesson } from "@/lib/game-data";
 import { formatMessage, localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
+import { localizeLessonStructure } from "@/lib/lesson-structure";
 import { getLessonWithOverrides } from "@/lib/mission-content";
-
-export const dynamic = "force-dynamic";
 import { getCurrentSession } from "@/lib/supabase/auth";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
+
+export const dynamic = "force-dynamic";
 
 type LessonPageProps = {
   params: Promise<{ id: string }>;
@@ -68,6 +72,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const quest = rawQuest ? localizeGameQuest(rawQuest, language) : null;
   const localized = localizeGameLesson(gameLesson, language);
   const missionLesson = { ...localized, ...withProgressiveHints(localized, copy) };
+  const structure = localizeLessonStructure(localized, rawQuest ?? null, language);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -75,30 +80,45 @@ export default async function LessonPage({ params }: LessonPageProps) {
         <ArrowLeft className="size-4" />
         {copy.common.backToPaths}
       </Link>
-      <article className="mt-6 rounded-lg border border-ink/10 bg-white/80 p-6 shadow-soft">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
-          <div>
-            <p className="text-sm font-bold uppercase text-violet">
-              {quest?.title ?? copy.paths.badge} · {xpPerLesson} XP
-            </p>
-            <h1 className="mt-2 text-4xl font-black">{missionLesson.title}</h1>
-            <p className="mt-3 text-ink/70">{missionLesson.explanation}</p>
-          </div>
-          <span className="w-fit rounded-md bg-mint/15 px-3 py-2 text-sm font-bold">{copy.lesson.mission}</span>
-        </div>
-        <section className="mt-8 rounded-lg border border-ink/10 bg-ink p-4 text-paper">
-          <h2 className="font-black">{copy.lesson.codeExample}</h2>
-          <pre className="mt-3 overflow-x-auto rounded-md bg-black/20 p-4 text-sm leading-6">
-            <code>{missionLesson.codeExample}</code>
-          </pre>
-        </section>
-        <MissionPanel
-          completedLessonIds={completedLessonIds}
-          isAuthenticated={Boolean(session.user)}
+
+      <article className="mt-6 space-y-2">
+        <LessonOutline
+          courseTitle={quest?.title ?? copy.paths.badge}
           language={language}
-          lesson={missionLesson}
+          lessonTitle={missionLesson.title}
+          structure={structure}
         />
-        <QuizGenerator language={language} lessonId={missionLesson.id} />
+
+        <div className="rounded-lg border border-ink/10 bg-white/80 p-6 shadow-soft">
+          <p className="text-sm font-bold uppercase text-violet">{xpPerLesson} XP</p>
+
+          <LessonSection number={1} title={copy.syllabus.sectionTheory}>
+            <p className="leading-8 text-ink/80">{missionLesson.explanation}</p>
+          </LessonSection>
+
+          <LessonSection number={2} title={copy.syllabus.sectionExample}>
+            <div className="rounded-lg border border-ink/10 bg-ink p-4 text-paper">
+              <pre className="overflow-x-auto rounded-md bg-black/20 p-4 text-sm leading-6">
+                <code>{missionLesson.codeExample}</code>
+              </pre>
+            </div>
+          </LessonSection>
+
+          <LessonSection number={3} title={copy.syllabus.sectionTask}>
+            <MissionPanel
+              completedLessonIds={completedLessonIds}
+              isAuthenticated={Boolean(session.user)}
+              language={language}
+              lesson={missionLesson}
+            />
+          </LessonSection>
+
+          <LessonSection number={4} title={copy.syllabus.sectionCheck}>
+            <QuizGenerator language={language} lessonId={missionLesson.id} />
+          </LessonSection>
+
+          <LessonKeyConcepts language={language} structure={structure} />
+        </div>
       </article>
     </main>
   );

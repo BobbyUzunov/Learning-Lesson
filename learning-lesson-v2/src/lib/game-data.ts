@@ -36,6 +36,13 @@ export type GameLesson = {
   hint3?: string;
   hint3Bg?: string;
   solution: string;
+  learningObjectives?: string[];
+  learningObjectivesBg?: string[];
+  prerequisites?: string[];
+  prerequisitesBg?: string[];
+  keyConcepts?: string[];
+  keyConceptsBg?: string[];
+  readingTimeMinutes?: number;
 };
 
 export const xpPerLesson = 100;
@@ -44,8 +51,8 @@ export const xpPerLevel = 500;
 export const gameQuests: GameQuest[] = [
   {
     id: "frontend",
-    title: "Frontend Quest",
-    titleBg: "Frontend мисия",
+    title: "Frontend Course",
+    titleBg: "Frontend курс",
     description: "Build interfaces with HTML, CSS, JavaScript and React fundamentals.",
     descriptionBg: "Изграждай интерфейси с HTML, CSS, JavaScript и основите на React.",
     levels: 8,
@@ -60,8 +67,8 @@ export const gameQuests: GameQuest[] = [
   },
   {
     id: "backend",
-    title: "Backend Quest",
-    titleBg: "Backend мисия",
+    title: "Backend Course",
+    titleBg: "Backend курс",
     description: "Learn APIs, databases, auth and reliable server-side patterns.",
     descriptionBg: "Научи API-та, бази данни, auth и стабилни server-side модели.",
     levels: 10,
@@ -76,8 +83,8 @@ export const gameQuests: GameQuest[] = [
   },
   {
     id: "fullstack",
-    title: "Full-Stack Quest",
-    titleBg: "Full-Stack мисия",
+    title: "Full-Stack Course",
+    titleBg: "Full-Stack курс",
     description: "Connect frontend, backend, auth and deployment into real products.",
     descriptionBg: "Свържи frontend, backend, auth и deployment в реални продукти.",
     levels: 12,
@@ -92,8 +99,8 @@ export const gameQuests: GameQuest[] = [
   },
   {
     id: "ai",
-    title: "AI Quest",
-    titleBg: "AI мисия",
+    title: "AI Course",
+    titleBg: "AI курс",
     description: "Use prompts, structured outputs and AI tools inside apps.",
     descriptionBg: "Използвай prompts, структурирани отговори и AI tools в приложения.",
     levels: 7,
@@ -108,8 +115,8 @@ export const gameQuests: GameQuest[] = [
   },
   {
     id: "mobile",
-    title: "Mobile Quest",
-    titleBg: "Mobile мисия",
+    title: "Mobile Course",
+    titleBg: "Mobile курс",
     description: "Prepare the foundations for mobile-first app experiences.",
     descriptionBg: "Подготви основите за mobile-first app изживявания.",
     levels: 6,
@@ -144,58 +151,127 @@ export const gameLessons: GameLesson[] = [
   {
     id: "1",
     questId: "frontend",
-    title: "HTML Structure Mission",
-    titleBg: "Мисия: HTML структура",
-    explanation: "HTML gives every page a clear structure. Your first mission is to build a small profile card.",
-    explanationBg: "HTML дава ясна структура на всяка страница. Първата ти мисия е да направиш малка профилна карта.",
+    title: "Lesson 1: HTML Structure",
+    titleBg: "Урок 1: HTML структура",
+    explanation:
+      "HTML is the skeleton of every web page. Tags describe meaning — headings, paragraphs, sections — before CSS or JavaScript are added.",
+    explanationBg:
+      "HTML е скелетът на всяка уеб страница. Таговете описват смисъл — заглавия, параграфи, секции — преди да добавиш CSS или JavaScript.",
     codeExample: "<article>\n  <h1>Ada Lovelace</h1>\n  <p>First programmer and math pioneer.</p>\n</article>",
     mission: "Create a card with a title, short description and one call-to-action button.",
     missionBg: "Създай карта със заглавие, кратко описание и един call-to-action бутон.",
     hint: "Start with article, then add h1, p and button elements.",
     hintBg: "Започни с article, после добави h1, p и button елементи.",
-    solution: "<article>\n  <h1>My Developer Profile</h1>\n  <p>I am learning full-stack development step by step.</p>\n  <button>Start Quest</button>\n</article>"
+    solution:
+      "<article>\n  <h1>My Developer Profile</h1>\n  <p>I am learning full-stack development step by step.</p>\n  <button>Start Course</button>\n</article>",
+    readingTimeMinutes: 8,
+    learningObjectives: [
+      "Understand semantic HTML tags.",
+      "Build a small content block with heading and paragraph.",
+      "Prepare structure before styling."
+    ],
+    learningObjectivesBg: [
+      "Разбираш семантичните HTML тагове.",
+      "Изграждаш малък content блок със заглавие и параграф.",
+      "Подготвяш структура преди стилизиране."
+    ],
+    prerequisites: ["None — this is the first module in the Frontend course."],
+    prerequisitesBg: ["Няма — това е първият модул във Frontend курса."],
+    keyConcepts: ["HTML", "Semantic tags", "Document structure"],
+    keyConceptsBg: ["HTML", "Семантични тагове", "Структура на документа"]
   },
   {
     id: "2",
     questId: "frontend",
-    title: "CSS Layout Mission",
-    titleBg: "Мисия: CSS layout",
-    explanation: "CSS turns structure into a readable interface with spacing, color and hierarchy.",
-    explanationBg: "CSS превръща структурата в четим интерфейс с разстояния, цветове и йерархия.",
+    title: "Lesson 2: CSS Layout",
+    titleBg: "Урок 2: CSS layout",
+    explanation:
+      "CSS controls spacing, color and visual hierarchy. A readable interface depends on consistent padding, borders and layout rules.",
+    explanationBg:
+      "CSS контролира разстояния, цветове и визуална йерархия. Четимият интерфейс зависи от консистентен padding, borders и layout правила.",
     codeExample: ".card {\n  padding: 24px;\n  border-radius: 8px;\n  display: grid;\n  gap: 12px;\n}",
     mission: "Style your profile card with padding, a border radius and clear text spacing.",
     missionBg: "Стилизирай профилната карта с padding, border radius и ясни разстояния между текста.",
     hint: "Use a single class on the card and keep the spacing consistent.",
     hintBg: "Използвай един class върху картата и дръж разстоянията консистентни.",
-    solution: ".card {\n  padding: 24px;\n  border-radius: 8px;\n  background: white;\n  color: #17212b;\n}"
+    solution: ".card {\n  padding: 24px;\n  border-radius: 8px;\n  background: white;\n  color: #17212b;\n}",
+    readingTimeMinutes: 10,
+    learningObjectives: [
+      "Apply spacing and border radius to a component.",
+      "Use a class-based CSS structure.",
+      "Improve readability with visual hierarchy."
+    ],
+    learningObjectivesBg: [
+      "Прилагаш spacing и border radius върху компонент.",
+      "Използваш class-based CSS структура.",
+      "Подобряваш четимостта с визуална йерархия."
+    ],
+    prerequisites: ["Completed Lesson 1: HTML Structure."],
+    prerequisitesBg: ["Завършен Урок 1: HTML структура."],
+    keyConcepts: ["CSS", "Padding", "Border radius", "Layout"],
+    keyConceptsBg: ["CSS", "Padding", "Border radius", "Layout"]
   },
   {
     id: "3",
     questId: "backend",
-    title: "API Route Mission",
-    titleBg: "Мисия: API route",
-    explanation: "An API route exposes one predictable action to the rest of your app.",
-    explanationBg: "API route дава една предвидима action точка към останалата част от приложението.",
+    title: "Lesson 1: API Routes",
+    titleBg: "Урок 1: API routes",
+    explanation:
+      "An API route is a server endpoint your frontend can call. It returns predictable JSON instead of HTML.",
+    explanationBg:
+      "API route е server endpoint, който frontend-ът вика. Връща предвидим JSON вместо HTML.",
     codeExample: "export async function GET() {\n  return Response.json({ lessons: [] });\n}",
     mission: "Sketch a GET route that returns a list of lessons.",
     missionBg: "Скицирай GET route, който връща списък с уроци.",
     hint: "Return a JSON object with a lessons array.",
     hintBg: "Върни JSON object с lessons array.",
-    solution: "export async function GET() {\n  return Response.json({ lessons: ['HTML', 'CSS', 'API'] });\n}"
+    solution: "export async function GET() {\n  return Response.json({ lessons: ['HTML', 'CSS', 'API'] });\n}",
+    readingTimeMinutes: 9,
+    learningObjectives: [
+      "Explain what an API route does.",
+      "Return structured JSON from a GET handler.",
+      "Connect frontend needs to backend responses."
+    ],
+    learningObjectivesBg: [
+      "Обясняваш какво прави API route.",
+      "Връщаш структуриран JSON от GET handler.",
+      "Свързваш нуждите на frontend с backend отговори."
+    ],
+    prerequisites: ["None — this is the first module in the Backend course."],
+    prerequisitesBg: ["Няма — това е първият модул в Backend курса."],
+    keyConcepts: ["API route", "GET", "JSON response"],
+    keyConceptsBg: ["API route", "GET", "JSON отговор"]
   },
   {
     id: "4",
     questId: "fullstack",
-    title: "Progress Save Mission",
-    titleBg: "Мисия: Запазване на прогрес",
-    explanation: "A full-stack app connects user actions to persistent data.",
-    explanationBg: "Full-stack приложение свързва действията на потребителя с постоянни данни.",
+    title: "Lesson 1: Saving Progress",
+    titleBg: "Урок 1: Запазване на прогрес",
+    explanation:
+      "Full-stack apps connect user actions to persistent storage. Completing a lesson should update both UI state and database records.",
+    explanationBg:
+      "Full-stack приложенията свързват действията на потребителя с постоянно съхранение. Завършването на урок трябва да обнови UI state и записи в базата.",
     codeExample: "await fetch('/api/progress', {\n  method: 'POST',\n  body: JSON.stringify({ lessonId: '1' })\n});",
     mission: "Describe what data should be saved when a learner completes a lesson.",
     missionBg: "Опиши какви данни трябва да се запазят, когато learner завърши урок.",
     hint: "Think about user id, lesson id, XP and completion time.",
     hintBg: "Помисли за user id, lesson id, XP и време на завършване.",
-    solution: "Save user_id, lesson_id, completed=true, xp_earned=100 and completed_at."
+    solution: "Save user_id, lesson_id, completed=true, xp_earned=100 and completed_at.",
+    readingTimeMinutes: 11,
+    learningObjectives: [
+      "Map a user action to a POST request.",
+      "Identify fields needed for progress tracking.",
+      "Understand client-server persistence flow."
+    ],
+    learningObjectivesBg: [
+      "Свързваш user action с POST заявка.",
+      "Определяш полетата за проследяване на прогрес.",
+      "Разбираш client-server потока за запис."
+    ],
+    prerequisites: ["None — this is the first module in the Full-Stack course."],
+    prerequisitesBg: ["Няма — това е първият модул във Full-Stack курса."],
+    keyConcepts: ["POST request", "Progress API", "Persistence"],
+    keyConceptsBg: ["POST заявка", "Progress API", "Персистентност"]
   },
   {
     id: "5",
@@ -228,16 +304,34 @@ export const gameLessons: GameLesson[] = [
   {
     id: "7",
     questId: "ai-product-builder",
-    title: "AI Product Brief Mission",
-    titleBg: "Мисия: AI product brief",
-    explanation: "Every AI product needs a clear user problem, a small workflow and a reliable way to save data.",
-    explanationBg: "Всеки AI продукт има нужда от ясен user проблем, малък workflow и надежден начин за записване на данни.",
+    title: "Lesson 1: AI Product Brief",
+    titleBg: "Урок 1: AI product brief",
+    explanation:
+      "Before writing code, define the user problem, the AI step and the stack. A product brief keeps the first version small and shippable.",
+    explanationBg:
+      "Преди да пишеш код, дефинирай user проблема, AI стъпката и stack-а. Product brief-ът държи първата версия малка и deployable.",
     codeExample: "const productBrief = {\n  userProblem: 'Creators need faster lesson drafts.',\n  aiStep: 'Generate a structured lesson outline.',\n  stack: ['Cursor', 'Supabase', 'Vercel']\n};",
     mission: "Write a short product brief for an AI-powered learning feature you can build with Cursor, Supabase and Vercel.",
     missionBg: "Напиши кратък product brief за AI learning функция, която можеш да изградиш с Cursor, Supabase и Vercel.",
     hint: "Include the user, the problem, the AI action, saved data and the first deploy target.",
     hintBg: "Включи user-а, проблема, AI action-а, данните за запис и първата deploy цел.",
-    solution: "User: beginner developers. Problem: they need guided practice. AI action: generate one mission. Save: lesson progress in Supabase. Deploy: Vercel."
+    solution:
+      "User: beginner developers. Problem: they need guided practice. AI action: generate one lesson outline. Save: lesson progress in Supabase. Deploy: Vercel.",
+    readingTimeMinutes: 12,
+    learningObjectives: [
+      "Write a one-page product brief.",
+      "Define user, problem, AI action and data model.",
+      "Choose a realistic first deploy target."
+    ],
+    learningObjectivesBg: [
+      "Пишеш product brief на една страница.",
+      "Дефинираш user, проблем, AI action и data model.",
+      "Избираш реалистична първа deploy цел."
+    ],
+    prerequisites: ["None — this is the first module in the AI Product Builder course."],
+    prerequisitesBg: ["Няма — това е първият модул в AI Product Builder курса."],
+    keyConcepts: ["Product brief", "User problem", "AI workflow", "MVP"],
+    keyConceptsBg: ["Product brief", "User проблем", "AI workflow", "MVP"]
   },
   {
     id: "8",

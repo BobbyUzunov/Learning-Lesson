@@ -135,7 +135,7 @@ export function MissionPanel({
     );
 
   return (
-    <section className="mt-8 space-y-5 rounded-lg border border-ink/10 bg-white/85 p-4 shadow-sm sm:p-6">
+    <div className="space-y-5">
       <div className="grid gap-4 lg:grid-cols-5">
         <section className="rounded-lg border border-ink/10 bg-white p-4 lg:col-span-2">
           <h2 className="text-xl font-black">{copy.lesson.missionInstructions}</h2>
@@ -305,6 +305,6 @@ export function MissionPanel({
           </div>
         </div>
       ) : null}
-    </section>
+    </div>
   );
 }

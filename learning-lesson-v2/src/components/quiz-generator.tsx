@@ -33,7 +33,7 @@ export function QuizGenerator({ language, lessonId }: { language: Language; less
   }
 
   return (
-    <section className="mt-8 rounded-lg border border-ink/10 bg-white/85 p-4 shadow-sm sm:p-6">
+    <div className="rounded-lg border border-ink/10 bg-white/85 p-4 shadow-sm sm:p-6">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <div className="flex items-center gap-2 text-sm font-bold uppercase text-violet">
@@ -84,7 +84,7 @@ export function QuizGenerator({ language, lessonId }: { language: Language; less
           {copy.quiz.checkAnswers}
         </button>
       </div>
-    </section>
+    </div>
   );
 }
 

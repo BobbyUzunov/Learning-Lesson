@@ -2,6 +2,7 @@ import { gameQuests, type GameQuest } from "./game-data";
 import type { GameProgress } from "./game-progress";
 import type { Language } from "./i18n";
 import { localizeGameQuest } from "./i18n";
+import { courseCertificateRequirementsMet } from "./projects";
 import type { ProgressRecord } from "./types";
 
 export type QuestCertificate = {
@@ -34,14 +35,17 @@ function getQuestEarnedAt(quest: GameQuest, progress: ProgressRecord[]) {
 export function getQuestCertificates(
   gameProgress: GameProgress,
   language: Language,
-  progressRecords: ProgressRecord[] = []
+  progressRecords: ProgressRecord[] = [],
+  submittedProjectIds: string[] = []
 ): QuestCertificate[] {
   const completed = new Set(gameProgress.completedLessonIds);
 
   return gameQuests.map((quest) => {
     const localized = localizeGameQuest(quest, language);
     const completedCount = quest.lessonIds.filter((lessonId) => completed.has(lessonId)).length;
-    const earned = completedCount === quest.lessonIds.length;
+    const lessonsComplete = completedCount === quest.lessonIds.length;
+    const projectsComplete = courseCertificateRequirementsMet(quest.id, completed, submittedProjectIds);
+    const earned = lessonsComplete && projectsComplete;
 
     return {
       questId: quest.id,
@@ -58,7 +62,10 @@ export function getQuestCertificates(
 export function getEarnedCertificates(
   gameProgress: GameProgress,
   language: Language,
-  progressRecords: ProgressRecord[] = []
+  progressRecords: ProgressRecord[] = [],
+  submittedProjectIds: string[] = []
 ) {
-  return getQuestCertificates(gameProgress, language, progressRecords).filter((certificate) => certificate.earned);
+  return getQuestCertificates(gameProgress, language, progressRecords, submittedProjectIds).filter(
+    (certificate) => certificate.earned
+  );
 }

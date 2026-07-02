@@ -9,6 +9,7 @@ import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { requireUser } from "@/lib/supabase/auth";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
+import { getCurrentUserProjectSubmissions, toSubmittedProjectIds } from "@/lib/supabase/project-submissions";
 import { getAchievements, getGameProgressStats, toGameProgress } from "@/lib/game-progress";
 import { localizeGameQuest } from "@/lib/i18n";
 
@@ -17,12 +18,14 @@ export default async function ProfilePage() {
   const copy = t(language);
   const session = await requireUser();
   const { progress, streakCount } = await getCurrentUserProgress();
+  const submissions = await getCurrentUserProjectSubmissions();
+  const submittedProjectIds = toSubmittedProjectIds(submissions);
   const gameProgress = toGameProgress(progress, streakCount);
   const stats = getGameProgressStats(gameProgress);
   const completedCount = stats.completedCount;
   const currentPath = localizeGameQuest(stats.currentQuest, language);
   const achievements = getAchievements(gameProgress, language, stats.currentStreak);
-  const certificates = getQuestCertificates(gameProgress, language, progress);
+  const certificates = getQuestCertificates(gameProgress, language, progress, submittedProjectIds);
   const emailVerified = Boolean(session.user.email_confirmed_at);
   const name =
     session.profile?.display_name ??

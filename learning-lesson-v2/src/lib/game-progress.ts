@@ -1,4 +1,4 @@
-import { gameLessons, gameQuests, xpPerLesson, xpPerLevel, type GameLesson } from "./game-data";
+import { gameLessons, gameQuests, getGameLesson, getGlobalNextLesson, xpPerLesson, xpPerLevel, type GameLesson } from "./game-data";
 import type { Language } from "./i18n";
 import { t } from "./i18n";
 import type { ProgressRecord } from "./types";
@@ -80,12 +80,19 @@ export function getGameProgressStats(progress: GameProgress, lessons: GameLesson
   const completedCount = progress.completedLessonIds.length;
   const xp = completedCount * xpPerLesson;
   const levelInfo = getLevelProgress(xp);
-  const firstIncompleteLesson = lessons.find((lesson) => !progress.completedLessonIds.includes(lesson.id)) ?? lessons[0];
-  const currentQuest = gameQuests.find((quest) => quest.id === firstIncompleteLesson.questId) ?? gameQuests[0];
+  const nextLessonId = getGlobalNextLesson(progress.completedLessonIds);
+  const currentMission = (nextLessonId ? getGameLesson(nextLessonId) : lessons[0]) ?? lessons[0];
+  const currentQuest = gameQuests.find((quest) => quest.id === currentMission.questId) ?? gameQuests[0];
+  const courseCompleted = currentQuest.lessonIds.filter((id) => progress.completedLessonIds.includes(id)).length;
+  const courseTotal = currentQuest.lessonIds.length;
+  const coursePercent = courseTotal ? Math.round((courseCompleted / courseTotal) * 100) : 0;
 
   return {
     completedCount,
-    currentMission: firstIncompleteLesson,
+    courseCompleted,
+    coursePercent,
+    courseTotal,
+    currentMission,
     currentQuest,
     currentStreak: progress.currentStreak,
     level: levelInfo.level,

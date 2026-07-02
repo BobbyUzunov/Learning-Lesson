@@ -1,0 +1,66 @@
+import { gameQuests, getQuestForLesson, type GameLesson, type GameQuest } from "./game-data";
+import type { Language } from "./i18n";
+import { resolveLessonMetadata } from "./lesson-metadata/generate";
+
+export type LocalizedLessonStructure = {
+  moduleNumber: number;
+  moduleTotal: number;
+  learningObjectives: string[];
+  prerequisites: string[];
+  keyConcepts: string[];
+  readingTimeMinutes: number;
+};
+
+export function getLessonModuleIndex(lessonId: string, questId: string) {
+  const quest = gameQuests.find((item) => item.id === questId);
+  if (!quest) {
+    return 1;
+  }
+
+  const index = quest.lessonIds.indexOf(lessonId);
+  return index >= 0 ? index + 1 : 1;
+}
+
+export function localizeLessonStructure(
+  lesson: GameLesson,
+  quest: GameQuest | null,
+  language: Language
+): LocalizedLessonStructure {
+  const moduleNumber = quest ? getLessonModuleIndex(lesson.id, quest.id) : 1;
+  const moduleTotal = quest?.lessonIds.length ?? 1;
+  const metadata = resolveLessonMetadata(lesson, quest, moduleNumber);
+
+  const learningObjectives =
+    language === "bg"
+      ? metadata.learningObjectivesBg.length
+        ? metadata.learningObjectivesBg
+        : metadata.learningObjectives
+      : metadata.learningObjectives;
+
+  const prerequisites =
+    language === "bg"
+      ? metadata.prerequisitesBg.length
+        ? metadata.prerequisitesBg
+        : metadata.prerequisites
+      : metadata.prerequisites;
+
+  const keyConcepts =
+    language === "bg"
+      ? metadata.keyConceptsBg.length
+        ? metadata.keyConceptsBg
+        : metadata.keyConcepts
+      : metadata.keyConcepts;
+
+  return {
+    moduleNumber,
+    moduleTotal,
+    learningObjectives,
+    prerequisites,
+    keyConcepts,
+    readingTimeMinutes: metadata.readingTimeMinutes
+  };
+}
+
+export function getQuestForLessonStructure(lessonId: string) {
+  return getQuestForLesson(lessonId);
+}

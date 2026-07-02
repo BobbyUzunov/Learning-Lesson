@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { QuestSelection } from "@/components/quest-selection";
+import { SyllabusView } from "@/components/syllabus-view";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getCurrentSession } from "@/lib/supabase/auth";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
+import { getCurrentUserProjectSubmissions, toSubmittedProjectIds } from "@/lib/supabase/project-submissions";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,9 @@ export default async function PathsPage({ searchParams }: PathsPageProps) {
   const params = await searchParams;
   const session = await getCurrentSession();
   const progressData = session.user ? await getCurrentUserProgress() : null;
+  const submissions = session.user ? await getCurrentUserProjectSubmissions() : [];
   const completedLessonIds = progressData?.progress.filter((item) => item.completed).map((item) => item.lesson_id);
+  const submittedProjectIds = toSubmittedProjectIds(submissions);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
@@ -41,11 +44,12 @@ export default async function PathsPage({ searchParams }: PathsPageProps) {
           </div>
         ) : null}
       </div>
-      <QuestSelection
+      <SyllabusView
         completedLessonIds={completedLessonIds}
         isAuthenticated={Boolean(session.user)}
         showGuestLockMessage={!session.user && Boolean(params.guestLocked)}
         showLessonLockMessage={Boolean(session.user && params.lessonLocked)}
+        submittedProjectIds={submittedProjectIds}
         language={language}
       />
     </main>
