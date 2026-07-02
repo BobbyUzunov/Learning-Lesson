@@ -26,12 +26,24 @@ export type CourseProject = {
   requiredForCertificate: boolean;
 };
 
+export type ProjectSubmissionStatus = "draft" | "submitted" | "approved" | "needs_changes";
+
 export type ProjectSubmissionRecord = {
   project_id: string;
   repo_url: string | null;
   deploy_url: string | null;
   notes: string | null;
   submitted_at: string | null;
+  status: ProjectSubmissionStatus;
+  review_notes: string | null;
+  reviewed_at: string | null;
+};
+
+export type AdminProjectSubmissionRecord = ProjectSubmissionRecord & {
+  id: string;
+  user_id: string;
+  learner_email: string | null;
+  learner_name: string | null;
 };
 
 export type CourseProjectsSource = "db" | "fallback";

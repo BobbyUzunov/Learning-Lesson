@@ -3,22 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Rocket } from "lucide-react";
-import type { CourseProject } from "@/lib/projects";
+import type { CourseProject, ProjectSubmissionRecord } from "@/lib/projects/types";
+import { canLearnerEditSubmission } from "@/lib/projects/submissions";
 import { t, type Language } from "@/lib/i18n";
-
-type ExistingSubmission = {
-  notes: string | null;
-  repo_url: string | null;
-  deploy_url: string | null;
-  submitted_at: string | null;
-};
 
 export function ProjectSubmissionForm({
   existingSubmission,
   language,
   project
 }: {
-  existingSubmission: ExistingSubmission | null;
+  existingSubmission: ProjectSubmissionRecord | null;
   language: Language;
   project: CourseProject;
 }) {
@@ -29,6 +23,7 @@ export function ProjectSubmissionForm({
   const [deployUrl, setDeployUrl] = useState(existingSubmission?.deploy_url ?? "");
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const canEdit = canLearnerEditSubmission(project, existingSubmission ?? undefined);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -50,8 +45,14 @@ export function ProjectSubmissionForm({
       return;
     }
 
-    setMessage(copy.projects.submitted);
+    setMessage(project.type === "capstone" ? copy.projects.submittedCapstone : copy.projects.submitted);
     router.refresh();
+  }
+
+  if (!canEdit) {
+    return (
+      <p className="mt-8 rounded-md bg-ink/5 px-4 py-3 text-sm font-semibold text-ink/70">{copy.projects.pendingReviewLocked}</p>
+    );
   }
 
   return (
@@ -126,7 +127,11 @@ export function ProjectSubmissionForm({
         type="submit"
       >
         <Rocket className="size-5" />
-        {loading ? copy.projects.submitting : existingSubmission?.submitted_at ? copy.projects.resubmit : copy.projects.submit}
+        {loading
+          ? copy.projects.submitting
+          : existingSubmission?.submitted_at
+            ? copy.projects.resubmit
+            : copy.projects.submit}
       </button>
     </form>
   );

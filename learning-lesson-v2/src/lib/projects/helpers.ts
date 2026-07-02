@@ -1,4 +1,5 @@
-import type { CourseProject, CourseProjectRow, ProjectType } from "./types";
+import type { CourseProject, CourseProjectRow, ProjectSubmissionRecord, ProjectType } from "./types";
+import { getSubmissionForProject, isProjectRequirementMet } from "./submissions";
 
 export function mapProjectRows(rows: CourseProjectRow[]): CourseProject[] {
   return rows
@@ -95,15 +96,15 @@ export function getNextPendingProject(
 export function courseCertificateRequirementsMet(
   projects: CourseProject[],
   courseId: string,
-  completedLessonIds: Iterable<string>,
-  submittedProjectIds: Iterable<string>
+  _completedLessonIds: Iterable<string>,
+  submissions: ProjectSubmissionRecord[]
 ) {
   const required = getRequiredCertificateProjects(projects, courseId);
   if (required.length === 0) {
     return true;
   }
 
-  return required.every((project) => isProjectSubmitted(project.id, submittedProjectIds));
+  return required.every((project) => isProjectRequirementMet(project, getSubmissionForProject(submissions, project.id)));
 }
 
 export function validateProjectSubmissionInput(

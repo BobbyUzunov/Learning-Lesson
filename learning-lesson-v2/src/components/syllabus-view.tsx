@@ -11,8 +11,14 @@ import {
 } from "@/lib/catalog/helpers";
 import { getStoredProgress } from "@/lib/game-progress";
 import { xpPerLesson } from "@/lib/game-data";
-import type { CourseProject } from "@/lib/projects/types";
-import { getProjectsForCourse, isProjectSubmitted, isProjectUnlocked, localizeProject } from "@/lib/projects/helpers";
+import type { CourseProject, ProjectSubmissionRecord } from "@/lib/projects/types";
+import { getProjectsForCourse, isProjectUnlocked, localizeProject } from "@/lib/projects/helpers";
+import {
+  getSubmissionForProject,
+  isCapstoneProject,
+  isProjectCompleteForDisplay,
+  isSubmissionPendingReview
+} from "@/lib/projects/submissions";
 import { getLessonModuleIndex } from "@/lib/catalog/helpers";
 import { formatMessage, formatLessonsProgress, localizeGameLesson, localizeGameQuest, t, type Language } from "@/lib/i18n";
 
@@ -21,22 +27,22 @@ export function SyllabusView({
   completedLessonIds: initialCompletedLessonIds,
   isAuthenticated,
   projects,
+  projectSubmissions: initialProjectSubmissions = [],
   showGuestLockMessage = false,
   showLessonLockMessage = false,
-  submittedProjectIds: initialSubmittedProjectIds = [],
   language
 }: {
   catalog: CourseCatalog;
   completedLessonIds?: string[];
   isAuthenticated: boolean;
   projects: CourseProject[];
+  projectSubmissions?: ProjectSubmissionRecord[];
   showGuestLockMessage?: boolean;
   showLessonLockMessage?: boolean;
-  submittedProjectIds?: string[];
   language: Language;
 }) {
+  const [projectSubmissions, setProjectSubmissions] = useState<ProjectSubmissionRecord[]>(initialProjectSubmissions);
   const [completedLessonIds, setCompletedLessonIds] = useState<string[]>(initialCompletedLessonIds ?? []);
-  const [submittedProjectIds, setSubmittedProjectIds] = useState<string[]>(initialSubmittedProjectIds);
   const [expandedCourseId, setExpandedCourseId] = useState<string>("frontend");
   const [lockMessage, setLockMessage] = useState<string | null>(() => {
     if (!isAuthenticated && showGuestLockMessage) {
@@ -70,13 +76,13 @@ export function SyllabusView({
     }
 
     if (isAuthenticated) {
-      setSubmittedProjectIds(initialSubmittedProjectIds);
+      setProjectSubmissions(initialProjectSubmissions);
     }
   }, [
     copy.paths.guestLockMessage,
     copy.paths.lessonLockMessage,
     initialCompletedLessonIds,
-    initialSubmittedProjectIds,
+    initialProjectSubmissions,
     isAuthenticated,
     showGuestLockMessage,
     showLessonLockMessage
@@ -222,28 +228,33 @@ export function SyllabusView({
                   })}
                   {getProjectsForCourse(projects, quest.id).map((rawProject) => {
                     const project = localizeProject(rawProject, language);
-                    const submitted = isProjectSubmitted(project.id, submittedProjectIds);
+                    const submission = getSubmissionForProject(projectSubmissions, project.id);
+                    const complete = isProjectCompleteForDisplay(rawProject, submission);
+                    const pendingReview = isSubmissionPendingReview(rawProject, submission);
                     const unlocked = isAuthenticated && isProjectUnlocked(rawProject, completedLessonIds);
+                    const projectBadge = isCapstoneProject(rawProject) ? copy.projects.capstoneBadge : copy.projects.badge;
 
                     return (
                       <li key={project.id}>
                         {unlocked ? (
                           <Link
                             className={`flex items-center gap-3 rounded-md border px-3 py-3 transition hover:border-coral/30 hover:bg-white ${
-                              submitted ? "border-mint/30 bg-mint/10" : "border-coral/20 bg-coral/5"
+                              complete ? "border-mint/30 bg-mint/10" : pendingReview ? "border-violet/30 bg-violet/10" : "border-coral/20 bg-coral/5"
                             }`}
                             href={`/projects/${project.id}`}
                           >
-                            {submitted ? (
+                            {complete ? (
                               <CheckCircle2 className="size-5 shrink-0 text-mint" />
                             ) : (
                               <Rocket className="size-5 shrink-0 text-coral" />
                             )}
                             <span className="min-w-0 flex-1">
-                              <span className="text-xs font-bold uppercase text-coral">{copy.projects.badge}</span>
+                              <span className="text-xs font-bold uppercase text-coral">{projectBadge}</span>
                               <span className="mt-0.5 block font-bold text-ink">{project.title}</span>
-                              {submitted ? (
+                              {complete ? (
                                 <span className="mt-1 block text-xs font-semibold text-mint">{copy.projects.submittedLabel}</span>
+                              ) : pendingReview ? (
+                                <span className="mt-1 block text-xs font-semibold text-violet">{copy.projects.statusPendingReview}</span>
                               ) : null}
                             </span>
                             <ChevronRight className="size-4 shrink-0 text-ink/35" />
@@ -252,7 +263,7 @@ export function SyllabusView({
                           <div className="flex items-center gap-3 rounded-md border border-ink/10 bg-ink/5 px-3 py-3 text-ink/55">
                             <Lock className="size-4 shrink-0" />
                             <span className="min-w-0 flex-1">
-                              <span className="text-xs font-bold uppercase text-coral">{copy.projects.badge}</span>
+                              <span className="text-xs font-bold uppercase text-coral">{projectBadge}</span>
                               <span className="mt-0.5 block font-bold">{project.title}</span>
                             </span>
                           </div>

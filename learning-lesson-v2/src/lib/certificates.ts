@@ -4,7 +4,7 @@ import type { Language } from "./i18n";
 import { localizeGameQuest } from "./i18n";
 import { fallbackCourseProjects } from "./projects/fallback-data";
 import { courseCertificateRequirementsMet } from "./projects/helpers";
-import type { CourseProject } from "./projects/types";
+import type { CourseProject, ProjectSubmissionRecord } from "./projects/types";
 import type { ProgressRecord } from "./types";
 
 export type QuestCertificate = {
@@ -38,7 +38,7 @@ export function getQuestCertificates(
   gameProgress: GameProgress,
   language: Language,
   progressRecords: ProgressRecord[] = [],
-  submittedProjectIds: string[] = [],
+  submissions: ProjectSubmissionRecord[] = [],
   courses: GameQuest[] = gameQuests,
   projects: CourseProject[] = fallbackCourseProjects
 ): QuestCertificate[] {
@@ -48,7 +48,7 @@ export function getQuestCertificates(
     const localized = localizeGameQuest(quest, language);
     const completedCount = quest.lessonIds.filter((lessonId) => completed.has(lessonId)).length;
     const lessonsComplete = completedCount === quest.lessonIds.length;
-    const projectsComplete = courseCertificateRequirementsMet(projects, quest.id, completed, submittedProjectIds);
+    const projectsComplete = courseCertificateRequirementsMet(projects, quest.id, completed, submissions);
     const earned = lessonsComplete && projectsComplete;
 
     return {
@@ -67,11 +67,11 @@ export function getEarnedCertificates(
   gameProgress: GameProgress,
   language: Language,
   progressRecords: ProgressRecord[] = [],
-  submittedProjectIds: string[] = [],
+  submissions: ProjectSubmissionRecord[] = [],
   courses: GameQuest[] = gameQuests,
   projects: CourseProject[] = fallbackCourseProjects
 ) {
-  return getQuestCertificates(gameProgress, language, progressRecords, submittedProjectIds, courses, projects).filter(
+  return getQuestCertificates(gameProgress, language, progressRecords, submissions, courses, projects).filter(
     (certificate) => certificate.earned
   );
 }

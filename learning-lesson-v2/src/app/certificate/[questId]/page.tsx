@@ -8,7 +8,7 @@ import { localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { toGameProgress } from "@/lib/game-progress";
 import { requireUser } from "@/lib/supabase/auth";
-import { getCurrentUserProjectSubmissions, toSubmittedProjectIds } from "@/lib/supabase/project-submissions";
+import { getCurrentUserProjectSubmissions } from "@/lib/supabase/project-submissions";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 
 type CertificatePageProps = {
@@ -29,9 +29,8 @@ export default async function CertificatePage({ params }: CertificatePageProps) 
   const session = await requireUser();
   const { progress } = await getCurrentUserProgress();
   const submissions = await getCurrentUserProjectSubmissions();
-  const submittedProjectIds = toSubmittedProjectIds(submissions);
   const gameProgress = toGameProgress(progress);
-  const earned = getEarnedCertificates(gameProgress, language, progress, submittedProjectIds, catalog.courses, projects).find(
+  const earned = getEarnedCertificates(gameProgress, language, progress, submissions, catalog.courses, projects).find(
     (item) => item.questId === questId
   );
 

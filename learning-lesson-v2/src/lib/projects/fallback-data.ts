@@ -52,5 +52,35 @@ export const fallbackCourseProjects: CourseProject[] = [
       { id: "env", label: "Add Supabase env vars in Vercel", labelBg: "Добави Supabase env vars във Vercel" },
       { id: "smoke", label: "Smoke-test register/login or lesson flow", labelBg: "Smoke-test register/login или lesson flow" }
     ]
+  },
+  {
+    id: "aipb-capstone",
+    courseId: "ai-product-builder",
+    afterLessonId: "63",
+    type: "capstone",
+    title: "Capstone: Ship the Learning Platform",
+    titleBg: "Capstone: Ship-ни learning platform-а",
+    description:
+      "Submit your full learning platform: auth, progress, DB-backed catalog, projects, admin CMS, and a live Vercel deploy ready for learners.",
+    descriptionBg:
+      "Submit-ни пълната learning platform: auth, progress, DB catalog, projects, admin CMS и live Vercel deploy, готов за learners.",
+    briefLabel: "Capstone summary",
+    briefLabelBg: "Capstone обобщение",
+    briefPlaceholder:
+      "What you built, who it serves, core flows shipped, Supabase tables used, and what you would improve next...",
+    briefPlaceholderBg:
+      "Какво изгради, за кого е, core flows, Supabase tables и какво би подобрил след deploy...",
+    briefMinLength: 120,
+    requiresRepo: true,
+    requiresDeploy: true,
+    requiredForCertificate: true,
+    checklist: [
+      { id: "auth", label: "Register/login and protected routes work", labelBg: "Register/login и protected routes работят" },
+      { id: "progress", label: "Lesson progress saves and unlock rules work", labelBg: "Lesson progress и unlock rules работят" },
+      { id: "catalog", label: "Courses and lessons load from Supabase", labelBg: "Courses и lessons идват от Supabase" },
+      { id: "projects", label: "Mini projects and submissions are wired", labelBg: "Mini projects и submissions са свързани" },
+      { id: "admin", label: "Admin CMS can edit content in DB", labelBg: "Admin CMS edit-ва content в DB" },
+      { id: "deploy", label: "Production deploy is live on Vercel", labelBg: "Production deploy е live във Vercel" }
+    ]
   }
 ];

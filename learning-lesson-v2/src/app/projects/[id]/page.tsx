@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Rocket } from "lucide-react";
 import { ProjectSubmissionForm } from "@/components/project-submission-form";
+import { ProjectSubmissionStatusBadge } from "@/components/project-submission-status";
 import { getProjectById, isProjectUnlocked, localizeProject } from "@/lib/projects";
+import { isCapstoneProject } from "@/lib/projects/submissions";
 import { getCourseProjects } from "@/lib/projects/store";
 import { localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
@@ -33,6 +35,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const project = localizeProject(projectDef, language);
   const course = getQuestFromCatalog(catalog, project.courseId);
   const localizedCourse = course ? localizeGameQuest(course, language) : null;
+  const projectBadge = isCapstoneProject(projectDef) ? copy.projects.capstoneBadge : copy.projects.badge;
 
   if (!session.user) {
     redirect(`/login?redirect=${encodeURIComponent(`/projects/${id}`)}`);
@@ -62,7 +65,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           </span>
           <div>
             <p className="text-sm font-bold uppercase text-violet">
-              {copy.projects.badge} · {localizedCourse?.title ?? project.courseId}
+              {projectBadge} · {localizedCourse?.title ?? project.courseId}
             </p>
             <h1 className="mt-2 text-4xl font-black">{project.title}</h1>
             <p className="mt-3 leading-7 text-ink/75">{project.description}</p>
@@ -71,15 +74,13 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
         {project.requiredForCertificate ? (
           <p className="mt-4 rounded-md bg-coral/10 px-4 py-3 text-sm font-semibold text-ink">
-            {copy.projects.requiredForCertificate}
+            {isCapstoneProject(projectDef) ? copy.projects.requiredCapstoneForCertificate : copy.projects.requiredForCertificate}
           </p>
         ) : null}
 
-        {existingSubmission?.submitted_at ? (
-          <p className="mt-4 rounded-md bg-mint/15 px-4 py-3 text-sm font-bold text-ink">
-            {copy.projects.alreadySubmitted}: {new Date(existingSubmission.submitted_at).toLocaleDateString(language === "bg" ? "bg-BG" : "en-US")}
-          </p>
-        ) : null}
+        <div className="mt-4">
+          <ProjectSubmissionStatusBadge language={language} project={projectDef} submission={existingSubmission} />
+        </div>
 
         <ProjectSubmissionForm existingSubmission={existingSubmission} language={language} project={project} />
       </article>

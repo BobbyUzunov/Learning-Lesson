@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProjectById, isProjectUnlocked, validateProjectSubmissionInput } from "@/lib/projects";
+import { getProjectById, isProjectUnlocked, submissionStatusOnSubmit, validateProjectSubmissionInput } from "@/lib/projects";
 import { getCourseProjects } from "@/lib/projects/store";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
@@ -65,7 +65,11 @@ export async function POST(request: Request, context: RouteContext) {
       notes: validation.value.notes,
       repo_url: validation.value.repoUrl,
       deploy_url: validation.value.deployUrl,
-      submitted_at: new Date().toISOString()
+      submitted_at: new Date().toISOString(),
+      status: submissionStatusOnSubmit(),
+      review_notes: null,
+      reviewed_at: null,
+      reviewed_by: null
     },
     { onConflict: "user_id,project_id" }
   );

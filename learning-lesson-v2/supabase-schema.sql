@@ -519,9 +519,14 @@ create table if not exists public.project_submissions (
   deploy_url text,
   notes text,
   submitted_at timestamptz,
+  status text not null default 'draft',
+  review_notes text,
+  reviewed_at timestamptz,
+  reviewed_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  unique (user_id, project_id)
+  unique (user_id, project_id),
+  constraint project_submissions_status_check check (status in ('draft', 'submitted', 'approved', 'needs_changes'))
 );
 
 drop trigger if exists set_project_submissions_updated_at on public.project_submissions;
@@ -559,6 +564,28 @@ on public.project_submissions
 for select
 to authenticated
 using (
+  exists (
+    select 1
+    from public.profiles admin_profile
+    where admin_profile.id = auth.uid()
+      and admin_profile.role = 'admin'
+  )
+);
+
+drop policy if exists "Admins can update all project submissions" on public.project_submissions;
+create policy "Admins can update all project submissions"
+on public.project_submissions
+for update
+to authenticated
+using (
+  exists (
+    select 1
+    from public.profiles admin_profile
+    where admin_profile.id = auth.uid()
+      and admin_profile.role = 'admin'
+  )
+)
+with check (
   exists (
     select 1
     from public.profiles admin_profile
