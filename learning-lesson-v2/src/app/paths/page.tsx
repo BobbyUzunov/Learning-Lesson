@@ -5,6 +5,8 @@ import { getLanguage } from "@/lib/i18n-server";
 import { getCurrentSession } from "@/lib/supabase/auth";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 
+export const dynamic = "force-dynamic";
+
 type PathsPageProps = {
   searchParams: Promise<{ guestLocked?: string; lessonLocked?: string }>;
 };

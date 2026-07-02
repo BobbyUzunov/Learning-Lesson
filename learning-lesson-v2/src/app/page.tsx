@@ -7,6 +7,8 @@ import { getLanguage } from "@/lib/i18n-server";
 import { getCurrentSession } from "@/lib/supabase/auth";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 
+export const dynamic = "force-dynamic";
+
 const questColors = ["bg-mint", "bg-coral", "bg-violet", "bg-mint", "bg-coral", "bg-violet"];
 const outcomeIcons = [Globe, Rocket, Database, Sparkles];
 
