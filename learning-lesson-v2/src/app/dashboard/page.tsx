@@ -43,6 +43,7 @@ export default async function DashboardPage() {
         initialStreak={streakCount}
         projects={projects}
         submittedProjectIds={submittedProjectIds}
+        submissions={submissions}
         language={language}
       />
     </main>

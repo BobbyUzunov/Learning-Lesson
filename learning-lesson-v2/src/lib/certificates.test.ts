@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getEarnedCertificates, getQuestCertificates } from "./certificates";
+import { getCertificateBlockers, getEarnedCertificates, getQuestCertificates } from "./certificates";
 import { gameQuests } from "./game-data";
 import { fallbackCourseProjects } from "./projects/fallback-data";
 import type { ProjectSubmissionRecord } from "./projects/types";
@@ -80,6 +80,62 @@ describe("certificates", () => {
       fallbackCourseProjects
     );
     expect(withApprovedCapstone.some((certificate) => certificate.questId === "ai-product-builder")).toBe(true);
+  });
+
+  it("lists certificate blockers for lessons and projects", () => {
+    const quest = gameQuests.find((item) => item.id === "ai-product-builder");
+    expect(quest).toBeTruthy();
+
+    const allLessonsDone = {
+      completedLessonIds: quest!.lessonIds,
+      currentStreak: 1,
+      lastCompletedAt: null
+    };
+
+    const missingCapstone = getQuestCertificates(
+      allLessonsDone,
+      "en",
+      [],
+      [submission("aipb-live-deploy", "submitted")],
+      gameQuests,
+      fallbackCourseProjects
+    );
+    const missingCapstoneCert = missingCapstone.find((certificate) => certificate.questId === "ai-product-builder");
+
+    expect(missingCapstoneCert?.inProgress).toBe(true);
+    expect(missingCapstoneCert?.blockers).toEqual([
+      {
+        type: "project_submit",
+        projectId: "aipb-capstone",
+        projectTitle: "Capstone: Ship the Learning Platform"
+      }
+    ]);
+
+    const pendingCapstone = getQuestCertificates(
+      allLessonsDone,
+      "en",
+      [],
+      [submission("aipb-live-deploy", "submitted"), submission("aipb-capstone", "submitted")],
+      gameQuests,
+      fallbackCourseProjects
+    );
+    const pendingCapstoneCert = pendingCapstone.find((certificate) => certificate.questId === "ai-product-builder");
+
+    expect(pendingCapstoneCert?.blockers).toEqual([
+      {
+        type: "project_pending_review",
+        projectId: "aipb-capstone",
+        projectTitle: "Capstone: Ship the Learning Platform"
+      }
+    ]);
+  });
+
+  it("exposes lesson blockers for partially completed quests", () => {
+    const quest = gameQuests.find((item) => item.id === "frontend");
+    expect(quest).toBeTruthy();
+
+    const blockers = getCertificateBlockers(quest!, ["1"], [], fallbackCourseProjects, "en");
+    expect(blockers[0]).toEqual({ type: "lessons", remaining: quest!.lessonIds.length - 1 });
   });
 });
 

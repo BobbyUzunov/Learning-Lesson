@@ -35,3 +35,32 @@ export type LessonUpdateInput = {
   keyConceptsBg?: string[];
   readingTimeMinutes?: number | null;
 };
+
+export type ProjectUpdateInput = {
+  afterLessonId?: string;
+  type?: "mini" | "capstone";
+  title?: string;
+  titleBg?: string;
+  description?: string;
+  descriptionBg?: string;
+  briefLabel?: string;
+  briefLabelBg?: string;
+  briefPlaceholder?: string;
+  briefPlaceholderBg?: string;
+  briefMinLength?: number;
+  requiresRepo?: boolean;
+  requiresDeploy?: boolean;
+  requiredForCertificate?: boolean;
+  checklist?: Array<{ id: string; label: string; labelBg?: string }>;
+};
+
+export type QuizUpdateInput = {
+  topic?: string;
+  question?: string;
+  questionBg?: string;
+  options?: string[];
+  optionsBg?: string[];
+  correctIndex?: number;
+  explanation?: string;
+  explanationBg?: string;
+};

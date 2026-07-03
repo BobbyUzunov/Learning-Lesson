@@ -1,4 +1,4 @@
-import type { CourseUpdateInput, LessonUpdateInput } from "./types";
+import type { CourseUpdateInput, LessonUpdateInput, ProjectUpdateInput, QuizUpdateInput } from "./types";
 
 export function linesToArray(value: string) {
   return value
@@ -73,4 +73,60 @@ export function toMetadataRow(lessonId: string, input: LessonUpdateInput) {
     ...(input.readingTimeMinutes !== undefined ? { reading_time_minutes: input.readingTimeMinutes } : {}),
     updated_at: new Date().toISOString()
   };
+}
+
+export function toProjectRow(input: ProjectUpdateInput) {
+  return {
+    ...(input.afterLessonId !== undefined ? { after_lesson_id: input.afterLessonId } : {}),
+    ...(input.type !== undefined ? { type: input.type } : {}),
+    ...(input.title !== undefined ? { title: input.title } : {}),
+    ...(input.titleBg !== undefined ? { title_bg: input.titleBg || null } : {}),
+    ...(input.description !== undefined ? { description: input.description } : {}),
+    ...(input.descriptionBg !== undefined ? { description_bg: input.descriptionBg || null } : {}),
+    ...(input.briefLabel !== undefined ? { brief_label: input.briefLabel } : {}),
+    ...(input.briefLabelBg !== undefined ? { brief_label_bg: input.briefLabelBg || null } : {}),
+    ...(input.briefPlaceholder !== undefined ? { brief_placeholder: input.briefPlaceholder } : {}),
+    ...(input.briefPlaceholderBg !== undefined ? { brief_placeholder_bg: input.briefPlaceholderBg || null } : {}),
+    ...(input.briefMinLength !== undefined ? { brief_min_length: input.briefMinLength } : {}),
+    ...(input.requiresRepo !== undefined ? { requires_repo: input.requiresRepo } : {}),
+    ...(input.requiresDeploy !== undefined ? { requires_deploy: input.requiresDeploy } : {}),
+    ...(input.requiredForCertificate !== undefined ? { required_for_certificate: input.requiredForCertificate } : {}),
+    ...(input.checklist !== undefined ? { checklist: input.checklist } : {}),
+    updated_at: new Date().toISOString()
+  };
+}
+
+export function toQuizQuestionRow(input: QuizUpdateInput) {
+  return {
+    ...(input.topic !== undefined ? { topic: input.topic } : {}),
+    ...(input.question !== undefined ? { question: input.question } : {}),
+    ...(input.questionBg !== undefined ? { question_bg: input.questionBg } : {}),
+    ...(input.options !== undefined ? { options: input.options } : {}),
+    ...(input.optionsBg !== undefined ? { options_bg: input.optionsBg } : {}),
+    ...(input.correctIndex !== undefined ? { correct_index: input.correctIndex } : {}),
+    ...(input.explanation !== undefined ? { explanation: input.explanation } : {}),
+    ...(input.explanationBg !== undefined ? { explanation_bg: input.explanationBg } : {}),
+    updated_at: new Date().toISOString()
+  };
+}
+
+export function parseChecklistJson(value: string) {
+  const parsed = JSON.parse(value) as Array<{ id?: string; label?: string; labelBg?: string }>;
+  if (!Array.isArray(parsed)) {
+    throw new Error("Checklist must be a JSON array.");
+  }
+
+  return parsed.map((item, index) => {
+    const id = item.id?.trim();
+    const label = item.label?.trim();
+    if (!id || !label) {
+      throw new Error(`Checklist item ${index + 1} needs id and label.`);
+    }
+
+    return {
+      id,
+      label,
+      ...(item.labelBg?.trim() ? { labelBg: item.labelBg.trim() } : {})
+    };
+  });
 }

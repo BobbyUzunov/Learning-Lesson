@@ -22,6 +22,7 @@ export function ProjectSubmissionForm({
   const [repoUrl, setRepoUrl] = useState(existingSubmission?.repo_url ?? "");
   const [deployUrl, setDeployUrl] = useState(existingSubmission?.deploy_url ?? "");
   const [message, setMessage] = useState<string | null>(null);
+  const [messageIsError, setMessageIsError] = useState(false);
   const [loading, setLoading] = useState(false);
   const canEdit = canLearnerEditSubmission(project, existingSubmission ?? undefined);
 
@@ -29,6 +30,7 @@ export function ProjectSubmissionForm({
     event.preventDefault();
     setLoading(true);
     setMessage(null);
+    setMessageIsError(false);
 
     const response = await fetch(`/api/projects/${project.id}`, {
       method: "POST",
@@ -41,10 +43,12 @@ export function ProjectSubmissionForm({
     if (!response.ok) {
       const body = (await response.json()) as { error?: string };
       const errorKey = body.error as keyof typeof copy.projects.errors | undefined;
+      setMessageIsError(true);
       setMessage(errorKey ? copy.projects.errors[errorKey] ?? copy.projects.errors.default : copy.projects.errors.default);
       return;
     }
 
+    setMessageIsError(false);
     setMessage(project.type === "capstone" ? copy.projects.submittedCapstone : copy.projects.submitted);
     router.refresh();
   }
@@ -118,7 +122,13 @@ export function ProjectSubmissionForm({
       ) : null}
 
       {message ? (
-        <p className="rounded-md bg-mint/15 px-4 py-3 text-sm font-bold text-ink">{message}</p>
+        <p
+          className={`rounded-md px-4 py-3 text-sm font-bold text-ink ${
+            messageIsError ? "bg-coral/15" : "bg-mint/15"
+          }`}
+        >
+          {message}
+        </p>
       ) : null}
 
       <button

@@ -4,13 +4,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, BookOpen, Clock3, Rocket, Route } from "lucide-react";
 import { ContinueLearningButton } from "./continue-learning-button";
+import { CapstoneReviewBanner } from "./capstone-review-banner";
 import { getGameProgressStats, getStoredProgress, toGameProgress } from "@/lib/game-progress";
 import { gameLessons, gameQuests } from "@/lib/game-data";
 import type { GameLesson, GameQuest } from "@/lib/game-data";
 import { formatMessage, formatLessonsProgress, localizeGameLesson, localizeGameQuest, t, type Language } from "@/lib/i18n";
 import { getLessonModuleIndex } from "@/lib/catalog/helpers";
 import { getNextPendingProject, localizeProject } from "@/lib/projects/helpers";
-import type { CourseProject } from "@/lib/projects/types";
+import type { CourseProject, ProjectSubmissionRecord } from "@/lib/projects/types";
 import type { ProgressRecord } from "@/lib/types";
 
 type DashboardStats = ReturnType<typeof getGameProgressStats>;
@@ -22,6 +23,7 @@ export function DashboardGameSummary({
   initialStreak = 0,
   projects,
   submittedProjectIds = [],
+  submissions = [],
   language
 }: {
   courses?: GameQuest[];
@@ -30,6 +32,7 @@ export function DashboardGameSummary({
   initialStreak?: number;
   projects: CourseProject[];
   submittedProjectIds?: string[];
+  submissions?: ProjectSubmissionRecord[];
   language: Language;
 }) {
   const courses = initialCourses ?? gameQuests;
@@ -58,6 +61,8 @@ export function DashboardGameSummary({
 
   return (
     <div className="mt-8 grid gap-5">
+      <CapstoneReviewBanner language={language} projects={projects} submissions={submissions} />
+
       <section className="overflow-hidden rounded-lg border border-ink/10 bg-white/90 shadow-soft">
         <div className="border-b border-ink/10 bg-mint/10 px-6 py-4">
           <p className="text-sm font-bold uppercase text-violet">

@@ -93,8 +93,11 @@ export default async function ProfilePage() {
             certificates={certificates}
             earnedLabel={copy.certificates.earned}
             inProgressLabel={copy.certificates.inProgress}
+            inProgressTitle={copy.certificates.inProgressTitle}
+            language={language}
             title={copy.certificates.sectionTitle}
             viewLabel={copy.certificates.view}
+            viewProjectLabel={copy.certificates.viewProject}
           />
         </div>
         <section className="mt-6 rounded-lg border border-ink/10 bg-paper/70 p-4">

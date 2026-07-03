@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminSeedButton } from "@/components/admin-seed-button";
 import {
   getCourseCatalog,
   getCatalogLessons,
@@ -8,6 +9,8 @@ import {
   getTotalAvailableXp
 } from "@/lib/catalog";
 import { xpPerLesson } from "@/lib/game-data";
+import { getCourseProjects } from "@/lib/projects/store";
+import { getQuizContent } from "@/lib/quiz";
 import { localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 
@@ -17,6 +20,7 @@ export default async function AdminPage() {
   const language = await getLanguage();
   const copy = t(language);
   const catalog = await getCourseCatalog();
+  const [{ projects }, quiz] = await Promise.all([getCourseProjects(), getQuizContent()]);
   const quests = catalog.courses.map((quest) => localizeGameQuest(quest, language));
   const lessons = await getCatalogLessons();
   const localizedLessons = lessons.map((lesson) => localizeGameLesson(lesson, language));
@@ -32,7 +36,9 @@ export default async function AdminPage() {
         </p>
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+      <AdminSeedButton language={language} />
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div className="rounded-lg bg-white/80 p-4">
           <p className="text-sm text-ink/60">{copy.admin.courses}</p>
           <p className="mt-2 text-3xl font-black">{quests.length}</p>
@@ -42,10 +48,33 @@ export default async function AdminPage() {
           <p className="mt-2 text-3xl font-black">{lessons.length}</p>
         </div>
         <div className="rounded-lg bg-white/80 p-4">
+          <p className="text-sm text-ink/60">{copy.admin.quizQuestionsCount}</p>
+          <p className="mt-2 text-3xl font-black">{quiz.questions.length}</p>
+        </div>
+        <div className="rounded-lg bg-white/80 p-4">
+          <p className="text-sm text-ink/60">{copy.admin.projectsNav}</p>
+          <p className="mt-2 text-3xl font-black">{projects.length}</p>
+        </div>
+        <div className="rounded-lg bg-white/80 p-4">
           <p className="text-sm text-ink/60">{copy.admin.totalXp}</p>
           <p className="mt-2 text-3xl font-black">{getTotalAvailableXp(catalog, xpPerLesson)}</p>
         </div>
       </div>
+
+      <section className="mt-6 rounded-lg border border-ink/10 bg-white/80 p-5">
+        <h2 className="text-xl font-black">{copy.admin.contentSections}</h2>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Link className="rounded-md bg-ink px-4 py-2 text-sm font-bold text-paper" href="/admin/projects">
+            {copy.admin.projectsNav}
+          </Link>
+          <Link className="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold text-ink" href="/admin/quiz">
+            {copy.admin.quizNav}
+          </Link>
+          <Link className="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold text-ink" href="/admin/reviews">
+            {copy.admin.reviewsNav}
+          </Link>
+        </div>
+      </section>
 
       <section className="mt-6 rounded-lg border border-ink/10 bg-white/80 p-5">
         <h2 className="text-xl font-black">{copy.admin.courses}</h2>
