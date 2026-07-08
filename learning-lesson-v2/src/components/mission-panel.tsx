@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CheckCircle2, Lightbulb, Lock, ScrollText } from "lucide-react";
+import { LessonAiHint } from "./lesson-ai-hint";
 import type { GameLesson } from "@/lib/game-data";
 import type { GameQuest } from "@/lib/game-data";
 import { getGlobalNextLessonFromCourses } from "@/lib/catalog/helpers";
@@ -247,6 +248,8 @@ export function MissionPanel({
           })}
         </div>
       </section>
+
+      <LessonAiHint effort={solutionInput} isAuthenticated={isAuthenticated} language={language} lessonId={lesson.id} />
 
       <div
         className={`overflow-hidden transition-all duration-300 ease-out ${

@@ -366,6 +366,31 @@ export const dictionary = {
       needsLogin: "Нужен е вход",
       saveError: "Прогресът не беше запазен. Опитай отново след login."
     },
+    mentor: {
+      title: "AI подсказка",
+      subtitle: "Кратък насочващ hint — без пълно решение. Лимит: 5 заявки на ден.",
+      questionLabel: "Къде заседна?",
+      questionPlaceholder: "Например: не разбирам как да структурирам HTML секциите...",
+      askButton: "Поискай AI hint",
+      working: "Мисля...",
+      success: "Ето насочваща подсказка:",
+      remaining: "Остават {remaining} AI hints днес.",
+      guestMessage: "Влез в акаунт, за да ползваш AI подсказки в задачата.",
+      guestCta: "Създай акаунт",
+      errors: {
+        default: "AI hint не успя. Опитай отново.",
+        not_authenticated: "Влез в акаунта, за да ползваш AI hint.",
+        mentor_not_configured: "AI hint не е конфигуриран на сървъра.",
+        supabase_not_configured: "Supabase не е конфигуриран.",
+        question_too_short: "Напиши поне 8 символа във въпроса.",
+        question_too_long: "Въпросът е твърде дълъг.",
+        effort_too_long: "Черновата е твърде дълга.",
+        daily_limit_reached: "Достигна дневния лимит от AI hints. Опитай утре.",
+        mentor_failed: "OpenAI заявката не успя. Провери кредити и API key.",
+        unknown_lesson: "Непознат урок.",
+        lesson_required: "Липсва lesson ID."
+      }
+    },
     admin: {
       accessRequired: "Нужен е админ достъп",
       permissionRequired: "Нужни са админ права",
@@ -818,6 +843,31 @@ export const dictionary = {
       saved: "Saved",
       needsLogin: "Needs login",
       saveError: "Progress was not saved. Try again after logging in."
+    },
+    mentor: {
+      title: "AI hint",
+      subtitle: "Short guided help — no full solution. Limit: 5 requests per day.",
+      questionLabel: "Where are you stuck?",
+      questionPlaceholder: "Example: I don't know how to structure the HTML sections...",
+      askButton: "Ask AI hint",
+      working: "Thinking...",
+      success: "Here is a guided hint:",
+      remaining: "{remaining} AI hints left today.",
+      guestMessage: "Sign in to use AI hints on the task.",
+      guestCta: "Create account",
+      errors: {
+        default: "AI hint failed. Try again.",
+        not_authenticated: "Sign in to use AI hints.",
+        mentor_not_configured: "AI hints are not configured on the server.",
+        supabase_not_configured: "Supabase is not configured.",
+        question_too_short: "Write at least 8 characters in your question.",
+        question_too_long: "Your question is too long.",
+        effort_too_long: "Your draft is too long.",
+        daily_limit_reached: "Daily AI hint limit reached. Try again tomorrow.",
+        mentor_failed: "OpenAI request failed. Check credits and API key.",
+        unknown_lesson: "Unknown lesson.",
+        lesson_required: "Lesson ID is required."
+      }
     },
     admin: {
       accessRequired: "Admin access required",
