@@ -110,7 +110,7 @@ export function SyllabusView({
 
         return (
           <article className="overflow-hidden rounded-lg border border-ink/10 bg-white/85 shadow-sm" key={quest.id}>
-            <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
               <button
                 className="flex flex-1 items-start gap-3 text-left"
                 onClick={() => setExpandedCourseId(isExpanded ? "" : quest.id)}
@@ -121,7 +121,7 @@ export function SyllabusView({
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="text-xs font-bold uppercase text-violet">{quest.difficulty}</span>
-                  <span className="mt-1 block text-2xl font-black">{quest.title}</span>
+                  <span className="mt-1 block break-words text-xl font-black sm:text-2xl">{quest.title}</span>
                   <span className="mt-2 block text-sm leading-6 text-ink/70">{quest.description}</span>
                   <span className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-ink/60">
                     <span className="rounded-md bg-ink/5 px-2 py-1">
@@ -169,7 +169,7 @@ export function SyllabusView({
             </div>
 
             {isExpanded ? (
-              <div className="border-t border-ink/10 bg-ink/[0.02] px-5 py-4">
+              <div className="border-t border-ink/10 bg-ink/[0.02] px-4 py-4 sm:px-5">
                 <p className="mb-3 text-xs font-bold uppercase tracking-wide text-ink/50">{copy.syllabus.programTitle}</p>
                 <ol className="space-y-2">
                   {quest.lessonIds.map((lessonId) => {
@@ -205,7 +205,7 @@ export function SyllabusView({
                                   total: quest.lessonIds.length
                                 })}
                               </span>
-                              <span className="mt-0.5 block font-bold text-ink">{lesson.title}</span>
+                              <span className="mt-0.5 block break-words font-bold text-ink">{lesson.title}</span>
                             </span>
                             <ChevronRight className="size-4 shrink-0 text-ink/35" />
                           </Link>
@@ -219,7 +219,7 @@ export function SyllabusView({
                                   total: quest.lessonIds.length
                                 })}
                               </span>
-                              <span className="mt-0.5 block font-bold">{lesson.title}</span>
+                              <span className="mt-0.5 block break-words font-bold">{lesson.title}</span>
                             </span>
                           </div>
                         )}
@@ -250,7 +250,7 @@ export function SyllabusView({
                             )}
                             <span className="min-w-0 flex-1">
                               <span className="text-xs font-bold uppercase text-coral">{projectBadge}</span>
-                              <span className="mt-0.5 block font-bold text-ink">{project.title}</span>
+                              <span className="mt-0.5 block break-words font-bold text-ink">{project.title}</span>
                               {complete ? (
                                 <span className="mt-1 block text-xs font-semibold text-mint">{copy.projects.submittedLabel}</span>
                               ) : pendingReview ? (
@@ -264,7 +264,7 @@ export function SyllabusView({
                             <Lock className="size-4 shrink-0" />
                             <span className="min-w-0 flex-1">
                               <span className="text-xs font-bold uppercase text-coral">{projectBadge}</span>
-                              <span className="mt-0.5 block font-bold">{project.title}</span>
+                              <span className="mt-0.5 block break-words font-bold">{project.title}</span>
                             </span>
                           </div>
                         )}

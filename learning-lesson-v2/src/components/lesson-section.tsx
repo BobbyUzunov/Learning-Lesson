@@ -15,7 +15,7 @@ export function LessonSection({
         <span className="flex size-8 items-center justify-center rounded-full bg-violet/15 text-sm font-black text-violet">
           {number}
         </span>
-        <h2 className="text-xl font-black">{title}</h2>
+        <h2 className="break-words text-lg font-black sm:text-xl">{title}</h2>
       </div>
       <div className="mt-4">{children}</div>
     </section>

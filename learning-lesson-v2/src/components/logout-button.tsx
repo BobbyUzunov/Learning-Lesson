@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-export function LogoutButton({ label }: { label: string }) {
+export function LogoutButton({ className = "", label }: { className?: string; label: string }) {
   const router = useRouter();
 
   async function logout() {
@@ -16,7 +16,7 @@ export function LogoutButton({ label }: { label: string }) {
 
   return (
     <button
-      className="focus-ring inline-flex items-center gap-2 rounded-md border border-ink/15 px-3 py-2 text-ink/70 transition hover:bg-ink/5 hover:text-ink"
+      className={`focus-ring inline-flex items-center gap-2 rounded-md border border-ink/15 px-3 py-2 text-ink/70 transition hover:bg-ink/5 hover:text-ink ${className}`}
       onClick={logout}
       type="button"
     >

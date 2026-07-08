@@ -224,7 +224,10 @@ export const dictionary = {
       capstoneNeedsChanges: "Capstone — нужни са промени преди одобрение",
       viewProject: "Отвори project-а",
       projectRequired: "Завърши уроците и submit-ни Live Deploy mini project-а.",
-      view: "Виж сертификата"
+      view: "Виж сертификата",
+      print: "Принтирай / PDF",
+      copyLink: "Копирай линк",
+      linkCopied: "Линкът е копиран."
     },
     projects: {
       badge: "Mini project",
@@ -257,7 +260,9 @@ export const dictionary = {
         invalid_repo_url: "Repo URL трябва да започва с http:// или https://",
         invalid_deploy_url: "Deploy URL трябва да започва с http:// или https://",
         default: "Submission-ът не беше запазен. Опитай отново."
-      }
+      },
+      draftRestored: "Черновата е възстановена автоматично.",
+      draftSaved: "Черновата се запазва автоматично."
     },
     verifyEmail: {
       title: "Потвърди имейла",
@@ -364,7 +369,9 @@ export const dictionary = {
       complete: "Завърши урока",
       saved: "Запазено",
       needsLogin: "Нужен е вход",
-      saveError: "Прогресът не беше запазен. Опитай отново след login."
+      saveError: "Прогресът не беше запазен. Опитай отново след login.",
+      draftRestored: "Черновата е възстановена автоматично.",
+      draftSaved: "Черновата се запазва автоматично."
     },
     mentor: {
       title: "AI подсказка",
@@ -704,7 +711,10 @@ export const dictionary = {
       capstoneNeedsChanges: "Capstone needs changes before approval",
       viewProject: "Open project",
       projectRequired: "Complete all lessons and submit the Live Deploy mini project.",
-      view: "View certificate"
+      view: "View certificate",
+      print: "Print / PDF",
+      copyLink: "Copy link",
+      linkCopied: "Link copied."
     },
     projects: {
       badge: "Mini project",
@@ -737,7 +747,9 @@ export const dictionary = {
         invalid_repo_url: "Repo URL must start with http:// or https://",
         invalid_deploy_url: "Deploy URL must start with http:// or https://",
         default: "Submission was not saved. Try again."
-      }
+      },
+      draftRestored: "Your draft was restored automatically.",
+      draftSaved: "Your draft is saved automatically."
     },
     verifyEmail: {
       title: "Verify your email",
@@ -844,7 +856,9 @@ export const dictionary = {
       complete: "Complete lesson",
       saved: "Saved",
       needsLogin: "Needs login",
-      saveError: "Progress was not saved. Try again after logging in."
+      saveError: "Progress was not saved. Try again after logging in.",
+      draftRestored: "Your draft was restored automatically.",
+      draftSaved: "Your draft is saved automatically."
     },
     mentor: {
       title: "AI hint",

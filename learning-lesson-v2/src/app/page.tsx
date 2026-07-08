@@ -31,13 +31,13 @@ export default async function HomePage() {
           {session.user ? (
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <ContinueLearningButton
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-ink px-5 py-3 font-bold text-paper transition hover:bg-ink/90"
+                className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-md bg-ink px-5 py-3 font-bold text-paper transition hover:bg-ink/90 sm:w-auto"
                 completedLessonIds={progressData?.progress.filter((item) => item.completed).map((item) => item.lesson_id)}
                 courses={catalog.courses}
                 label={copy.home.continueLearning}
               />
               <Link
-                className="inline-flex items-center justify-center gap-2 rounded-md border border-ink/15 px-5 py-3 font-bold transition hover:bg-white/70"
+                className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-md border border-ink/15 px-5 py-3 font-bold transition hover:bg-white/70 sm:w-auto"
                 href="/dashboard"
               >
                 {copy.nav.dashboard}
@@ -46,14 +46,14 @@ export default async function HomePage() {
           ) : (
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-ink px-5 py-3 font-bold text-paper transition hover:bg-ink/90"
+                className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-md bg-ink px-5 py-3 font-bold text-paper transition hover:bg-ink/90 sm:w-auto"
                 href="/register"
               >
                 {copy.nav.register}
                 <ArrowRight className="size-5" />
               </Link>
               <Link
-                className="inline-flex items-center justify-center gap-2 rounded-md border border-ink/15 px-5 py-3 font-bold transition hover:bg-white/70"
+                className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-md border border-ink/15 px-5 py-3 font-bold transition hover:bg-white/70 sm:w-auto"
                 href="/login"
               >
                 {copy.nav.login}

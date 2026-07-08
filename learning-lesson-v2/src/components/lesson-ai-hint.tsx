@@ -150,7 +150,7 @@ export function LessonAiHint({
             {copy.mentor.questionLabel}
           </label>
           <textarea
-            className="focus-ring mt-2 min-h-24 w-full rounded-md border border-ink/15 bg-white px-4 py-3 text-sm leading-6"
+            className="focus-ring mt-2 min-h-24 w-full rounded-md border border-ink/15 bg-white px-4 py-3 text-base leading-6 sm:text-sm"
             id={`mentor-question-${lessonId}`}
             onChange={(event) => setQuestion(event.target.value)}
             placeholder={copy.mentor.questionPlaceholder}
@@ -176,7 +176,7 @@ export function LessonAiHint({
       ) : null}
 
       {hint ? (
-        <div className="mt-3 rounded-md border border-mint/25 bg-white/90 px-4 py-3 text-sm leading-6 text-ink/80 whitespace-pre-wrap">
+        <div className="mt-3 rounded-md border border-mint/25 bg-white/90 px-4 py-3 text-sm leading-6 text-ink/80 break-words whitespace-pre-wrap">
           {hint}
         </div>
       ) : null}

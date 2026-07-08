@@ -7,7 +7,9 @@ import { LessonAiHint } from "./lesson-ai-hint";
 import type { GameLesson } from "@/lib/game-data";
 import type { GameQuest } from "@/lib/game-data";
 import { getGlobalNextLessonFromCourses } from "@/lib/catalog/helpers";
+import { lessonDraftKey, type LessonMissionDraft } from "@/lib/draft-storage";
 import { completeStoredLesson, getGameProgressStats, getStoredProgress, guestContinueKey } from "@/lib/game-progress";
+import { useDraftAutosave } from "@/hooks/use-draft-autosave";
 import { formatMessage, t, type Language } from "@/lib/i18n";
 
 const MIN_EFFORT_CHARS = 12;
@@ -25,8 +27,19 @@ export function MissionPanel({
   language: Language;
   lesson: GameLesson;
 }) {
-  const [solutionInput, setSolutionInput] = useState("");
-  const [hintsUsed, setHintsUsed] = useState(0);
+  const lessonCompleted = completedLessonIds.includes(lesson.id);
+  const {
+    value: missionDraft,
+    setValue: setMissionDraft,
+    status: draftStatus,
+    clearDraft
+  } = useDraftAutosave<LessonMissionDraft>({
+    key: lessonDraftKey(lesson.id),
+    initialValue: { solution: "", hintsUsed: 0 },
+    enabled: !lessonCompleted
+  });
+  const solutionInput = missionDraft.solution;
+  const hintsUsed = missionDraft.hintsUsed;
   const [showSolution, setShowSolution] = useState(false);
   const [showGuestModal, setShowGuestModal] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -46,6 +59,7 @@ export function MissionPanel({
   }
 
   function finishMissionSuccess(level: number, updatedCompletedIds: string[], options?: { showGuestModal?: boolean }) {
+    clearDraft();
     const nextId = resolveNextLesson(updatedCompletedIds);
     setNextLessonId(nextId);
     setJustCompleted(true);
@@ -112,7 +126,7 @@ export function MissionPanel({
 
   function revealNextHint() {
     if (hintsUsed < lessonHints.length) {
-      setHintsUsed((value) => value + 1);
+      setMissionDraft((current) => ({ ...current, hintsUsed: current.hintsUsed + 1 }));
       setMessage(null);
       return;
     }
@@ -155,10 +169,15 @@ export function MissionPanel({
               {effortChars}/{MIN_EFFORT_CHARS}
             </span>
           </div>
+          {draftStatus === "restored" || draftStatus === "saved" ? (
+            <p className="mt-2 text-xs font-semibold text-ink/50">
+              {draftStatus === "restored" ? copy.lesson.draftRestored : copy.lesson.draftSaved}
+            </p>
+          ) : null}
           <textarea
-            className="focus-ring mt-3 min-h-56 w-full rounded-md border border-ink/15 bg-ink px-4 py-3 font-mono text-sm leading-6 text-paper shadow-inner placeholder:text-paper/45 sm:min-h-64"
+            className="focus-ring mt-3 min-h-48 w-full rounded-md border border-ink/15 bg-ink px-4 py-3 font-mono text-base leading-6 text-paper shadow-inner placeholder:text-paper/45 sm:min-h-64 sm:text-sm"
             id="lesson-solution"
-            onChange={(event) => setSolutionInput(event.target.value)}
+            onChange={(event) => setMissionDraft((current) => ({ ...current, solution: event.target.value }))}
             placeholder={copy.lesson.solutionPlaceholder}
             value={solutionInput}
           />
@@ -284,8 +303,8 @@ export function MissionPanel({
       ) : null}
 
       {showGuestModal ? (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-ink/50 px-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-soft">
+        <div className="fixed inset-0 z-40 grid place-items-center overflow-y-auto bg-ink/50 p-4">
+          <div className="my-auto w-full max-w-md max-h-[85dvh] overflow-y-auto rounded-lg bg-white p-5 shadow-soft sm:p-6">
             <h3 className="text-2xl font-black">{copy.lesson.guestModalTitle}</h3>
             <p className="mt-3 text-sm leading-6 text-ink/75">{copy.lesson.guestModalBody}</p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">

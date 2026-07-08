@@ -50,7 +50,7 @@ export function DailyChallengeCard({
         {copy.dailyChallenge.title}
       </div>
       <p className="mt-2 text-sm text-ink/70">{copy.dailyChallenge.subtitle}</p>
-      <h3 className="mt-3 text-2xl font-black">{localizedLesson.title}</h3>
+      <h3 className="mt-3 break-words text-xl font-black sm:text-2xl">{localizedLesson.title}</h3>
       <p className="mt-2 text-sm leading-6 text-ink/70">{localizedLesson.mission}</p>
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
         {status.completed ? (

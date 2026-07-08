@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, Rocket } from "lucide-react";
 import type { CourseProject, ProjectSubmissionRecord } from "@/lib/projects/types";
 import { canLearnerEditSubmission } from "@/lib/projects/submissions";
+import { projectDraftKey, type ProjectSubmissionDraft } from "@/lib/draft-storage";
+import { useDraftAutosave } from "@/hooks/use-draft-autosave";
 import { t, type Language } from "@/lib/i18n";
 
 export function ProjectSubmissionForm({
@@ -18,13 +20,27 @@ export function ProjectSubmissionForm({
 }) {
   const copy = t(language);
   const router = useRouter();
-  const [notes, setNotes] = useState(existingSubmission?.notes ?? "");
-  const [repoUrl, setRepoUrl] = useState(existingSubmission?.repo_url ?? "");
-  const [deployUrl, setDeployUrl] = useState(existingSubmission?.deploy_url ?? "");
+  const canEdit = canLearnerEditSubmission(project, existingSubmission ?? undefined);
+  const {
+    value: draft,
+    setValue: setDraft,
+    status: draftStatus,
+    clearDraft
+  } = useDraftAutosave<ProjectSubmissionDraft>({
+    key: projectDraftKey(project.id),
+    initialValue: {
+      notes: existingSubmission?.notes ?? "",
+      repoUrl: existingSubmission?.repo_url ?? "",
+      deployUrl: existingSubmission?.deploy_url ?? ""
+    },
+    enabled: canEdit
+  });
+  const notes = draft.notes;
+  const repoUrl = draft.repoUrl;
+  const deployUrl = draft.deployUrl;
   const [message, setMessage] = useState<string | null>(null);
   const [messageIsError, setMessageIsError] = useState(false);
   const [loading, setLoading] = useState(false);
-  const canEdit = canLearnerEditSubmission(project, existingSubmission ?? undefined);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -50,6 +66,7 @@ export function ProjectSubmissionForm({
 
     setMessageIsError(false);
     setMessage(project.type === "capstone" ? copy.projects.submittedCapstone : copy.projects.submitted);
+    clearDraft();
     router.refresh();
   }
 
@@ -77,10 +94,15 @@ export function ProjectSubmissionForm({
         <label className="text-sm font-black uppercase tracking-wide text-ink/70" htmlFor="project-notes">
           {project.briefLabel}
         </label>
+        {draftStatus === "restored" || draftStatus === "saved" ? (
+          <p className="mt-2 text-xs font-semibold text-ink/50">
+            {draftStatus === "restored" ? copy.projects.draftRestored : copy.projects.draftSaved}
+          </p>
+        ) : null}
         <textarea
-          className="focus-ring mt-3 min-h-40 w-full rounded-md border border-ink/15 bg-white px-4 py-3 text-sm leading-6"
+          className="focus-ring mt-3 min-h-40 w-full rounded-md border border-ink/15 bg-white px-4 py-3 text-base leading-6 sm:text-sm"
           id="project-notes"
-          onChange={(event) => setNotes(event.target.value)}
+          onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))}
           placeholder={project.briefPlaceholder}
           value={notes}
         />
@@ -95,9 +117,9 @@ export function ProjectSubmissionForm({
             {copy.projects.repoUrl}
           </label>
           <input
-            className="focus-ring mt-3 w-full rounded-md border border-ink/15 bg-white px-4 py-3 text-sm"
+            className="focus-ring mt-3 w-full rounded-md border border-ink/15 bg-white px-4 py-3 text-base sm:text-sm"
             id="project-repo"
-            onChange={(event) => setRepoUrl(event.target.value)}
+            onChange={(event) => setDraft((current) => ({ ...current, repoUrl: event.target.value }))}
             placeholder="https://github.com/you/your-repo"
             type="url"
             value={repoUrl}
@@ -111,9 +133,9 @@ export function ProjectSubmissionForm({
             {copy.projects.deployUrl}
           </label>
           <input
-            className="focus-ring mt-3 w-full rounded-md border border-ink/15 bg-white px-4 py-3 text-sm"
+            className="focus-ring mt-3 w-full rounded-md border border-ink/15 bg-white px-4 py-3 text-base sm:text-sm"
             id="project-deploy"
-            onChange={(event) => setDeployUrl(event.target.value)}
+            onChange={(event) => setDraft((current) => ({ ...current, deployUrl: event.target.value }))}
             placeholder="https://your-app.vercel.app"
             type="url"
             value={deployUrl}
@@ -132,7 +154,7 @@ export function ProjectSubmissionForm({
       ) : null}
 
       <button
-        className="inline-flex items-center justify-center gap-2 rounded-md bg-ink px-5 py-4 text-lg font-black text-paper transition hover:bg-ink/90 disabled:opacity-60"
+        className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-md bg-ink px-5 py-4 text-base font-black text-paper transition hover:bg-ink/90 disabled:opacity-60 sm:w-auto sm:text-lg"
         disabled={loading}
         type="submit"
       >

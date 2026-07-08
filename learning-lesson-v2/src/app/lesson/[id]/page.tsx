@@ -78,7 +78,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const structure = localizeLessonStructure(localized, rawQuest ?? null, language);
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
+    <main className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
       <Link className="inline-flex items-center gap-2 text-sm font-bold text-ink/70 hover:text-ink" href="/paths">
         <ArrowLeft className="size-4" />
         {copy.common.backToPaths}
@@ -92,7 +92,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
           structure={structure}
         />
 
-        <div className="rounded-lg border border-ink/10 bg-white/80 p-6 shadow-soft">
+        <div className="rounded-lg border border-ink/10 bg-white/80 p-4 shadow-soft sm:p-6">
           <p className="text-sm font-bold uppercase text-violet">{xpPerLesson} XP</p>
 
           <LessonSection number={1} title={copy.syllabus.sectionTheory}>

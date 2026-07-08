@@ -64,13 +64,13 @@ export function DashboardGameSummary({
       <CapstoneReviewBanner language={language} projects={projects} submissions={submissions} />
 
       <section className="overflow-hidden rounded-lg border border-ink/10 bg-white/90 shadow-soft">
-        <div className="border-b border-ink/10 bg-mint/10 px-6 py-4">
+        <div className="border-b border-ink/10 bg-mint/10 px-4 py-4 sm:px-6">
           <p className="text-sm font-bold uppercase text-violet">
             {hasProgress ? copy.dashboard.continueLearning : copy.dashboard.startJourney}
           </p>
         </div>
 
-        <div className="grid gap-6 p-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+        <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <div>
             <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase text-ink/55">
               <span className="inline-flex items-center gap-1 rounded-md bg-ink/5 px-2 py-1">
@@ -90,7 +90,7 @@ export function DashboardGameSummary({
               </span>
             </div>
 
-            <h2 className="mt-4 break-words text-2xl font-black sm:text-3xl">{currentLesson.title}</h2>
+            <h2 className="mt-4 break-words text-xl font-black sm:text-2xl md:text-3xl">{currentLesson.title}</h2>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-ink/70">{currentQuest.description}</p>
 
             <div className="mt-5">

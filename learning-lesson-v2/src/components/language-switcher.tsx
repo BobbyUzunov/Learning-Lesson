@@ -13,10 +13,10 @@ export function LanguageSwitcher({ language }: { language: Language }) {
   }
 
   return (
-    <div className="grid grid-cols-2 rounded-md bg-ink/10 p-1 text-xs font-bold" aria-label="Language">
+    <div className="grid grid-cols-2 rounded-md bg-ink/10 p-1 text-sm font-bold" aria-label="Language">
       {(["bg", "en"] as const).map((item) => (
         <button
-          className={`focus-ring rounded px-2 py-1 uppercase ${language === item ? "bg-white shadow-sm" : "text-ink/60"}`}
+          className={`focus-ring min-h-11 rounded px-3 py-2 uppercase ${language === item ? "bg-white shadow-sm" : "text-ink/60"}`}
           key={item}
           onClick={() => setLanguage(item)}
           type="button"

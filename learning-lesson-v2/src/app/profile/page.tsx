@@ -37,8 +37,8 @@ export default async function ProfilePage() {
     copy.common.learner;
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
-      <section className="rounded-lg border border-ink/10 bg-white/80 p-6 shadow-soft">
+    <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
+      <section className="rounded-lg border border-ink/10 bg-white/80 p-4 shadow-soft sm:p-6">
         <UserCircle className="size-10 text-violet" />
         <p className="mt-4 text-sm font-bold uppercase text-coral">{copy.nav.profile}</p>
         <h1 className="mt-2 break-words text-3xl font-black sm:text-4xl">{name}</h1>
@@ -76,7 +76,7 @@ export default async function ProfilePage() {
               <Route className="size-4 text-violet" />
               {copy.dashboard.currentPath}
             </div>
-            <h2 className="mt-2 text-2xl font-black">{currentPath.title}</h2>
+            <h2 className="mt-2 break-words text-xl font-black sm:text-2xl">{currentPath.title}</h2>
             <p className="mt-2 text-sm leading-6 text-ink/70">{currentPath.description}</p>
           </section>
         </div>

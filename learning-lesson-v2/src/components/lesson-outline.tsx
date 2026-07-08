@@ -16,7 +16,7 @@ export function LessonOutline({
   const copy = t(language);
 
   return (
-    <header className="rounded-lg border border-ink/10 bg-mint/10 p-5">
+    <header className="rounded-lg border border-ink/10 bg-mint/10 p-4 sm:p-5">
       <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-ink/60">
         <span className="inline-flex items-center gap-1 rounded-md bg-white/80 px-2 py-1">
           <Route className="size-3.5 text-violet" />
@@ -35,7 +35,7 @@ export function LessonOutline({
         </span>
       </div>
 
-      <h1 className="mt-4 break-words text-3xl font-black md:text-4xl">{lessonTitle}</h1>
+      <h1 className="mt-4 break-words text-2xl font-black sm:text-3xl md:text-4xl">{lessonTitle}</h1>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         <div className="rounded-md border border-ink/10 bg-white/80 p-4">

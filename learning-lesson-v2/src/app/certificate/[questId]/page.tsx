@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Medal } from "lucide-react";
+import { CertificateActions } from "@/components/certificate-actions";
 import { getEarnedCertificates } from "@/lib/certificates";
 import { getCourseCatalog, getQuestFromCatalog } from "@/lib/catalog";
 import { getCourseProjects } from "@/lib/projects/store";
@@ -46,15 +47,15 @@ export default async function CertificatePage({ params }: CertificatePageProps) 
     copy.common.learner;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <section className="rounded-lg border-2 border-ink/15 bg-white p-8 text-center shadow-soft">
+    <main className="mx-auto max-w-3xl px-4 py-6 sm:py-10">
+      <section className="rounded-lg border-2 border-ink/15 bg-white p-5 text-center shadow-soft sm:p-8" id="certificate-printable">
         <Medal className="mx-auto size-12 text-coral" />
         <p className="mt-4 text-sm font-bold uppercase text-violet">{copy.certificates.badge}</p>
-        <h1 className="mt-3 text-4xl font-black">{copy.certificates.title}</h1>
+        <h1 className="mt-3 break-words text-3xl font-black sm:text-4xl">{copy.certificates.title}</h1>
         <p className="mt-4 text-lg text-ink/70">{copy.certificates.awardedTo}</p>
-        <p className="mt-2 text-3xl font-black">{learnerName}</p>
+        <p className="mt-2 break-words text-2xl font-black sm:text-3xl">{learnerName}</p>
         <p className="mt-6 text-sm font-bold uppercase text-ink/45">{copy.certificates.forQuest}</p>
-        <p className="mt-2 text-2xl font-black">{localizedQuest.title}</p>
+        <p className="mt-2 break-words text-xl font-black sm:text-2xl">{localizedQuest.title}</p>
         <p className="mt-2 text-sm text-ink/70">{localizedQuest.description}</p>
         <p className="mt-6 inline-flex rounded-md bg-mint/20 px-4 py-2 text-sm font-bold">{localizedQuest.rewardBadge}</p>
         {earned.earnedAt ? (
@@ -63,7 +64,8 @@ export default async function CertificatePage({ params }: CertificatePageProps) 
           </p>
         ) : null}
       </section>
-      <div className="mt-6 flex justify-center gap-3">
+      <CertificateActions language={language} />
+      <div className="no-print mt-6 flex justify-center gap-3">
         <Link className="rounded-md bg-ink px-4 py-3 font-bold text-paper" href="/profile">
           {copy.nav.profile}
         </Link>
