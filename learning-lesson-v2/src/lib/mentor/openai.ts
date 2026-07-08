@@ -5,6 +5,8 @@ type MentorMessage = {
   content: string;
 };
 
+const MENTOR_REQUEST_TIMEOUT_MS = 20_000;
+
 export async function requestMentorHint(messages: { system: string; user: string }) {
   const { apiKey, model } = getOpenAIConfig();
 
@@ -24,7 +26,8 @@ export async function requestMentorHint(messages: { system: string; user: string
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(MENTOR_REQUEST_TIMEOUT_MS)
   });
 
   if (!response.ok) {

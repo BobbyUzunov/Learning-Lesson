@@ -1,12 +1,8 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it } from "vitest";
 import { buildMentorMessages } from "./prompt";
-import { checkMentorRateLimit, resetMentorRateLimitForTests } from "./rate-limit";
+import { parseMentorDailyLimit, computeMentorRemaining, isMentorLimitReached } from "./usage";
 
 describe("mentor", () => {
-  beforeEach(() => {
-    resetMentorRateLimitForTests();
-  });
-
   it("builds guarded mentor prompts without solution leakage intent", () => {
     const messages = buildMentorMessages({
       language: "en",
@@ -26,13 +22,18 @@ describe("mentor", () => {
     expect(messages.user).not.toContain("solution");
   });
 
-  it("enforces daily mentor rate limits per user", () => {
-    const first = checkMentorRateLimit("user-1", 2);
-    const second = checkMentorRateLimit("user-1", 2);
-    const third = checkMentorRateLimit("user-1", 2);
+  it("computes mentor quota helpers", () => {
+    expect(computeMentorRemaining(0, 5)).toBe(5);
+    expect(computeMentorRemaining(4, 5)).toBe(1);
+    expect(computeMentorRemaining(5, 5)).toBe(0);
+    expect(isMentorLimitReached(4, 5)).toBe(false);
+    expect(isMentorLimitReached(5, 5)).toBe(true);
+  });
 
-    expect(first.ok).toBe(true);
-    expect(second.ok).toBe(true);
-    expect(third.ok).toBe(false);
+  it("falls back to a safe daily limit when env is invalid", () => {
+    expect(parseMentorDailyLimit(undefined)).toBe(5);
+    expect(parseMentorDailyLimit("0")).toBe(5);
+    expect(parseMentorDailyLimit("abc")).toBe(5);
+    expect(parseMentorDailyLimit("7")).toBe(7);
   });
 });

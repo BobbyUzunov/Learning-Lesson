@@ -4,13 +4,46 @@ import { localizeGameLesson } from "@/lib/i18n";
 import { getOpenAIConfig, hasOpenAIEnv } from "@/lib/mentor/env";
 import { requestMentorHint } from "@/lib/mentor/openai";
 import { buildMentorMessages } from "@/lib/mentor/prompt";
-import { checkMentorRateLimit } from "@/lib/mentor/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { fetchMentorUsage, releaseMentorHint, reserveMentorHint } from "@/lib/supabase/mentor-usage";
 
 const MIN_QUESTION_LENGTH = 8;
 const MAX_QUESTION_LENGTH = 400;
 const MAX_EFFORT_LENGTH = 600;
+
+async function getAuthenticatedSupabase() {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  return { supabase, user };
+}
+
+export async function GET() {
+  if (!hasSupabaseEnv()) {
+    return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  }
+
+  const { supabase, user } = await getAuthenticatedSupabase();
+  if (!user) {
+    return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+  }
+
+  try {
+    const { dailyLimit } = getOpenAIConfig();
+    const usage = await fetchMentorUsage(supabase, dailyLimit);
+
+    return NextResponse.json({
+      remaining: usage.remaining,
+      limit: usage.limit,
+      count: usage.count
+    });
+  } catch {
+    return NextResponse.json({ error: "mentor_usage_unavailable" }, { status: 503 });
+  }
+}
 
 export async function POST(request: Request) {
   if (!hasSupabaseEnv()) {
@@ -21,11 +54,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "mentor_not_configured" }, { status: 503 });
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
+  const { supabase, user } = await getAuthenticatedSupabase();
   if (!user) {
     return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
   }
@@ -64,9 +93,16 @@ export async function POST(request: Request) {
   }
 
   const { dailyLimit } = getOpenAIConfig();
-  const rate = checkMentorRateLimit(user.id, dailyLimit);
-  if (!rate.ok) {
-    return NextResponse.json({ error: "daily_limit_reached", limit: rate.limit }, { status: 429 });
+
+  let reservation: Awaited<ReturnType<typeof reserveMentorHint>>;
+  try {
+    reservation = await reserveMentorHint(supabase, dailyLimit);
+  } catch {
+    return NextResponse.json({ error: "mentor_usage_unavailable" }, { status: 503 });
+  }
+
+  if (!reservation.ok) {
+    return NextResponse.json({ error: "daily_limit_reached", limit: reservation.limit }, { status: 429 });
   }
 
   try {
@@ -81,11 +117,16 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       hint,
-      remaining: rate.remaining,
-      limit: rate.limit
+      remaining: reservation.remaining,
+      limit: reservation.limit
     });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "mentor_failed";
-    return NextResponse.json({ error: "mentor_failed", detail: message }, { status: 502 });
+  } catch {
+    try {
+      await releaseMentorHint(supabase);
+    } catch {
+      // Best effort — quota may stay reserved if release fails.
+    }
+
+    return NextResponse.json({ error: "mentor_failed" }, { status: 502 });
   }
 }

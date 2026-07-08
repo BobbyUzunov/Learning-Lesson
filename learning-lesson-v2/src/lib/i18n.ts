@@ -375,6 +375,7 @@ export const dictionary = {
       working: "Мисля...",
       success: "Ето насочваща подсказка:",
       remaining: "Остават {remaining} AI hints днес.",
+      usageLoading: "Проверявам дневния лимит...",
       guestMessage: "Влез в акаунт, за да ползваш AI подсказки в задачата.",
       guestCta: "Създай акаунт",
       errors: {
@@ -387,6 +388,7 @@ export const dictionary = {
         effort_too_long: "Черновата е твърде дълга.",
         daily_limit_reached: "Достигна дневния лимит от AI hints. Опитай утре.",
         mentor_failed: "OpenAI заявката не успя. Провери кредити и API key.",
+        mentor_usage_unavailable: "Лимитът за AI hints не е наличен. Опитай отново след малко.",
         unknown_lesson: "Непознат урок.",
         lesson_required: "Липсва lesson ID."
       }
@@ -853,6 +855,7 @@ export const dictionary = {
       working: "Thinking...",
       success: "Here is a guided hint:",
       remaining: "{remaining} AI hints left today.",
+      usageLoading: "Checking daily limit...",
       guestMessage: "Sign in to use AI hints on the task.",
       guestCta: "Create account",
       errors: {
@@ -865,6 +868,7 @@ export const dictionary = {
         effort_too_long: "Your draft is too long.",
         daily_limit_reached: "Daily AI hint limit reached. Try again tomorrow.",
         mentor_failed: "OpenAI request failed. Check credits and API key.",
+        mentor_usage_unavailable: "AI hint quota is unavailable. Try again shortly.",
         unknown_lesson: "Unknown lesson.",
         lesson_required: "Lesson ID is required."
       }
