@@ -24,7 +24,8 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "example-anon-key"
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "example-anon-key",
+      E2E_FAKE_AUTH: "1"
     }
   }
 });

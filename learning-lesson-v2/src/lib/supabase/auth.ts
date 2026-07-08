@@ -1,11 +1,30 @@
 import { redirect } from "next/navigation";
 import { createClient } from "./server";
+import { createE2eUser, hasE2eAuthCookie } from "./e2e-auth";
 import { hasSupabaseEnv } from "./env";
 import { ensureUserProfile, type ProfileRow } from "./profile";
 
 export type UserProfile = ProfileRow;
 
 export async function getCurrentSession() {
+  if (await hasE2eAuthCookie()) {
+    const user = createE2eUser();
+    return {
+      configured: true,
+      user,
+      profile: {
+        id: user.id,
+        auth_user_id: user.id,
+        email: user.email ?? null,
+        display_name: "E2E Learner",
+        role: "user",
+        xp: 0,
+        level: 1
+      } satisfies UserProfile,
+      isAdmin: false
+    };
+  }
+
   if (!hasSupabaseEnv()) {
     return { configured: false, user: null, profile: null, isAdmin: false };
   }

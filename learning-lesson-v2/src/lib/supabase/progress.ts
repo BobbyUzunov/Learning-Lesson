@@ -1,4 +1,5 @@
 import type { ProgressRecord } from "@/lib/types";
+import { hasE2eAuthCookie } from "./e2e-auth";
 import { createClient } from "./server";
 import { hasSupabaseEnv } from "./env";
 
@@ -8,6 +9,10 @@ export async function getCurrentUserProgress(): Promise<{
   isDemo: boolean;
   streakCount: number;
 }> {
+  if (await hasE2eAuthCookie()) {
+    return { progress: [], userEmail: "e2e@test.local", isDemo: false, streakCount: 0 };
+  }
+
   if (!hasSupabaseEnv()) {
     const { demoProgress } = await import("@/lib/progress");
     return { progress: demoProgress, userEmail: null, isDemo: true, streakCount: 1 };
