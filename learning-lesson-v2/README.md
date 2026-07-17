@@ -24,9 +24,9 @@ The platform includes a **lesson-scoped AI mentor** designed for productive lear
 | **Scope** | One lesson at a time — uses lesson theory, objectives, and the learner's draft effort |
 | **Guardrails** | Prompts enforce no full solutions; responses are concise (~80 words) |
 | **Access** | Registered users only; guests see a sign-up prompt on the lesson page |
-| **Quota** | 5 hints per user per day (configurable), persisted in Supabase |
+| **Quota** | 5 hints per user per day by default, persisted and enforced in Supabase |
 | **Cost control** | `gpt-4o-mini` by default, capped tokens, 20s request timeout |
-| **Resilience** | Failed OpenAI calls do not consume daily quota |
+| **Abuse control** | A reserved attempt counts even if the provider fails, so clients cannot refund their own quota |
 
 ### How it works
 
@@ -34,7 +34,7 @@ The platform includes a **lesson-scoped AI mentor** designed for productive lear
 2. The **AI hint** panel shows remaining daily quota.
 3. The learner describes where they are stuck and optionally includes their draft work.
 4. The app calls `POST /api/mentor`, which reserves quota, requests a hint from OpenAI, and returns guided feedback.
-5. If the provider call fails, the reserved quota is released automatically.
+5. The quota is reserved atomically before the provider call, preventing concurrent overuse.
 
 ### Configuration
 
@@ -43,14 +43,15 @@ Add to `.env.local` (and Vercel env for production):
 ```bash
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4o-mini          # optional
-MENTOR_DAILY_LIMIT=5              # optional
 ```
 
-Apply the mentor usage migration:
+The quota is controlled by the protected database row (after applying migrations):
 
-`supabase/migrations/20260708210000_add_mentor_daily_usage.sql`
+```sql
+update public.mentor_settings set daily_limit = 5 where singleton;
+```
 
-This creates the `mentor_daily_usage` table and RPC functions (`get_mentor_usage`, `reserve_mentor_hint`, `release_mentor_hint`).
+Only trusted database administrators should change this value.
 
 ## Routes
 
@@ -94,7 +95,13 @@ OPENAI_API_KEY=your-openai-api-key
 
 ### Database
 
-Run migrations in order from `supabase/migrations/` in the Supabase SQL editor (or apply `supabase-schema.sql` for a full schema snapshot).
+Run migrations in order from `supabase/migrations/`. This migration chain is the canonical schema; the final hardening migration adds explicit Data API grants, RLS policies, constraints, and protected learner-state RPCs.
+
+With the Supabase CLI linked to the target project:
+
+```bash
+npx supabase db push
+```
 
 Then seed content as an admin user:
 
@@ -121,13 +128,13 @@ src/components/
   lesson-ai-hint.tsx # Lesson-scoped AI assistant UI
 ```
 
-Supabase tables include: `profiles`, `user_progress`, `courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `lesson_quiz_topics`, `course_projects`, `project_submissions`, `mentor_daily_usage`.
+Supabase tables include: `profiles`, `user_progress`, `courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `lesson_quiz_topics`, `course_projects`, `project_submissions`, `mentor_daily_usage`, `mentor_settings`.
 
 ## Content
 
 - **6 courses**, **63 lessons** (bilingual EN/BG)
 - **100 XP** per completed lesson
-- **Quiz** on every lesson page (topic-based question bank)
+- **Quiz** on every lesson page; at least 2/3 correct answers are verified server-side before XP is awarded
 - **Projects** on AI Product Builder: product brief (mini), live deploy (mini), capstone with admin review
 - **Certificates** require all lessons + required project submissions; capstone must be **approved**
 
@@ -143,7 +150,7 @@ Guests can complete the first Frontend lesson without an account; progress syncs
 - XP, levels, achievements, daily streak and challenge
 - Admin CMS for courses, lessons, quiz, projects, and metadata (writes to Supabase)
 - Admin review workflow for capstone submissions
-- Vitest unit tests (47+) and Playwright E2E tests (17+), including mentor flows
+- Vitest unit tests and Playwright E2E tests, including secure completion and mentor flows
 - GitHub Actions CI: lint, unit tests, build, and E2E on every push to `main`
 
 ## Scripts
@@ -153,8 +160,10 @@ npm run dev          # development server
 npm run build        # production build
 npm run start        # production server
 npm run lint         # ESLint
+npm run typecheck    # TypeScript
 npm run test         # Vitest unit tests
 npm run test:e2e     # Playwright end-to-end tests
+npm run check        # lint + typecheck + unit tests + production build
 ```
 
 ## Roadmap
@@ -166,6 +175,6 @@ npm run test:e2e     # Playwright end-to-end tests
 - [x] AI Learning Assistant (lesson-scoped hints, quota, Supabase persistence)
 - [x] Admin CMS for quiz and project content
 - [x] E2E coverage for auth, lesson completion, certificate, and mentor flows
-- [ ] Draft autosave for mission and project submissions
-- [ ] Certificate download / share
+- [x] Draft autosave for mission and project submissions
+- [x] Certificate print/PDF and shareable link
 - [ ] Expanded mentor analytics and admin usage dashboard

@@ -24,8 +24,8 @@ function mapUsage(row: MentorUsageRow): MentorUsage {
   };
 }
 
-export async function fetchMentorUsage(supabase: SupabaseClient, limit: number): Promise<MentorUsage> {
-  const { data, error } = await supabase.rpc("get_mentor_usage", { p_limit: limit }).single<MentorUsageRow>();
+export async function fetchMentorUsage(supabase: SupabaseClient): Promise<MentorUsage> {
+  const { data, error } = await supabase.rpc("get_mentor_usage").single<MentorUsageRow>();
 
   if (error) {
     throw error;
@@ -35,10 +35,9 @@ export async function fetchMentorUsage(supabase: SupabaseClient, limit: number):
 }
 
 export async function reserveMentorHint(
-  supabase: SupabaseClient,
-  limit: number
+  supabase: SupabaseClient
 ): Promise<{ ok: boolean } & MentorUsage> {
-  const { data, error } = await supabase.rpc("reserve_mentor_hint", { p_limit: limit }).single<ReserveMentorRow>();
+  const { data, error } = await supabase.rpc("reserve_mentor_hint").single<ReserveMentorRow>();
 
   if (error) {
     throw error;
@@ -48,11 +47,4 @@ export async function reserveMentorHint(
     ok: data.ok,
     ...mapUsage(data)
   };
-}
-
-export async function releaseMentorHint(supabase: SupabaseClient) {
-  const { error } = await supabase.rpc("release_mentor_hint");
-  if (error) {
-    throw error;
-  }
 }

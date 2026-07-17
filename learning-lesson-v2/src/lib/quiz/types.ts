@@ -24,6 +24,18 @@ export type QuizQuestion = {
   explanationBg: string;
 };
 
+export type QuizAnswer = {
+  questionId: string;
+  selectedIndex: number;
+};
+
+export type QuizAttempt = {
+  answers: QuizAnswer[];
+  correct: number;
+  total: number;
+  passed: boolean;
+};
+
 export type QuizContentSource = "db" | "fallback";
 
 export type QuizContent = {

@@ -96,6 +96,7 @@ export async function seedQuizToDatabase() {
 
 export type { QuizContent, QuizQuestion, QuizTopic } from "./types";
 export {
+  createSeededRandom,
   generateQuizQuestions,
   getQuestionBankSize,
   getQuizQuestionById,

@@ -4,7 +4,6 @@ import { GET, POST } from "./route";
 const mockGetUser = vi.fn();
 const mockFetchMentorUsage = vi.fn();
 const mockReserveMentorHint = vi.fn();
-const mockReleaseMentorHint = vi.fn();
 const mockGetCatalogLesson = vi.fn();
 const mockRequestMentorHint = vi.fn();
 
@@ -21,18 +20,12 @@ vi.mock("@/lib/supabase/env", () => ({
 }));
 
 vi.mock("@/lib/mentor/env", () => ({
-  hasOpenAIEnv: vi.fn(() => true),
-  getOpenAIConfig: vi.fn(() => ({
-    apiKey: "test-key",
-    model: "gpt-4o-mini",
-    dailyLimit: 5
-  }))
+  hasOpenAIEnv: vi.fn(() => true)
 }));
 
 vi.mock("@/lib/supabase/mentor-usage", () => ({
   fetchMentorUsage: (...args: unknown[]) => mockFetchMentorUsage(...args),
-  reserveMentorHint: (...args: unknown[]) => mockReserveMentorHint(...args),
-  releaseMentorHint: (...args: unknown[]) => mockReleaseMentorHint(...args)
+  reserveMentorHint: (...args: unknown[]) => mockReserveMentorHint(...args)
 }));
 
 vi.mock("@/lib/catalog", () => ({
@@ -62,7 +55,6 @@ describe("/api/mentor", () => {
     mockGetCatalogLesson.mockResolvedValue(lesson);
     mockFetchMentorUsage.mockResolvedValue({ count: 1, remaining: 4, limit: 5 });
     mockReserveMentorHint.mockResolvedValue({ ok: true, count: 2, remaining: 3, limit: 5 });
-    mockReleaseMentorHint.mockResolvedValue(undefined);
     mockRequestMentorHint.mockResolvedValue("Start with semantic layout sections.");
   });
 
@@ -145,7 +137,7 @@ describe("/api/mentor", () => {
     expect(mockReserveMentorHint).toHaveBeenCalledBefore(mockRequestMentorHint);
   });
 
-  it("POST releases mentor quota when OpenAI fails", async () => {
+  it("POST keeps the reserved quota when OpenAI fails", async () => {
     mockRequestMentorHint.mockRejectedValue(new Error("OpenAI request failed"));
 
     const response = await POST(
@@ -163,6 +155,6 @@ describe("/api/mentor", () => {
 
     expect(response.status).toBe(502);
     expect(body.error).toBe("mentor_failed");
-    expect(mockReleaseMentorHint).toHaveBeenCalledOnce();
+    expect(mockReserveMentorHint).toHaveBeenCalledOnce();
   });
 });

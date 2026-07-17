@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { getCatalogLesson } from "@/lib/catalog";
+import { readJsonObject } from "@/lib/http";
 import { localizeGameLesson } from "@/lib/i18n";
-import { getOpenAIConfig, hasOpenAIEnv } from "@/lib/mentor/env";
+import { hasOpenAIEnv } from "@/lib/mentor/env";
 import { requestMentorHint } from "@/lib/mentor/openai";
 import { buildMentorMessages } from "@/lib/mentor/prompt";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
-import { fetchMentorUsage, releaseMentorHint, reserveMentorHint } from "@/lib/supabase/mentor-usage";
+import { fetchMentorUsage, reserveMentorHint } from "@/lib/supabase/mentor-usage";
 
 const MIN_QUESTION_LENGTH = 8;
 const MAX_QUESTION_LENGTH = 400;
@@ -32,8 +33,7 @@ export async function GET() {
   }
 
   try {
-    const { dailyLimit } = getOpenAIConfig();
-    const usage = await fetchMentorUsage(supabase, dailyLimit);
+    const usage = await fetchMentorUsage(supabase);
 
     return NextResponse.json({
       remaining: usage.remaining,
@@ -59,16 +59,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
   }
 
-  const body = (await request.json()) as {
-    lessonId?: string;
-    question?: string;
-    effort?: string;
-    language?: "bg" | "en";
-  };
+  const body = await readJsonObject(request);
+  if (!body) {
+    return NextResponse.json({ error: "invalid_request" }, { status: 400 });
+  }
 
-  const lessonId = body.lessonId?.trim();
-  const question = body.question?.trim() ?? "";
-  const effort = body.effort?.trim() ?? "";
+  const lessonId = typeof body.lessonId === "string" ? body.lessonId.trim() : "";
+  const question = typeof body.question === "string" ? body.question.trim() : "";
+  const effort = typeof body.effort === "string" ? body.effort.trim() : "";
   const language = body.language === "en" ? "en" : "bg";
 
   if (!lessonId) {
@@ -92,11 +90,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "unknown_lesson" }, { status: 404 });
   }
 
-  const { dailyLimit } = getOpenAIConfig();
-
   let reservation: Awaited<ReturnType<typeof reserveMentorHint>>;
   try {
-    reservation = await reserveMentorHint(supabase, dailyLimit);
+    reservation = await reserveMentorHint(supabase);
   } catch {
     return NextResponse.json({ error: "mentor_usage_unavailable" }, { status: 503 });
   }
@@ -121,12 +117,6 @@ export async function POST(request: Request) {
       limit: reservation.limit
     });
   } catch {
-    try {
-      await releaseMentorHint(supabase);
-    } catch {
-      // Best effort — quota may stay reserved if release fails.
-    }
-
     return NextResponse.json({ error: "mentor_failed" }, { status: 502 });
   }
 }

@@ -4,8 +4,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogIn, UserPlus } from "lucide-react";
-import { clearStoredProgress, getStoredProgress, guestContinueKey, getGameProgressStats } from "@/lib/game-progress";
-import { xpPerLesson } from "@/lib/game-data";
+import { clearStoredProgress, getStoredProgress, guestContinueKey } from "@/lib/game-progress";
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { ensureUserProfile } from "@/lib/supabase/profile";
@@ -24,6 +23,7 @@ type LoginLabels = {
   loggedIn: string;
   registered: string;
   forgotPassword: string;
+  guestProgressError: string;
 };
 
 export function LoginForm({
@@ -44,8 +44,7 @@ export function LoginForm({
   const router = useRouter();
   const configured = hasSupabaseEnv();
 
-  async function mergeGuestProgress(userId: string) {
-    const supabase = createClient();
+  async function mergeGuestProgress() {
     const guestProgress = getStoredProgress();
     const guestCompletedLessonIds = guestProgress.completedLessonIds;
 
@@ -53,29 +52,15 @@ export function LoginForm({
       return;
     }
 
-    const guestXp = guestCompletedLessonIds.length * xpPerLesson;
-    const guestLevel = getGameProgressStats(guestProgress).level;
-    const completedRows = guestCompletedLessonIds.map((lessonId) => ({
-      user_id: userId,
-      lesson_id: lessonId,
-      completed: true,
-      xp_earned: xpPerLesson,
-      completed_at: new Date().toISOString()
-    }));
+    const response = await fetch("/api/progress/merge-guest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lessonIds: guestCompletedLessonIds })
+    });
 
-    await supabase.from("user_progress").upsert(completedRows, { onConflict: "user_id,lesson_id" });
-
-    const { data: existingProfile } = await supabase.from("profiles").select("xp,level").eq("id", userId).maybeSingle();
-    const nextXp = Math.max(existingProfile?.xp ?? 0, guestXp);
-    const nextLevel = Math.max(existingProfile?.level ?? 1, guestLevel);
-
-    await supabase
-      .from("profiles")
-      .update({
-        xp: nextXp,
-        level: nextLevel
-      })
-      .eq("id", userId);
+    if (!response.ok) {
+      throw new Error(labels.guestProgressError);
+    }
 
     clearStoredProgress();
     window.localStorage.removeItem(guestContinueKey);
@@ -137,7 +122,13 @@ export function LoginForm({
       return;
     }
 
-    await mergeGuestProgress(user.id);
+    try {
+      await mergeGuestProgress();
+    } catch (error) {
+      setLoading(false);
+      setMessage(error instanceof Error ? error.message : labels.guestProgressError);
+      return;
+    }
 
     setLoading(false);
     setMessage(mode === "login" ? labels.loggedIn : labels.registered);

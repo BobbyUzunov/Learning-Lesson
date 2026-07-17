@@ -3,20 +3,23 @@
 import { useMemo, useState } from "react";
 import { CheckCircle2, RefreshCw, Sparkles } from "lucide-react";
 import {
+  createSeededRandom,
   generateQuizQuestions,
   getQuizTopicForLesson,
   localizeQuizQuestion
 } from "@/lib/quiz/helpers";
-import type { QuizContent, QuizQuestion } from "@/lib/quiz/types";
+import type { QuizAttempt, QuizContent, QuizQuestion } from "@/lib/quiz/types";
 import { t, type Language } from "@/lib/i18n";
 
 export function QuizGenerator({
   language,
   lessonId,
+  onResult,
   quizContent
 }: {
   language: Language;
   lessonId: string;
+  onResult?: (attempt: QuizAttempt | null) => void;
   quizContent: QuizContent;
 }) {
   const copy = t(language);
@@ -26,9 +29,8 @@ export function QuizGenerator({
   const [submitted, setSubmitted] = useState(false);
 
   const questions = useMemo(() => {
-    void seed;
-    return generateQuizQuestions(quizContent, topic, 3);
-  }, [quizContent, seed, topic]);
+    return generateQuizQuestions(quizContent, topic, 3, createSeededRandom(`${lessonId}:${seed}`));
+  }, [lessonId, quizContent, seed, topic]);
 
   const correctCount = submitted
     ? questions.reduce((total, question) => total + (answers[question.id] === question.correctIndex ? 1 : 0), 0)
@@ -38,6 +40,26 @@ export function QuizGenerator({
     setAnswers({});
     setSubmitted(false);
     setSeed((value) => value + 1);
+    onResult?.(null);
+  }
+
+  function checkAnswers() {
+    const answerList = questions.map((question) => ({
+      questionId: question.id,
+      selectedIndex: answers[question.id]
+    }));
+    const correct = questions.reduce(
+      (total, question) => total + (answers[question.id] === question.correctIndex ? 1 : 0),
+      0
+    );
+
+    setSubmitted(true);
+    onResult?.({
+      answers: answerList,
+      correct,
+      total: questions.length,
+      passed: questions.length > 0 && correct * 3 >= questions.length * 2
+    });
   }
 
   return (
@@ -76,9 +98,9 @@ export function QuizGenerator({
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {submitted ? (
-          <p className="inline-flex items-center gap-2 text-sm font-bold text-ink">
+          <p className={`inline-flex items-center gap-2 text-sm font-bold ${correctCount * 3 >= questions.length * 2 ? "text-ink" : "text-coral"}`}>
             <CheckCircle2 className="size-4 text-mint" />
-            {copy.quiz.score}: {correctCount} / {questions.length}
+            {copy.quiz.score}: {correctCount} / {questions.length}. {correctCount * 3 >= questions.length * 2 ? copy.quiz.passed : copy.quiz.tryAgain}
           </p>
         ) : (
           <p className="text-sm text-ink/60">{copy.quiz.answerAll}</p>
@@ -86,7 +108,7 @@ export function QuizGenerator({
         <button
           className="focus-ring rounded-md bg-ink px-4 py-3 text-sm font-bold text-paper transition hover:bg-ink/90 disabled:opacity-60"
           disabled={submitted || questions.some((question) => answers[question.id] === undefined)}
-          onClick={() => setSubmitted(true)}
+          onClick={checkAnswers}
           type="button"
         >
           {copy.quiz.checkAnswers}

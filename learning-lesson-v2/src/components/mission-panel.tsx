@@ -11,6 +11,7 @@ import { lessonDraftKey, type LessonMissionDraft } from "@/lib/draft-storage";
 import { completeStoredLesson, getGameProgressStats, getStoredProgress, guestContinueKey } from "@/lib/game-progress";
 import { useDraftAutosave } from "@/hooks/use-draft-autosave";
 import { formatMessage, t, type Language } from "@/lib/i18n";
+import type { QuizAttempt } from "@/lib/quiz/types";
 
 const MIN_EFFORT_CHARS = 12;
 
@@ -19,13 +20,15 @@ export function MissionPanel({
   courses,
   isAuthenticated,
   language,
-  lesson
+  lesson,
+  quizAttempt
 }: {
   completedLessonIds?: string[];
   courses: GameQuest[];
   isAuthenticated: boolean;
   language: Language;
   lesson: GameLesson;
+  quizAttempt: QuizAttempt | null;
 }) {
   const lessonCompleted = completedLessonIds.includes(lesson.id);
   const {
@@ -82,6 +85,11 @@ export function MissionPanel({
       return;
     }
 
+    if (!quizAttempt?.passed) {
+      setMessage(copy.lesson.quizRequired);
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
 
@@ -98,7 +106,7 @@ export function MissionPanel({
     const response = await fetch("/api/progress", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lessonId: lesson.id })
+      body: JSON.stringify({ lessonId: lesson.id, quizAnswers: quizAttempt.answers })
     });
 
     setLoading(false);
@@ -108,8 +116,10 @@ export function MissionPanel({
 
       try {
         const body = (await response.json()) as { error?: string };
-        if (body.error) {
-          errorMessage = body.error;
+        if (body.error === "quiz_not_passed") {
+          errorMessage = copy.lesson.quizRequired;
+        } else if (body.error === "lesson_locked") {
+          errorMessage = copy.paths.lessonLockMessage;
         }
       } catch {
         // Keep the localized fallback message.
@@ -216,6 +226,7 @@ export function MissionPanel({
           <button
             className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md bg-mint px-4 py-3 text-center font-black text-ink shadow-sm transition hover:-translate-y-0.5 hover:bg-mint/80 hover:shadow-soft disabled:translate-y-0 disabled:opacity-60"
             disabled={loading}
+            id="complete-mission-button"
             onClick={completeMission}
             type="button"
           >

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { toCourseRow } from "@/lib/cms/serialize";
-import type { CourseUpdateInput } from "@/lib/cms/types";
+import { validateCourseUpdate } from "@/lib/cms/validate";
+import { readJsonObject } from "@/lib/http";
 import { requireAdminUser } from "@/lib/supabase/admin-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -24,8 +25,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   const { id } = await params;
-  const body = (await request.json()) as CourseUpdateInput;
-  const row = toCourseRow(body);
+  const validation = validateCourseUpdate(await readJsonObject(request));
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+  const row = toCourseRow(validation.value);
 
   const { data, error } = await auth.supabase!.from("courses").update(row).eq("id", id).select("id").maybeSingle();
 

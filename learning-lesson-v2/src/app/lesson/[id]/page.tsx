@@ -2,11 +2,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { LessonKeyConcepts } from "@/components/lesson-key-concepts";
+import { LessonInteractiveFlow } from "@/components/lesson-interactive-flow";
 import { LessonOutline } from "@/components/lesson-outline";
 import { LessonSection } from "@/components/lesson-section";
-import { MissionPanel } from "@/components/mission-panel";
-import { QuizGenerator } from "@/components/quiz-generator";
-import { getCourseCatalog, getCatalogLesson, getFirstLesson, getQuestForLesson, isLessonUnlocked } from "@/lib/catalog";
+import { getCourseCatalog, getFirstLesson, getLessonFromCatalog, getQuestForLesson, isLessonUnlocked } from "@/lib/catalog";
 import { xpPerLesson } from "@/lib/game-data";
 import { formatMessage, localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
@@ -61,7 +60,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
     redirect("/paths?guestLocked=1");
   }
 
-  const gameLesson = await getCatalogLesson(id);
+  const gameLesson = getLessonFromCatalog(catalog, id);
 
   if (!gameLesson) {
     notFound();
@@ -107,19 +106,14 @@ export default async function LessonPage({ params }: LessonPageProps) {
             </div>
           </LessonSection>
 
-          <LessonSection number={3} title={copy.syllabus.sectionTask}>
-            <MissionPanel
-              completedLessonIds={completedLessonIds}
-              courses={catalog.courses}
-              isAuthenticated={Boolean(session.user)}
-              language={language}
-              lesson={missionLesson}
-            />
-          </LessonSection>
-
-          <LessonSection number={4} title={copy.syllabus.sectionCheck}>
-            <QuizGenerator language={language} lessonId={missionLesson.id} quizContent={quizContent} />
-          </LessonSection>
+          <LessonInteractiveFlow
+            completedLessonIds={completedLessonIds}
+            courses={catalog.courses}
+            isAuthenticated={Boolean(session.user)}
+            language={language}
+            lesson={missionLesson}
+            quizContent={quizContent}
+          />
 
           <LessonKeyConcepts language={language} structure={structure} />
         </div>

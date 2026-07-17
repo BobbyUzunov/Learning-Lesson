@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { toQuizQuestionRow } from "@/lib/cms/serialize";
-import type { QuizUpdateInput } from "@/lib/cms/types";
+import { validateQuizUpdate } from "@/lib/cms/validate";
+import { readJsonObject } from "@/lib/http";
 import { requireAdminUser } from "@/lib/supabase/admin-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -23,8 +24,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   const { id } = await params;
-  const body = (await request.json()) as QuizUpdateInput;
-  const row = toQuizQuestionRow(body);
+  const validation = validateQuizUpdate(await readJsonObject(request));
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+  const row = toQuizQuestionRow(validation.value);
 
   const { data, error } = await auth.supabase!.from("quiz_questions").update(row).eq("id", id).select("id").maybeSingle();
 

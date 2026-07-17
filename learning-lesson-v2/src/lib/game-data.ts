@@ -251,12 +251,12 @@ export const gameLessons: GameLesson[] = [
       "Full-stack apps connect user actions to persistent storage. Completing a lesson should update both UI state and database records.",
     explanationBg:
       "Full-stack приложенията свързват действията на потребителя с постоянно съхранение. Завършването на урок трябва да обнови UI state и записи в базата.",
-    codeExample: "await fetch('/api/progress', {\n  method: 'POST',\n  body: JSON.stringify({ lessonId: '1' })\n});",
+    codeExample: "await fetch('/api/progress', {\n  method: 'POST',\n  body: JSON.stringify({ lessonId: '1', quizAnswers })\n});",
     mission: "Describe what data should be saved when a learner completes a lesson.",
     missionBg: "Опиши какви данни трябва да се запазят, когато learner завърши урок.",
     hint: "Think about user id, lesson id, XP and completion time.",
     hintBg: "Помисли за user id, lesson id, XP и време на завършване.",
-    solution: "Save user_id, lesson_id, completed=true, xp_earned=100 and completed_at.",
+    solution: "Send the lesson id and quiz answers. The protected database function derives user_id, validates unlock order and the quiz, then writes fixed XP and completion time.",
     readingTimeMinutes: 11,
     learningObjectives: [
       "Map a user action to a POST request.",
@@ -498,12 +498,12 @@ export const gameLessons: GameLesson[] = [
     titleBg: "Мисия: Client-server поток",
     explanation: "A full-stack feature starts in the UI, calls an API route, and persists the result in the database.",
     explanationBg: "Full-stack функция започва в UI, вика API route и записва резултата в базата.",
-    codeExample: "await fetch('/api/progress', {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify({ lessonId: '4' })\n});",
+    codeExample: "await fetch('/api/progress', {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify({ lessonId: '4', quizAnswers })\n});",
     mission: "Describe the three steps that happen when a learner completes a mission in this app.",
     missionBg: "Опиши трите стъпки, когато learner завърши мисия в това app.",
     hint1: "Think: UI action → API route → Supabase row.",
     hint1Bg: "Помисли: UI action → API route → Supabase row.",
-    solution: "1) Mission panel sends POST /api/progress. 2) API validates user and lesson. 3) Supabase upserts user_progress and updates profiles XP."
+    solution: "1) Mission panel sends the lesson id and quiz answers to POST /api/progress. 2) The API validates the session and payload. 3) A protected Supabase RPC validates unlock and quiz state, then atomically updates progress and XP."
   },
   {
     id: "20",
@@ -512,12 +512,12 @@ export const gameLessons: GameLesson[] = [
     titleBg: "Мисия: Синхронизация на прогрес",
     explanation: "Guest progress lives in localStorage until login, then merges into Supabase without losing XP.",
     explanationBg: "Guest прогресът е в localStorage до login, после се merge-ва в Supabase без загуба на XP.",
-    codeExample: "await supabase.from('user_progress').upsert(rows, { onConflict: 'user_id,lesson_id' });",
+    codeExample: "await fetch('/api/progress/merge-guest', {\n  method: 'POST',\n  body: JSON.stringify({ lessonIds })\n});",
     mission: "Explain how guest lesson completions should merge when the user registers or logs in.",
     missionBg: "Обясни как guest завършванията трябва да се merge-нат при регистрация или login.",
-    hint1: "Upsert by user_id + lesson_id and keep the higher XP total.",
-    hint1Bg: "Upsert по user_id + lesson_id и запази по-високия XP total.",
-    solution: "Read completed lesson ids from localStorage, upsert each row to user_progress, merge profiles XP, then clear local guest storage."
+    hint1: "Send only the locally allowed free lesson; let the server validate and merge it atomically.",
+    hint1Bg: "Изпрати само позволения безплатен урок; нека сървърът го валидира и merge-не атомарно.",
+    solution: "Read completed lesson ids from localStorage, send them to the authenticated merge endpoint, and clear local storage only after a successful response."
   },
   {
     id: "21",
@@ -545,7 +545,7 @@ export const gameLessons: GameLesson[] = [
     missionBg: "Напиши deploy checklist за свързване на Next.js app с Supabase на Vercel.",
     hint1: "Include env vars, schema migration, and admin role setup.",
     hint1Bg: "Включи env vars, schema migration и admin role setup.",
-    solution: "Set env vars in Vercel, run supabase-schema.sql, set profiles.role=admin for your email, redeploy, test register/login/progress."
+    solution: "Set env vars in Vercel, apply the ordered files in supabase/migrations, set profiles.role=admin for your email, deploy, then smoke-test register/login/progress."
   },
   {
     id: "23",
@@ -559,7 +559,7 @@ export const gameLessons: GameLesson[] = [
     missionBg: "Скицирай client код, който обработва неуспешен progress save и показва API error съобщението.",
     hint1: "Check response.ok before assuming the mission was saved.",
     hint1Bg: "Провери response.ok, преди да приемеш, че мисията е записана.",
-    solution: "const response = await fetch('/api/progress', { method: 'POST', body: JSON.stringify({ lessonId }) });\nif (!response.ok) {\n  const body = await response.json();\n  throw new Error(body.error ?? 'Save failed');\n}"
+    solution: "const response = await fetch('/api/progress', { method: 'POST', body: JSON.stringify({ lessonId, quizAnswers }) });\nif (!response.ok) {\n  const body = await response.json();\n  throw new Error(body.error ?? 'Save failed');\n}"
   },
   {
     id: "24",

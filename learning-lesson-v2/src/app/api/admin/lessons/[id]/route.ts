@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { toLessonRow, toMetadataRow } from "@/lib/cms/serialize";
-import type { LessonUpdateInput } from "@/lib/cms/types";
+import { validateLessonUpdate } from "@/lib/cms/validate";
+import { readJsonObject } from "@/lib/http";
 import { requireAdminUser } from "@/lib/supabase/admin-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -24,9 +25,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   const { id } = await params;
-  const body = (await request.json()) as LessonUpdateInput;
-  const lessonRow = toLessonRow(body);
-  const metadataRow = toMetadataRow(id, body);
+  const validation = validateLessonUpdate(await readJsonObject(request));
+  if (!validation.ok) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+  const lessonRow = toLessonRow(validation.value);
+  const metadataRow = toMetadataRow(id, validation.value);
 
   const { data: existingLesson, error: lookupError } = await auth
     .supabase!.from("lessons")

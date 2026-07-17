@@ -255,6 +255,7 @@ export const dictionary = {
       pendingReviewLocked: "Submission-ът е в review. Ще можеш да го обновиш след feedback.",
       errors: {
         brief_too_short: "Brief-ът е твърде кратък. Добави още детайли.",
+        brief_too_long: "Brief-ът е твърде дълъг. Максимумът е 10 000 символа.",
         repo_required: "Добави GitHub repo URL.",
         deploy_required: "Добави live Vercel URL.",
         invalid_repo_url: "Repo URL трябва да започва с http:// или https://",
@@ -287,7 +288,9 @@ export const dictionary = {
       questionLabel: "Въпрос",
       answerAll: "Отговори на всички въпроси, за да провериш резултата.",
       checkAnswers: "Провери отговорите",
-      score: "Резултат"
+      score: "Резултат",
+      passed: "Успешно — можеш да завършиш урока.",
+      tryAgain: "Нужни са поне 2 верни отговора. Генерирай нови въпроси и опитай пак."
     },
     login: {
       badge: "Supabase Auth",
@@ -306,6 +309,7 @@ export const dictionary = {
       emailPlaceholder: "you@example.com",
       displayNamePlaceholder: "Bobby",
       forgotPassword: "Забравена парола?",
+      guestProgressError: "Влезе успешно, но гост-прогресът не беше прехвърлен. Опитай отново — локалният прогрес е запазен.",
       forgotTitle: "Възстанови парола",
       forgotSubtitle: "Ще изпратим линк за нова парола на имейла ти.",
       sendLink: "Изпрати линк",
@@ -346,6 +350,7 @@ export const dictionary = {
       hintLabel: "Подсказка {n}:",
       hintsUsed: "Подсказки използвани: {used} / {total}",
       completeBeforeFinish: "Напиши поне 12 символа в „Твоето решение“ или отключи всички подсказки.",
+      quizRequired: "Първо отговори правилно на поне 2 от 3 quiz въпроса.",
       allHintsUnlocked: "Всички подсказки вече са отключени.",
       tryFirstOrHint: "Опитай първо сам или отключи още подсказки.",
       solutionLocked: "Решението се отключва след опит или 3 подсказки.",
@@ -742,6 +747,7 @@ export const dictionary = {
       pendingReviewLocked: "Your submission is under review. You can update it after feedback arrives.",
       errors: {
         brief_too_short: "The brief is too short. Add more detail.",
+        brief_too_long: "The brief is too long. The maximum is 10,000 characters.",
         repo_required: "Add a GitHub repo URL.",
         deploy_required: "Add a live Vercel URL.",
         invalid_repo_url: "Repo URL must start with http:// or https://",
@@ -774,7 +780,9 @@ export const dictionary = {
       questionLabel: "Question",
       answerAll: "Answer all questions before checking your score.",
       checkAnswers: "Check answers",
-      score: "Score"
+      score: "Score",
+      passed: "Passed — you can complete the lesson.",
+      tryAgain: "You need at least 2 correct answers. Generate new questions and try again."
     },
     login: {
       badge: "Supabase Auth",
@@ -793,6 +801,7 @@ export const dictionary = {
       emailPlaceholder: "you@example.com",
       displayNamePlaceholder: "Bobby",
       forgotPassword: "Forgot password?",
+      guestProgressError: "You signed in, but guest progress could not be merged. Try again — local progress is still saved.",
       forgotTitle: "Reset password",
       forgotSubtitle: "We will email you a link to choose a new password.",
       sendLink: "Send reset link",
@@ -833,6 +842,7 @@ export const dictionary = {
       hintLabel: "Hint {n}:",
       hintsUsed: "Hints used: {used} / {total}",
       completeBeforeFinish: "Write at least 12 characters in your solution or unlock all hints first.",
+      quizRequired: "First answer at least 2 of the 3 quiz questions correctly.",
       allHintsUnlocked: "All hints are already unlocked.",
       tryFirstOrHint: "Try on your own first or unlock more hints.",
       solutionLocked: "The solution unlocks after effort or all 3 hints.",

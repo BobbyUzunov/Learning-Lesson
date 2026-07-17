@@ -1,81 +1,73 @@
 import { NextResponse } from "next/server";
-import { getCatalogLesson } from "@/lib/catalog";
-import { xpPerLesson } from "@/lib/game-data";
-import { getLevelProgress } from "@/lib/game-progress";
-import { createClient } from "@/lib/supabase/server";
+import { getKnownErrorCode, readJsonObject } from "@/lib/http";
+import type { QuizAnswer } from "@/lib/quiz/types";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
-import { ensureUserProfile } from "@/lib/supabase/profile";
+import { createClient } from "@/lib/supabase/server";
+
+const completionErrors = [
+  "unknown_lesson",
+  "lesson_locked",
+  "quiz_unavailable",
+  "quiz_not_passed"
+] as const;
+
+function parseQuizAnswers(value: unknown): QuizAnswer[] | null {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 3) {
+    return null;
+  }
+
+  const answers: QuizAnswer[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      return null;
+    }
+
+    const { questionId, selectedIndex } = item as Record<string, unknown>;
+    if (
+      typeof questionId !== "string" ||
+      questionId.length < 1 ||
+      questionId.length > 100 ||
+      !Number.isInteger(selectedIndex) ||
+      (selectedIndex as number) < 0 ||
+      (selectedIndex as number) > 20
+    ) {
+      return null;
+    }
+
+    answers.push({ questionId, selectedIndex: selectedIndex as number });
+  }
+
+  return new Set(answers.map((answer) => answer.questionId)).size === answers.length ? answers : null;
+}
 
 export async function POST(request: Request) {
   if (!hasSupabaseEnv()) {
-    return NextResponse.json({ error: "Supabase env is not configured." }, { status: 503 });
+    return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
   }
 
-  const { lessonId } = (await request.json()) as { lessonId?: string };
+  const body = await readJsonObject(request);
+  const lessonId = typeof body?.lessonId === "string" ? body.lessonId.trim() : "";
+  const quizAnswers = parseQuizAnswers(body?.quizAnswers);
 
-  if (!lessonId) {
-    return NextResponse.json({ error: "lessonId is required." }, { status: 400 });
-  }
-
-  if (!(await getCatalogLesson(lessonId))) {
-    return NextResponse.json({ error: "Unknown lesson." }, { status: 404 });
+  if (!lessonId || lessonId.length > 100 || !quizAnswers) {
+    return NextResponse.json({ error: "invalid_completion_payload" }, { status: 400 });
   }
 
   const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) {
+    return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
   }
 
-  const { error: ensureError } = await ensureUserProfile(supabase, user);
-  if (ensureError) {
-    return NextResponse.json({ error: ensureError.message }, { status: 500 });
-  }
-
-  const xpEarned = xpPerLesson;
-  const { error } = await supabase.from("user_progress").upsert(
-    {
-      user_id: user.id,
-      lesson_id: lessonId,
-      completed: true,
-      xp_earned: xpEarned,
-      completed_at: new Date().toISOString()
-    },
-    { onConflict: "user_id,lesson_id" }
-  );
+  const { data, error } = await supabase
+    .rpc("complete_lesson", { p_lesson_id: lessonId, p_answers: quizAnswers })
+    .single<{ ok: boolean; xp: number; level: number }>();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const code = getKnownErrorCode(error.message, completionErrors) ?? "completion_failed";
+    const status = code === "unknown_lesson" ? 404 : code === "completion_failed" ? 500 : 403;
+    return NextResponse.json({ error: code }, { status });
   }
 
-  const { data: completedProgress, error: progressError } = await supabase
-    .from("user_progress")
-    .select("xp_earned")
-    .eq("user_id", user.id)
-    .eq("completed", true);
-
-  if (progressError) {
-    return NextResponse.json({ error: progressError.message }, { status: 500 });
-  }
-
-  const xp = (completedProgress ?? []).reduce((total, item) => total + (item.xp_earned ?? 0), 0);
-  const level = getLevelProgress(xp).level;
-  const { error: profileError } = await supabase.from("profiles").upsert(
-    {
-      id: user.id,
-      email: user.email,
-      xp,
-      level
-    },
-    { onConflict: "id" }
-  );
-
-  if (profileError) {
-    return NextResponse.json({ error: profileError.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ ok: true, level, xp });
+  return NextResponse.json(data);
 }

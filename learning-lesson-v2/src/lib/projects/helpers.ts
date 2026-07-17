@@ -119,6 +119,10 @@ export function validateProjectSubmissionInput(
     return { ok: false as const, error: "brief_too_short" };
   }
 
+  if (notes.length > 10000) {
+    return { ok: false as const, error: "brief_too_long" };
+  }
+
   if (project.requiresRepo && !repoUrl) {
     return { ok: false as const, error: "repo_required" };
   }
@@ -127,11 +131,11 @@ export function validateProjectSubmissionInput(
     return { ok: false as const, error: "deploy_required" };
   }
 
-  if (repoUrl && !/^https?:\/\//i.test(repoUrl)) {
+  if (repoUrl && (repoUrl.length > 2048 || !/^https?:\/\//i.test(repoUrl))) {
     return { ok: false as const, error: "invalid_repo_url" };
   }
 
-  if (deployUrl && !/^https?:\/\//i.test(deployUrl)) {
+  if (deployUrl && (deployUrl.length > 2048 || !/^https?:\/\//i.test(deployUrl))) {
     return { ok: false as const, error: "invalid_deploy_url" };
   }
 

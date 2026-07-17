@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  createSeededRandom,
   generateQuizQuestions,
   getFallbackQuizContent,
   getQuestionBankSize,
@@ -21,6 +22,12 @@ describe("quiz content", () => {
     const questions = generateQuizQuestions(content, "api", 3);
     expect(questions).toHaveLength(3);
     expect(questions.every((question) => question.topic === "api" || question.topic === "html")).toBe(true);
+  });
+
+  it("produces stable question sets for a seeded lesson attempt", () => {
+    const first = generateQuizQuestions(content, "api", 3, createSeededRandom("14:0"));
+    const second = generateQuizQuestions(content, "api", 3, createSeededRandom("14:0"));
+    expect(second.map((question) => question.id)).toEqual(first.map((question) => question.id));
   });
 
   it("exposes non-empty banks for new quest topics", () => {

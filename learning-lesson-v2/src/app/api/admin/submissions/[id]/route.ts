@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { readJsonObject } from "@/lib/http";
 import { getProjectById } from "@/lib/projects";
 import { getCourseProjects } from "@/lib/projects/store";
 import { requireAdminUser } from "@/lib/supabase/admin-auth";
@@ -28,18 +29,19 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Submission not found." }, { status: 404 });
   }
 
-  const body = (await request.json()) as {
-    action?: "approve" | "request_changes";
-    reviewNotes?: string;
-  };
+  const body = await readJsonObject(request);
+  const action = body?.action;
 
-  if (body.action !== "approve" && body.action !== "request_changes") {
+  if (action !== "approve" && action !== "request_changes") {
     return NextResponse.json({ error: "Invalid review action." }, { status: 400 });
   }
 
-  const reviewNotes = body.reviewNotes?.trim() ?? "";
-  if (body.action === "request_changes" && reviewNotes.length < 10) {
+  const reviewNotes = typeof body?.reviewNotes === "string" ? body.reviewNotes.trim() : "";
+  if (action === "request_changes" && reviewNotes.length < 10) {
     return NextResponse.json({ error: "review_notes_required" }, { status: 400 });
+  }
+  if (reviewNotes.length > 10000) {
+    return NextResponse.json({ error: "review_notes_too_long" }, { status: 400 });
   }
 
   const supabase = await createClient();
@@ -47,7 +49,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   const { error } = await supabase
     .from("project_submissions")
     .update({
-      status: body.action === "approve" ? "approved" : "needs_changes",
+      status: action === "approve" ? "approved" : "needs_changes",
       review_notes: reviewNotes || null,
       reviewed_at: now,
       reviewed_by: auth.user.id
@@ -71,6 +73,6 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   return NextResponse.json({
     ok: true,
-    status: body.action === "approve" ? "approved" : "needs_changes"
+    status: action === "approve" ? "approved" : "needs_changes"
   });
 }

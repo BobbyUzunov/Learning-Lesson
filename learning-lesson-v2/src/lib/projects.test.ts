@@ -71,6 +71,14 @@ describe("projects", () => {
         deployUrl: "https://learning-lesson-v2.vercel.app"
       }).ok
     ).toBe(true);
+
+    expect(
+      validateProjectSubmissionInput(project!, {
+        notes: "x".repeat(10001),
+        repoUrl: "https://github.com/example/learning-lesson",
+        deployUrl: "https://learning-lesson-v2.vercel.app"
+      })
+    ).toEqual({ ok: false, error: "brief_too_long" });
   });
 });
 
