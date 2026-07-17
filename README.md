@@ -9,7 +9,7 @@ AI-assisted learning platform for programming — structured courses, hands-on m
 [![OpenAI](https://img.shields.io/badge/OpenAI-AI%20Hints-412991)](https://openai.com/)
 [![Status](https://img.shields.io/badge/Status-Active-success)](#)
 
-**Live app:** https://learning-lesson-v2.vercel.app
+**Live app:** [learning-lesson-v2.vercel.app](https://learning-lesson-v2.vercel.app)
 
 ---
 
@@ -46,7 +46,8 @@ Detailed v2 docs: [learning-lesson-v2/README.md](learning-lesson-v2/README.md)
 - Supabase auth, per-user progress, XP, levels, achievements, daily streak and challenge
 - Mobile-first UI with responsive navigation, tap targets, and overflow fixes
 - Protected admin area: CMS, seed endpoint, capstone review queue
-- **49+ unit tests**, **21+ E2E tests**, GitHub Actions CI on every push to `main`
+- **57 Vitest unit tests** and **20 Playwright E2E tests** covering auth, secure lesson completion, certificates, AI mentor, navigation, and mobile layout
+- Hardened Supabase access with RLS on Data API tables and privileged operations isolated in a private schema
 
 ---
 
@@ -71,7 +72,6 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 # Optional — enables AI Learning Assistant
 OPENAI_API_KEY=your-openai-api-key
 OPENAI_MODEL=gpt-4o-mini          # optional
-MENTOR_DAILY_LIMIT=5              # optional
 ```
 
 Apply Supabase migrations from `learning-lesson-v2/supabase/migrations/` (in order), then seed via `/api/admin/seed-catalog` as an admin user. See [learning-lesson-v2/README.md](learning-lesson-v2/README.md) for details.
@@ -123,6 +123,8 @@ Schema: `learning-lesson-v1/supabase-schema.sql`
 Content lives in Supabase (`courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `lesson_quiz_topics`, `course_projects`) with fallbacks in `src/lib/game-data.ts` and related modules.
 
 User data: `profiles`, `user_progress`, `project_submissions`, `mentor_daily_usage`.
+
+All Data API tables use Row Level Security. Privileged RPC implementations and the server-managed `mentor_settings` row live in Supabase's unexposed `private` schema; clients use authenticated public wrappers for protected operations.
 
 ---
 

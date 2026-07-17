@@ -2,7 +2,7 @@
 
 Active version of Learning Lesson — a learning platform for shipping real products with structured courses, hands-on missions, quizzes, projects, certificates, and an integrated **AI Learning Assistant**.
 
-**Live:** https://learning-lesson-v2.vercel.app
+**Live:** [learning-lesson-v2.vercel.app](https://learning-lesson-v2.vercel.app)
 
 For repo overview and v1 legacy docs, see the [root README](../README.md).
 
@@ -45,13 +45,15 @@ OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4o-mini          # optional
 ```
 
-The quota is controlled by the protected database row (after applying migrations):
+The quota is controlled by a server-only row in the private schema (after applying migrations):
 
 ```sql
-update public.mentor_settings set daily_limit = 5 where singleton;
+update private.mentor_settings
+set daily_limit = 5
+where singleton;
 ```
 
-Only trusted database administrators should change this value.
+Run this only through the Supabase SQL Editor or another trusted administrator connection. The table is not exposed through the Data API.
 
 ## Routes
 
@@ -64,7 +66,8 @@ Only trusted database administrators should change this value.
 | `/dashboard` | Continue learning, XP, pending projects |
 | `/profile` | Stats, achievements, certificates |
 | `/certificate/[questId]` | Earned course certificate |
-| `/login`, `/register` | Supabase auth |
+| `/login`, `/register` | Sign in and registration |
+| `/forgot-password`, `/reset-password`, `/verify-email` | Account recovery and email verification |
 | `/admin` | CMS — edit courses and lessons |
 | `/admin/courses/[id]` | Course editor |
 | `/admin/missions/[id]` | Lesson + metadata editor |
@@ -74,6 +77,9 @@ Only trusted database administrators should change this value.
 | `/admin/reviews/[id]` | Approve or request changes |
 | `POST /api/mentor` | Authenticated AI hint request |
 | `GET /api/mentor` | Authenticated daily quota status |
+| `/api/progress`, `/api/streak`, `/api/daily-challenge` | Protected learner state APIs |
+| `/api/projects/[projectId]` | Authenticated project submissions |
+| `/api/admin/*` | Admin-only catalog, review, and seed APIs |
 
 ## Local setup
 
@@ -95,7 +101,7 @@ OPENAI_API_KEY=your-openai-api-key
 
 ### Database
 
-Run migrations in order from `supabase/migrations/`. This migration chain is the canonical schema; the final hardening migration adds explicit Data API grants, RLS policies, constraints, and protected learner-state RPCs.
+Run migrations in order from `supabase/migrations/`. This migration chain is the canonical schema. The latest migrations add explicit Data API grants, RLS policies, constraints, protected learner-state RPCs, and move privileged implementations into the unexposed `private` schema.
 
 With the Supabase CLI linked to the target project:
 
@@ -109,7 +115,7 @@ Then seed content as an admin user:
 fetch('/api/admin/seed-catalog', { method: 'POST' }).then(r => r.json()).then(console.log)
 ```
 
-Expected seed result: 6 courses, 63 lessons, quiz questions, 3 projects (2 mini + 1 capstone).
+Expected seed result: 6 courses, 63 lessons, 34 quiz questions, and 3 projects (2 mini + 1 capstone).
 
 Set `profiles.role = 'admin'` for your user to access `/admin` and the seed endpoint.
 
@@ -128,11 +134,20 @@ src/components/
   lesson-ai-hint.tsx # Lesson-scoped AI assistant UI
 ```
 
-Supabase tables include: `profiles`, `user_progress`, `courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `lesson_quiz_topics`, `course_projects`, `project_submissions`, `mentor_daily_usage`, `mentor_settings`.
+### Supabase security model
+
+- All Data API tables have Row Level Security enabled.
+- Content is publicly readable where appropriate; learner and submission data is owner-scoped.
+- Progress, streak, quiz completion, and mentor quota changes are validated server-side.
+- Privileged RPC implementations and `mentor_settings` live in the unexposed `private` schema.
+- Public RPC wrappers preserve the client API while anonymous execution is revoked for protected operations.
+- Admin APIs verify the authenticated user's `profiles.role` before making changes.
+
+Public tables include `profiles`, `user_progress`, `courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `lesson_quiz_topics`, `course_projects`, `project_submissions`, and `mentor_daily_usage`. `private.mentor_settings` is server-managed.
 
 ## Content
 
-- **6 courses**, **63 lessons** (bilingual EN/BG)
+- **6 courses**, **63 lessons**, **34 quiz questions**, and **3 projects** (bilingual EN/BG)
 - **100 XP** per completed lesson
 - **Quiz** on every lesson page; at least 2/3 correct answers are verified server-side before XP is awarded
 - **Projects** on AI Product Builder: product brief (mini), live deploy (mini), capstone with admin review
@@ -150,8 +165,7 @@ Guests can complete the first Frontend lesson without an account; progress syncs
 - XP, levels, achievements, daily streak and challenge
 - Admin CMS for courses, lessons, quiz, projects, and metadata (writes to Supabase)
 - Admin review workflow for capstone submissions
-- Vitest unit tests and Playwright E2E tests, including secure completion and mentor flows
-- GitHub Actions CI: lint, unit tests, build, and E2E on every push to `main`
+- 57 Vitest unit tests and 20 Playwright E2E tests, including secure completion, mentor, auth, and mobile flows
 
 ## Scripts
 
