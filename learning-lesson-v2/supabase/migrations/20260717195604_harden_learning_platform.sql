@@ -1,4 +1,4 @@
--- Canonical hardening migration for Learning Lesson v2.
+-- Canonical production hardening migration for Learning Lesson v2.
 -- It is intentionally idempotent so existing projects and fresh migration-only
 -- installs converge on the same secure schema.
 
