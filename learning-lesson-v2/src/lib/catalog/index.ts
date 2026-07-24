@@ -6,6 +6,7 @@ import { getLessonFromCatalog, mapRowsToCatalog } from "./helpers";
 import { seedProjectsToDatabase } from "../projects/store";
 import { seedQuizToDatabase } from "../quiz";
 import { buildCatalogSeedPayload } from "./seed-payload";
+import { seedSchoolCurriculumToDatabase } from "../curriculum";
 import type { CourseCatalog, CourseRow, LessonMetadataRow, LessonRow } from "./types";
 
 async function loadCatalogFromDatabase(): Promise<CourseCatalog | null> {
@@ -100,13 +101,18 @@ export async function seedCatalogToDatabase() {
 
 export async function seedAllContentToDatabase() {
   const catalog = await seedCatalogToDatabase();
-  const [quiz, projects] = await Promise.all([seedQuizToDatabase(), seedProjectsToDatabase()]);
+  const [quiz, projects, curriculum] = await Promise.all([
+    seedQuizToDatabase(),
+    seedProjectsToDatabase(),
+    seedSchoolCurriculumToDatabase()
+  ]);
 
   return {
     ...catalog,
     quizQuestions: quiz.questions,
     lessonQuizTopics: quiz.lessonTopics,
-    projects: projects.projects
+    projects: projects.projects,
+    ...curriculum
   };
 }
 

@@ -1,6 +1,6 @@
 # Learning Lesson v2
 
-Active version of Learning Lesson — a learning platform for shipping real products with structured courses, hands-on missions, quizzes, projects, certificates, and an integrated **AI Learning Assistant**.
+Active version of Learning Lesson — a learning platform for digital vocational education with structured courses, hands-on missions, quizzes, projects, certificates, and an integrated **AI Learning Assistant**.
 
 **Live:** [learning-lesson-v2.vercel.app](https://learning-lesson-v2.vercel.app)
 
@@ -8,7 +8,9 @@ For repo overview and v1 legacy docs, see the [root README](../README.md).
 
 ## What it is
 
-Learners follow sequential courses (Frontend → Backend → Full-Stack → AI → Mobile → AI Product Builder), complete lessons with theory + task + quiz, submit mini projects and a capstone, and earn certificates when requirements are met.
+Learners can explore a grade 8 vocational pilot based on the official 2026/2027 PGKNMA curricula for **Software Development, Intelligent Systems, Computer Graphics, and Cybersecurity**. Each profession connects official modules, learning outcomes, a practical orientation mission, and relevant courses already available in the platform.
+
+The original sequential courses (Frontend → Backend → Full-Stack → AI → Mobile → AI Product Builder) remain available. Learners complete lessons with theory + task + quiz, submit mini projects and a capstone, and earn certificates when requirements are met.
 
 Content is **DB-first** with code fallbacks: courses, lessons, metadata, quiz questions, and projects load from Supabase when configured.
 
@@ -60,7 +62,7 @@ Run this only through the Supabase SQL Editor or another trusted administrator c
 | Route | Description |
 |-------|-------------|
 | `/` | Landing page with course preview |
-| `/paths` | Course syllabus and progress |
+| `/paths` | Grade 8 vocational curriculum explorer, course syllabus, and progress |
 | `/lesson/[id]` | Lesson workspace (theory, example, mission, **AI hint**, quiz) |
 | `/projects/[id]` | Mini project or capstone submission |
 | `/dashboard` | Continue learning, XP, pending projects |
@@ -115,7 +117,7 @@ Then seed content as an admin user:
 fetch('/api/admin/seed-catalog', { method: 'POST' }).then(r => r.json()).then(console.log)
 ```
 
-Expected seed result: 6 courses, 63 lessons, 34 quiz questions, and 3 projects (2 mini + 1 capstone).
+Expected seed result: 6 courses, 63 lessons, 34 quiz questions, 3 projects (2 mini + 1 capstone), 4 specialties, 6 curriculum modules, and 4 orientation missions.
 
 Set `profiles.role = 'admin'` for your user to access `/admin` and the seed endpoint.
 
@@ -125,6 +127,7 @@ Set `profiles.role = 'admin'` for your user to access `/admin` and the seed endp
 src/lib/
   game-data.ts       # Fallback/seed source for courses and lessons
   catalog/           # DB-first courses, lessons, lesson_metadata
+  curriculum/        # DB-first school specialties, grade modules, missions, course links
   quiz/              # DB-first quiz questions and lesson→topic mapping
   projects/          # DB-first course projects (mini + capstone)
   mentor/            # AI hint prompts, OpenAI client, quota helpers
@@ -143,11 +146,12 @@ src/components/
 - Public RPC wrappers preserve the client API while anonymous execution is revoked for protected operations.
 - Admin APIs verify the authenticated user's `profiles.role` before making changes.
 
-Public tables include `profiles`, `user_progress`, `courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `lesson_quiz_topics`, `course_projects`, `project_submissions`, and `mentor_daily_usage`. `private.mentor_settings` is server-managed.
+Public tables include `profiles`, `user_progress`, `courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `lesson_quiz_topics`, `course_projects`, `project_submissions`, `mentor_daily_usage`, `specialties`, `curriculum_modules`, `curriculum_missions`, and `curriculum_course_links`. `private.mentor_settings` is server-managed.
 
 ## Content
 
 - **6 courses**, **63 lessons**, **34 quiz questions**, and **3 projects** (bilingual EN/BG)
+- **4 vocational specialties**, **6 grade 8 curriculum modules**, and **4 orientation missions** mapped to the existing courses
 - **100 XP** per completed lesson
 - **Quiz** on every lesson page; at least 2/3 correct answers are verified server-side before XP is awarded
 - **Projects** on AI Product Builder: product brief (mini), live deploy (mini), capstone with admin review
@@ -165,7 +169,7 @@ Guests can complete the first Frontend lesson without an account; progress syncs
 - XP, levels, achievements, daily streak and challenge
 - Admin CMS for courses, lessons, quiz, projects, and metadata (writes to Supabase)
 - Admin review workflow for capstone submissions
-- 57 Vitest unit tests and 20 Playwright E2E tests, including secure completion, mentor, auth, and mobile flows
+- 61 Vitest unit tests and 20 Playwright E2E tests, including curriculum integrity, secure completion, mentor, auth, and mobile flows
 
 ## Scripts
 
@@ -191,4 +195,7 @@ npm run check        # lint + typecheck + unit tests + production build
 - [x] E2E coverage for auth, lesson completion, certificate, and mentor flows
 - [x] Draft autosave for mission and project submissions
 - [x] Certificate print/PDF and shareable link
+- [x] Grade 8 vocational curriculum foundation for four professions
+- [ ] Teacher roles, classrooms, assignments, and school reports
+- [ ] Expand the official curriculum structure through grades 9–12
 - [ ] Expanded mentor analytics and admin usage dashboard
