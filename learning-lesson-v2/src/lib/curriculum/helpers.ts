@@ -12,6 +12,31 @@ export function localizeCurriculumText(text: LocalizedText, language: Language) 
   return language === "bg" ? text.bg : text.en;
 }
 
+export function getActiveGradeLevel(curriculum: SchoolCurriculum): number {
+  const pilotGrades = curriculum.modules
+    .filter((module) => module.status === "pilot")
+    .map((module) => module.gradeLevel);
+
+  if (pilotGrades.length > 0) {
+    return Math.min(...pilotGrades);
+  }
+
+  const allGrades = curriculum.modules.map((module) => module.gradeLevel);
+  return allGrades.length > 0 ? Math.min(...allGrades) : 8;
+}
+
+export function getMissionMinutesRange(curriculum: SchoolCurriculum): string {
+  const minutes = curriculum.missions.map((mission) => mission.estimatedMinutes).filter((value) => value > 0);
+
+  if (minutes.length === 0) {
+    return "45–60";
+  }
+
+  const min = Math.min(...minutes);
+  const max = Math.max(...minutes);
+  return min === max ? `${min}` : `${min}–${max}`;
+}
+
 export function getCommonModules(curriculum: SchoolCurriculum, gradeLevel: number) {
   return curriculum.modules
     .filter((module) => module.specialtyId === null && module.gradeLevel === gradeLevel)

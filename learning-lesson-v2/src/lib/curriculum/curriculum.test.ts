@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import { gameQuests } from "../game-data";
 import { fallbackSchoolCurriculum } from "./data";
 import {
+  getActiveGradeLevel,
   getCommonModules,
   getCourseIdsForSpecialty,
   getMissionForModule,
+  getMissionMinutesRange,
   getSpecialtyModules,
   mapRowsToSchoolCurriculum
 } from "./helpers";
@@ -38,6 +40,25 @@ describe("school curriculum", () => {
       expect(courseIds.length).toBeGreaterThan(0);
       expect(courseIds.every((courseId) => knownCourseIds.has(courseId))).toBe(true);
     }
+  });
+
+  it("derives the active grade from pilot modules instead of hardcoding it", () => {
+    expect(getActiveGradeLevel(fallbackSchoolCurriculum)).toBe(8);
+
+    const shifted = {
+      ...fallbackSchoolCurriculum,
+      modules: fallbackSchoolCurriculum.modules.map((module) => ({ ...module, gradeLevel: 9 }))
+    };
+    expect(getActiveGradeLevel(shifted)).toBe(9);
+
+    expect(getActiveGradeLevel({ ...fallbackSchoolCurriculum, modules: [] })).toBe(8);
+  });
+
+  it("derives the mission minutes range from the data", () => {
+    const range = getMissionMinutesRange(fallbackSchoolCurriculum);
+    expect(range).toMatch(/^\d+(–\d+)?$/);
+
+    expect(getMissionMinutesRange({ ...fallbackSchoolCurriculum, missions: [] })).toBe("45–60");
   });
 
   it("round-trips the Supabase seed payload", () => {

@@ -9,9 +9,11 @@ import { LearningPathSummary } from "@/components/curriculum/learning-path-summa
 import { SpecialtySelector } from "@/components/curriculum/specialty-selector";
 import { StudentMissionCard } from "@/components/curriculum/student-mission-card";
 import {
+  getActiveGradeLevel,
   getCommonModules,
   getCourseIdsForSpecialty,
   getMissionForModule,
+  getMissionMinutesRange,
   getSpecialtyModules
 } from "@/lib/curriculum/helpers";
 import type { SchoolCurriculum } from "@/lib/curriculum/types";
@@ -41,12 +43,14 @@ export function SchoolCurriculumExplorer({
     return null;
   }
 
-  const commonModules = getCommonModules(curriculum, 8);
-  const specialtyModules = getSpecialtyModules(curriculum, selectedSpecialty.id, 8);
+  const activeGrade = getActiveGradeLevel(curriculum);
+  const commonModules = getCommonModules(curriculum, activeGrade);
+  const specialtyModules = getSpecialtyModules(curriculum, selectedSpecialty.id, activeGrade);
   const mission = specialtyModules.map((module) => getMissionForModule(curriculum, module.id)).find(Boolean) ?? null;
-  const relatedCourseIds = getCourseIdsForSpecialty(curriculum, selectedSpecialty.id, 8).filter(
+  const relatedCourseIds = getCourseIdsForSpecialty(curriculum, selectedSpecialty.id, activeGrade).filter(
     (courseId) => courseLabels[courseId]
   );
+  const minutesRange = getMissionMinutesRange(curriculum);
 
   return (
     <section className="overflow-hidden rounded-[2rem] border border-ink/10 bg-white/85 shadow-soft">
@@ -77,12 +81,12 @@ export function SchoolCurriculumExplorer({
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <div className="rounded-2xl border border-white/10 bg-white/[0.07] p-3 sm:p-4">
               <Shapes className="size-4 text-coral sm:size-5" />
-              <p className="mt-3 text-xl font-black sm:mt-4 sm:text-2xl">4</p>
+              <p className="mt-3 text-xl font-black sm:mt-4 sm:text-2xl">{curriculum.specialties.length}</p>
               <p className="mt-1 text-[10px] font-bold leading-4 text-paper/50 sm:text-xs">{copy.metricProfessions}</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/[0.07] p-3 sm:p-4">
               <TimerReset className="size-4 text-mint sm:size-5" />
-              <p className="mt-3 whitespace-nowrap text-xl font-black sm:mt-4 sm:text-2xl">45–60</p>
+              <p className="mt-3 whitespace-nowrap text-xl font-black sm:mt-4 sm:text-2xl">{minutesRange}</p>
               <p className="mt-1 text-[10px] font-bold leading-4 text-paper/50 sm:text-xs">{copy.metricMinutes}</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/[0.07] p-3 sm:p-4">
@@ -94,7 +98,7 @@ export function SchoolCurriculumExplorer({
         </div>
 
         <div className="relative hidden overflow-x-auto sm:block">
-          <GradeRoadmap language={language} />
+          <GradeRoadmap activeGrade={activeGrade} language={language} />
         </div>
       </div>
 
