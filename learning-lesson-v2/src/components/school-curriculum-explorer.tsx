@@ -6,14 +6,15 @@ import { ArrowRight, ExternalLink, GraduationCap, Rocket, Shapes, TimerReset } f
 import { CurriculumDetails } from "@/components/curriculum/curriculum-details";
 import { GradeRoadmap } from "@/components/curriculum/grade-roadmap";
 import { LearningPathSummary } from "@/components/curriculum/learning-path-summary";
+import { MissionList } from "@/components/curriculum/mission-list";
 import { SpecialtySelector } from "@/components/curriculum/specialty-selector";
 import { StudentMissionCard } from "@/components/curriculum/student-mission-card";
 import {
   getActiveGradeLevel,
   getCommonModules,
   getCourseIdsForSpecialty,
-  getMissionForModule,
   getMissionMinutesRange,
+  getMissionsForModules,
   getSpecialtyModules
 } from "@/lib/curriculum/helpers";
 import type { SchoolCurriculum } from "@/lib/curriculum/types";
@@ -36,6 +37,7 @@ export function SchoolCurriculumExplorer({
   const [selectedSpecialtyId, setSelectedSpecialtyId] = useState(
     curriculum.specialties[0]?.id ?? "software-development"
   );
+  const [selectedMissionId, setSelectedMissionId] = useState("");
   const selectedSpecialty =
     curriculum.specialties.find((specialty) => specialty.id === selectedSpecialtyId) ?? curriculum.specialties[0];
 
@@ -46,7 +48,12 @@ export function SchoolCurriculumExplorer({
   const activeGrade = getActiveGradeLevel(curriculum);
   const commonModules = getCommonModules(curriculum, activeGrade);
   const specialtyModules = getSpecialtyModules(curriculum, selectedSpecialty.id, activeGrade);
-  const mission = specialtyModules.map((module) => getMissionForModule(curriculum, module.id)).find(Boolean) ?? null;
+  const missionGroups = getMissionsForModules(curriculum, [...specialtyModules, ...commonModules]);
+  const availableMissions = missionGroups.flatMap((group) => group.missions);
+  // The selection can point at a mission from a previously chosen specialty, so
+  // fall back to the first mission of the current selection instead of an empty card.
+  const mission =
+    availableMissions.find((candidate) => candidate.id === selectedMissionId) ?? availableMissions[0] ?? null;
   const relatedCourseIds = getCourseIdsForSpecialty(curriculum, selectedSpecialty.id, activeGrade).filter(
     (courseId) => courseLabels[courseId]
   );
@@ -111,6 +118,14 @@ export function SchoolCurriculumExplorer({
             specialties={curriculum.specialties}
           />
         </div>
+
+        <MissionList
+          accent={selectedSpecialty.accent}
+          groups={missionGroups}
+          language={language}
+          onSelect={setSelectedMissionId}
+          selectedMissionId={mission?.id ?? ""}
+        />
 
         {mission ? (
           <div aria-live="polite" className="grid gap-5 xl:grid-cols-[1.42fr_0.58fr]" id="selected-curriculum">

@@ -49,7 +49,8 @@ export function buildSchoolCurriculumSeedPayload() {
     deliverable_bg: mission.deliverable.bg,
     skills: mission.skills.map((skill) => skill.en),
     skills_bg: mission.skills.map((skill) => skill.bg),
-    estimated_minutes: mission.estimatedMinutes
+    estimated_minutes: mission.estimatedMinutes,
+    sort_order: mission.sortOrder
   }));
 
   const courseLinks: CurriculumCourseLinkRow[] = fallbackSchoolCurriculum.courseLinks.map((link) => ({

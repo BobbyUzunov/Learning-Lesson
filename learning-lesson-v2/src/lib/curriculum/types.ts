@@ -45,6 +45,7 @@ export type CurriculumMission = {
   deliverable: LocalizedText;
   skills: LocalizedText[];
   estimatedMinutes: number;
+  sortOrder: number;
 };
 
 export type CurriculumCourseLink = {
@@ -104,6 +105,7 @@ export type CurriculumMissionRow = {
   skills: string[];
   skills_bg: string[];
   estimated_minutes: number;
+  sort_order: number;
 };
 
 export type CurriculumCourseLinkRow = {

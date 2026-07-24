@@ -294,6 +294,10 @@ export const dictionary = {
       officialPlan: "Официален учебен план",
       officialDetails: "Официална програма и учебни часове",
       officialDetailsHint: "Разгъни за предметите, резултатите и връзките към учебните планове.",
+      missionLibrary: "Мисии за VIII клас",
+      missionLibraryHint: "Модулите следват официалния учебен план, а мисиите са подредени за учебната година. Избери мисия, за да видиш плана за работа.",
+      missionsLabel: "мисии",
+      sharedModuleLabel: "За всички специалности",
       availableCoursesTitle: "Практически курсове в платформата",
       availableCoursesSubtitle: "Тези курсове остават достъпни и вече са свързани с професиите от училищната програма."
     },
@@ -914,6 +918,10 @@ export const dictionary = {
       officialPlan: "Official curriculum",
       officialDetails: "Official curriculum and school hours",
       officialDetailsHint: "Expand for subjects, outcomes and links to the official plans.",
+      missionLibrary: "Grade 8 missions",
+      missionLibraryHint: "Modules follow the official curriculum and missions are ordered for the school year. Pick a mission to see its work plan.",
+      missionsLabel: "missions",
+      sharedModuleLabel: "Shared by all professions",
       availableCoursesTitle: "Practical courses in the platform",
       availableCoursesSubtitle: "These courses remain available and are now connected to the professions in the school curriculum."
     },

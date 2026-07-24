@@ -1,3 +1,4 @@
+import { gradeEightMissions } from "./missions-grade-8";
 import type { SchoolCurriculum } from "./types";
 
 const admissionsUrl = "https://pgknma.com/priem/";
@@ -86,6 +87,48 @@ export const fallbackSchoolCurriculum: SchoolCurriculum = {
       practiceHours: null,
       sourceUrl: admissionsUrl,
       sortOrder: 0
+    },
+    {
+      id: "grade-8-entrepreneurship",
+      specialtyId: null,
+      gradeLevel: 8,
+      type: "foundation",
+      status: "pilot",
+      title: { en: "Entrepreneurship", bg: "Предприемачество" },
+      description: {
+        en: "General vocational subject with 36 school hours in grade 8, studied by all four professions: from spotting a real problem to pitching a tested idea.",
+        bg: "Общ професионален предмет с 36 учебни часа в VIII клас за всичките четири професии: от откриване на реален проблем до защита на тествана идея."
+      },
+      learningOutcomes: [
+        { en: "Identify a real problem and the people it affects.", bg: "Откриваш реален проблем и хората, които засяга." },
+        { en: "Calculate the cost and the price of a simple product.", bg: "Изчисляваш разходите и цената на прост продукт." },
+        { en: "Test an idea with real users and change it accordingly.", bg: "Тестваш идея с истински потребители и я променяш според резултата." }
+      ],
+      theoryHours: 36,
+      practiceHours: null,
+      sourceUrl: admissionsUrl,
+      sortOrder: 1
+    },
+    {
+      id: "grade-8-information-technology",
+      specialtyId: null,
+      gradeLevel: 8,
+      type: "foundation",
+      status: "pilot",
+      title: { en: "Information Technology", bg: "Информационни технологии" },
+      description: {
+        en: "General education subject with 36 school hours in grade 8: documents, spreadsheets, charts, presentations and safe collaboration.",
+        bg: "Общообразователен предмет с 36 учебни часа в VIII клас: документи, електронни таблици, диаграми, презентации и безопасна съвместна работа."
+      },
+      learningOutcomes: [
+        { en: "Produce a structured document and a working spreadsheet.", bg: "Създаваш структуриран документ и работеща електронна таблица." },
+        { en: "Choose a chart that presents data without distorting it.", bg: "Избираш диаграма, която представя данните без да ги изкривява." },
+        { en: "Collaborate in a shared file without losing anyone's work.", bg: "Работиш в споделен файл, без да губиш чужда работа." }
+      ],
+      theoryHours: 36,
+      practiceHours: null,
+      sourceUrl: admissionsUrl,
+      sortOrder: 2
     },
     {
       id: "grade-8-software-digital-technologies",
@@ -192,84 +235,7 @@ export const fallbackSchoolCurriculum: SchoolCurriculum = {
       sortOrder: 2
     }
   ],
-  missions: [
-    {
-      id: "mission-school-schedule",
-      moduleId: "grade-8-software-digital-technologies",
-      title: { en: "Mission: A smarter school schedule", bg: "Мисия: По-умно училищно разписание" },
-      brief: {
-        en: "Design the logic for a small tool that finds a free classroom without overlapping lessons.",
-        bg: "Проектирай логиката на малък инструмент, който намира свободна стая без застъпване на часовете."
-      },
-      deliverable: {
-        en: "Flowchart, three test cases and a paper or screen prototype.",
-        bg: "Блок-схема, три тестови примера и прототип на хартия или екран."
-      },
-      skills: [
-        { en: "Algorithmic thinking", bg: "Алгоритмично мислене" },
-        { en: "Testing", bg: "Тестване" },
-        { en: "Interface planning", bg: "Планиране на интерфейс" }
-      ],
-      estimatedMinutes: 45
-    },
-    {
-      id: "mission-train-a-classifier",
-      moduleId: "grade-8-intelligent-digital-technologies",
-      title: { en: "Mission: Teach a computer to sort", bg: "Мисия: Научи компютъра да подрежда" },
-      brief: {
-        en: "Create a tiny example dataset and rules for sorting school messages into useful categories.",
-        bg: "Създай малък примерен набор от данни и правила за подреждане на училищни съобщения в полезни категории."
-      },
-      deliverable: {
-        en: "Twelve labeled examples, a decision rule and a short fairness check.",
-        bg: "Дванадесет означени примера, правило за решение и кратка проверка за справедливост."
-      },
-      skills: [
-        { en: "Data literacy", bg: "Работа с данни" },
-        { en: "Classification", bg: "Класификация" },
-        { en: "Responsible AI", bg: "Отговорен AI" }
-      ],
-      estimatedMinutes: 45
-    },
-    {
-      id: "mission-school-poster",
-      moduleId: "grade-8-graphics-composition",
-      title: { en: "Mission: Poster for a school event", bg: "Мисия: Плакат за училищно събитие" },
-      brief: {
-        en: "Create a clear visual concept that communicates one school event in three seconds.",
-        bg: "Създай ясна визуална концепция, която представя училищно събитие за три секунди."
-      },
-      deliverable: {
-        en: "Color palette, thumbnail sketches and one finished A4 composition.",
-        bg: "Цветова палитра, малки композиционни скици и един завършен вариант A4."
-      },
-      skills: [
-        { en: "Composition", bg: "Композиция" },
-        { en: "Color", bg: "Цвят" },
-        { en: "Visual communication", bg: "Визуална комуникация" }
-      ],
-      estimatedMinutes: 60
-    },
-    {
-      id: "mission-protect-school-account",
-      moduleId: "grade-8-cyber-communication-ethics",
-      title: { en: "Mission: Protect the school account", bg: "Мисия: Защити училищния профил" },
-      brief: {
-        en: "Investigate a safe fictional phishing scenario and decide what the student should do next.",
-        bg: "Разследвай безопасен измислен phishing сценарий и реши какво трябва да направи ученикът."
-      },
-      deliverable: {
-        en: "Risk checklist, incident report and a safe response message.",
-        bg: "Списък с рискове, доклад за инцидент и безопасно съобщение за реакция."
-      },
-      skills: [
-        { en: "Digital safety", bg: "Дигитална безопасност" },
-        { en: "Incident reporting", bg: "Докладване на инцидент" },
-        { en: "Ethical decisions", bg: "Етични решения" }
-      ],
-      estimatedMinutes: 45
-    }
-  ],
+  missions: gradeEightMissions,
   courseLinks: [
     { moduleId: "grade-8-software-digital-technologies", courseId: "frontend", sortOrder: 0 },
     { moduleId: "grade-8-software-digital-technologies", courseId: "backend", sortOrder: 1 },

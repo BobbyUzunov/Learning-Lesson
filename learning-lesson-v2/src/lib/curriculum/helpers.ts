@@ -2,6 +2,7 @@ import type { Language } from "../i18n";
 import type {
   CurriculumCourseLinkRow,
   CurriculumMissionRow,
+  CurriculumModule,
   CurriculumModuleRow,
   LocalizedText,
   SchoolCurriculum,
@@ -49,8 +50,20 @@ export function getSpecialtyModules(curriculum: SchoolCurriculum, specialtyId: s
     .sort((left, right) => left.sortOrder - right.sortOrder);
 }
 
+export function getMissionsForModule(curriculum: SchoolCurriculum, moduleId: string) {
+  return curriculum.missions
+    .filter((mission) => mission.moduleId === moduleId)
+    .sort((left, right) => left.sortOrder - right.sortOrder);
+}
+
 export function getMissionForModule(curriculum: SchoolCurriculum, moduleId: string) {
-  return curriculum.missions.find((mission) => mission.moduleId === moduleId) ?? null;
+  return getMissionsForModule(curriculum, moduleId)[0] ?? null;
+}
+
+export function getMissionsForModules(curriculum: SchoolCurriculum, modules: CurriculumModule[]) {
+  return modules
+    .map((module) => ({ module, missions: getMissionsForModule(curriculum, module.id) }))
+    .filter((group) => group.missions.length > 0);
 }
 
 export function getCourseIdsForSpecialty(curriculum: SchoolCurriculum, specialtyId: string, gradeLevel: number) {
@@ -113,20 +126,24 @@ export function mapRowsToSchoolCurriculum(
           sortOrder: row.sort_order
         };
       }),
-    missions: missionRows.map((row) => {
-      const skills = asStringArray(row.skills);
-      const skillsBg = asStringArray(row.skills_bg);
+    missions: missionRows
+      .slice()
+      .sort((left, right) => left.sort_order - right.sort_order)
+      .map((row) => {
+        const skills = asStringArray(row.skills);
+        const skillsBg = asStringArray(row.skills_bg);
 
-      return {
-        id: row.id,
-        moduleId: row.module_id,
-        title: { en: row.title, bg: row.title_bg },
-        brief: { en: row.brief, bg: row.brief_bg },
-        deliverable: { en: row.deliverable, bg: row.deliverable_bg },
-        skills: skills.map((skill, index) => ({ en: skill, bg: skillsBg[index] ?? skill })),
-        estimatedMinutes: row.estimated_minutes
-      };
-    }),
+        return {
+          id: row.id,
+          moduleId: row.module_id,
+          title: { en: row.title, bg: row.title_bg },
+          brief: { en: row.brief, bg: row.brief_bg },
+          deliverable: { en: row.deliverable, bg: row.deliverable_bg },
+          skills: skills.map((skill, index) => ({ en: skill, bg: skillsBg[index] ?? skill })),
+          estimatedMinutes: row.estimated_minutes,
+          sortOrder: row.sort_order
+        };
+      }),
     courseLinks: courseLinkRows.map((row) => ({
       moduleId: row.module_id,
       courseId: row.course_id,
