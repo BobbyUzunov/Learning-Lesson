@@ -1,20 +1,27 @@
 # Learning Lesson v2
 
-Active version of Learning Lesson — a learning platform for digital vocational education with structured courses, hands-on missions, quizzes, projects, certificates, and an integrated **AI Learning Assistant**.
+Активната версия на Learning Lesson — учебна платформа за **дигитални професии в професионална гимназия**.
+
+Учениците избират направление, изпълняват практически мисии с ясен резултат и участват в клас. Учителите създават класове, възлагат мисии и следят напредъка.
 
 **Live:** [learning-lesson-v2.vercel.app](https://learning-lesson-v2.vercel.app)
 
-For repo overview and v1 legacy docs, see the [root README](../README.md).
+Общо описание на продукта: [root README](../README.md).
 
-## What it is
+## Какво е това
 
-Learners can explore a grade 8 vocational pilot based on the official 2026/2027 PGKNMA curricula for **Software Development, Intelligent Systems, Computer Graphics, and Cybersecurity**. Each profession connects official modules, learning outcomes, a practical orientation mission, and relevant courses already available in the platform.
+Пилот за **VIII клас** по учебните планове на ПГКНМА (прием 2026/2027) за:
 
-The original sequential courses (Frontend → Backend → Full-Stack → AI → Mobile → AI Product Builder) remain available. Learners complete lessons with theory + task + quiz, submit mini projects and a capstone, and earn certificates when requirements are met.
+- разработка на софтуер;
+- интелигентни системи;
+- компютърна графика;
+- киберсигурност.
 
-Content is **DB-first** with code fallbacks: courses, lessons, metadata, quiz questions, and projects load from Supabase when configured.
+Всяко направление свързва официални модули, учебни резултати и практически мисии. Общите предмети са отделени. Учителите работят с класове (код, архив, задания, справки без ученически имейл).
 
-Registered learners can request **contextual AI hints** inside each lesson — guided help that nudges them forward without giving away full solutions.
+Паралелно остават достъпни практическите курсове в платформата (теория → задача → quiz, проекти, сертификати) и **AI подсказки** в урок — насоки, не готови решения.
+
+Съдържанието е **DB-first** с fallback в кода: курсове, уроци, мисии и проекти се зареждат от Supabase, когато е конфигуриран.
 
 ## AI Learning Assistant
 

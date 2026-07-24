@@ -1,57 +1,88 @@
 # Learning Lesson
 
-AI-assisted learning platform for programming — structured courses, hands-on missions, quizzes, projects, certificates, and a lesson-scoped **AI Learning Assistant**.
+Практическа учебна платформа за **професионални гимназии** — учениците избират дигитална професия, изпълняват кратки мисии с реален резултат, а учителите следят напредъка на класа.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black)](https://learning-lesson-v2.vercel.app)
+[![Live Demo](https://img.shields.io/badge/Live-learning--lesson--v2.vercel.app-black)](https://learning-lesson-v2.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20DB-3ECF8E)](https://supabase.com/)
-[![OpenAI](https://img.shields.io/badge/OpenAI-AI%20Hints-412991)](https://openai.com/)
 [![Status](https://img.shields.io/badge/Status-Active-success)](#)
 
-**Live app:** [learning-lesson-v2.vercel.app](https://learning-lesson-v2.vercel.app)
+**Живо приложение:** [learning-lesson-v2.vercel.app](https://learning-lesson-v2.vercel.app)
+
+Пилотът следва учебните планове на [ПГКНМА](https://pgknma.com) за прием 2026/2027 · VIII клас.
 
 ---
 
-## About
+## За какво е платформата
 
-Learning Lesson helps beginners learn programming by shipping real work — not just reading tutorials. Learners follow sequential courses, complete missions with hints and quizzes, request **AI-guided hints** when stuck, submit projects (including a reviewed capstone on AI Product Builder), and earn certificates.
+Learning Lesson свързва **официалната училищна програма** с работа в час:
 
-The active product is **v2** — Next.js 15 + Supabase + OpenAI + Vercel. **v1** is the original Express + HTML environment, kept for reference.
+- ученикът избира едно от **четирите дигитални направления**;
+- получава **практическа мисия** с ясно „какво ще направиш“ и „какво ще предадеш“;
+- събира измерим резултат (портфолио), а не само тест;
+- учителят създава **клас с код**, възлага мисии и вижда кой е активен.
 
----
-
-## Repository structure
-
-| Folder | Stack | Status |
-|--------|-------|--------|
-| [`learning-lesson-v2/`](learning-lesson-v2/) | Next.js 15, React 19, TypeScript, Tailwind, Supabase, OpenAI | **Active** — main product |
-| [`learning-lesson-v1/`](learning-lesson-v1/) | Node.js, Express, HTML/JS | Legacy — original MVP |
-
-Detailed v2 docs: [learning-lesson-v2/README.md](learning-lesson-v2/README.md)
+Целта не е още един курс по програмиране за самоуки. Целта е **урочна среда за професионална гимназия**: мисии, клас, напредък и реални deliverables.
 
 ---
 
-## Features (v2)
+## Четири направления (VIII клас)
 
-- **6 courses**, **63 lessons** — Frontend, Backend, Full-Stack, AI, Mobile, AI Product Builder (EN/BG)
-- **AI Learning Assistant** — lesson-scoped hints with daily quota, Supabase persistence, and cost controls (`gpt-4o-mini`)
-- DB-backed content catalog with admin CMS (courses, lessons, metadata, quiz, projects)
-- Quiz question bank and course projects in Supabase
-- Lesson flow: theory, code example, mission, **AI hint**, quiz
-- Mini projects + capstone with admin review and certificate gating
-- **Draft autosave** for lesson solutions and project submissions (localStorage)
-- **Certificate print / share link** on earned certificates
-- Guest mode — first Frontend lesson without an account
-- Supabase auth, per-user progress, XP, levels, achievements, daily streak and challenge
-- Mobile-first UI with responsive navigation, tap targets, and overflow fixes
-- Protected admin area: CMS, seed endpoint, capstone review queue
-- **57 Vitest unit tests** and **20 Playwright E2E tests** covering auth, secure lesson completion, certificates, AI mentor, navigation, and mobile layout
-- Hardened Supabase access with RLS on Data API tables and privileged operations isolated in a private schema
+| Направление | Какво тренира |
+|-------------|---------------|
+| Разработка на софтуер | Алгоритмично мислене, логика, прототипи |
+| Интелигентни системи | Данни, автоматизация, практични AI сценарии |
+| Компютърна графика | Композиция, цвят, визуална комуникация |
+| Киберсигурност | Защита на акаунти, дигитална хигиена, рискове |
+
+Плюс общи предмети (ИТ, предприемачество и др.), подредени по модули за учебната година.
 
 ---
 
-## Quick start (v2)
+## За кого е
+
+### Ученици
+- избират професия и започват с препоръчана мисия;
+- разглеждат мисиите по модули (без да се претрупват с десетки задачи наведнъж);
+- влизат в клас с код от учителя;
+- предават задания и получават обратна връзка;
+- следят XP, ниво и прогрес в таблото.
+
+### Учители
+- създават клас с учебна година и код за присъединяване;
+- архивират клас, въртят или спират кода, прехвърлят собственост;
+- възлагат училищни мисии и рецензират предаденото;
+- виждат справки по клас **без** ученически имейл (име + кратък идентификатор).
+
+### Администратори
+- назначават учителска роля;
+- управляват каталог с уроци, проекти и ревюта.
+
+---
+
+## Какво включва (v2)
+
+- училищна програма и мисии за VIII клас по официалните планове;
+- класни стаи, join код, задания и рецензии;
+- практически курсове в платформата (теория → задача → quiz);
+- AI помощник за подсказки в урок (без готови решения);
+- прогрес, XP, сертификати;
+- интерфейс на **български и английски**.
+
+---
+
+## Структура на хранилището
+
+| Папка | Статус |
+|-------|--------|
+| [`learning-lesson-v2/`](learning-lesson-v2/) | **Активен продукт** — Next.js 15, Supabase, Vercel |
+| [`learning-lesson-v1/`](learning-lesson-v1/) | Legacy MVP |
+
+Технически детайли за разработка: [learning-lesson-v2/README.md](learning-lesson-v2/README.md)
+
+---
+
+## Бърз старт
 
 ```bash
 git clone https://github.com/BobbyUzunov/Learning-Lesson.git
@@ -61,98 +92,18 @@ cp .env.local.example .env.local
 npm run dev
 ```
 
-Open http://localhost:3000
-
-### Environment variables
+Отвори [http://localhost:3000](http://localhost:3000)
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-
-# Optional — enables AI Learning Assistant
-OPENAI_API_KEY=your-openai-api-key
-OPENAI_MODEL=gpt-4o-mini          # optional
+OPENAI_API_KEY=your-openai-api-key   # по желание — AI подсказки
 ```
 
-Apply Supabase migrations from `learning-lesson-v2/supabase/migrations/` (in order), then seed via `/api/admin/seed-catalog` as an admin user. See [learning-lesson-v2/README.md](learning-lesson-v2/README.md) for details.
+Миграциите са в `learning-lesson-v2/supabase/migrations/`.
 
 ---
 
-## Quick start (v1)
+## English summary
 
-```bash
-cd learning-lesson-v1
-npm install
-npm run dev
-```
-
-Schema: `learning-lesson-v1/supabase-schema.sql`
-
----
-
-## v2 routes
-
-| Route | Description |
-|-------|-------------|
-| `/` | Landing page |
-| `/paths` | Course syllabus |
-| `/lesson/[id]` | Lesson workspace (theory, mission, AI hint, quiz) |
-| `/projects/[id]` | Project submission |
-| `/dashboard` | Progress, streak, daily challenge |
-| `/profile` | Stats, achievements, certificates |
-| `/certificate/[questId]` | Certificate view (print / share) |
-| `/login`, `/register` | Auth |
-| `/admin` | CMS dashboard |
-| `/admin/quiz`, `/admin/projects` | Quiz and project editors |
-| `/admin/reviews` | Capstone review queue |
-| `GET /api/mentor` | Daily AI hint quota |
-| `POST /api/mentor` | Request AI hint |
-
----
-
-## Tech stack
-
-**v2 (active):** Next.js, React, TypeScript, Tailwind CSS, Supabase, OpenAI, Vercel, Vitest, Playwright
-
-**v1 (legacy):** Node.js, Express, vanilla HTML/JS, Supabase
-
----
-
-## Data model (v2)
-
-Content lives in Supabase (`courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `lesson_quiz_topics`, `course_projects`) with fallbacks in `src/lib/game-data.ts` and related modules.
-
-User data: `profiles`, `user_progress`, `project_submissions`, `mentor_daily_usage`.
-
-All Data API tables use Row Level Security. Privileged RPC implementations and the server-managed `mentor_settings` row live in Supabase's unexposed `private` schema; clients use authenticated public wrappers for protected operations.
-
----
-
-## Roadmap
-
-- [x] Gamified course/lesson flow with unlock rules
-- [x] Supabase auth and progress API
-- [x] Guest-first onboarding and i18n (BG/EN)
-- [x] Lesson metadata and syllabus view
-- [x] DB-backed catalog + admin CMS
-- [x] Quiz and projects in Supabase + admin editors
-- [x] Mini projects, capstone, admin review, certificates
-- [x] AI Learning Assistant (lesson-scoped hints, quota, Supabase)
-- [x] E2E tests for auth, lessons, certificates, mentor, and mobile layout
-- [x] Mobile layout polish and learner UX (draft autosave, certificate actions)
-- [ ] Mentor usage analytics in admin dashboard
-- [ ] Server-side draft sync for logged-in learners
-
----
-
-## Deployment
-
-Deploy **v2** from the `learning-lesson-v2/` directory on Vercel. Set Supabase and OpenAI environment variables in the Vercel project settings, apply all Supabase migrations, then redeploy.
-
----
-
-## Author
-
-**Boncho Uzunov** — [GitHub](https://github.com/BobbyUzunov)
-
-If this project is useful to you, consider giving it a star.
+**Learning Lesson** is a vocational high-school learning platform for digital careers. Students pick a profession, complete short practical missions with real deliverables, and join classes with a teacher code. Teachers assign missions, review submissions, and track class progress. The grade 8 pilot follows [PGKNMA](https://pgknma.com) curricula for Software Development, Intelligent Systems, Computer Graphics, and Cybersecurity.
