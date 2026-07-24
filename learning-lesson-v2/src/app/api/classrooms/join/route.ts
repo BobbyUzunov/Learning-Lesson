@@ -9,6 +9,19 @@ type JoinClassroomRow = {
   name: string;
 };
 
+function joinErrorStatus(message: string) {
+  if (message.includes("join_rate_limited")) {
+    return 429;
+  }
+  if (message.includes("classroom_not_found")) {
+    return 404;
+  }
+  if (message.includes("classroom_unavailable") || message.includes("teacher_cannot_join")) {
+    return 403;
+  }
+  return 400;
+}
+
 export async function POST(request: Request) {
   if (!hasSupabaseEnv()) {
     return NextResponse.json({ error: "Supabase env is not configured." }, { status: 503 });
@@ -34,8 +47,7 @@ export async function POST(request: Request) {
     .single<JoinClassroomRow>();
 
   if (error) {
-    const status = error.message.includes("classroom_not_found") ? 404 : 400;
-    return NextResponse.json({ error: error.message }, { status });
+    return NextResponse.json({ error: error.message }, { status: joinErrorStatus(error.message) });
   }
 
   revalidatePath("/classes");

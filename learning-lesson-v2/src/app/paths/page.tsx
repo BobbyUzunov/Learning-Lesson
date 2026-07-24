@@ -40,8 +40,9 @@ export default async function PathsPage({ searchParams }: PathsPageProps) {
         language={language}
       />
       <section className="mt-12 border-t border-ink/10 pt-8" id="practical-courses">
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-violet">03 · {copy.paths.badge}</p>
-        <h2 className="mt-2 text-2xl font-black sm:text-3xl">{copy.schoolCurriculum.availableCoursesTitle}</h2>
+        <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+          {copy.schoolCurriculum.availableCoursesTitle}
+        </h2>
         <p className="mt-3 max-w-2xl leading-7 text-ink/70">{copy.schoolCurriculum.availableCoursesSubtitle}</p>
       </section>
       <SyllabusView

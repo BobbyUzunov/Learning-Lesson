@@ -1,3 +1,5 @@
+export type ClassroomStatus = "active" | "archived";
+
 export type Classroom = {
   id: string;
   teacherId: string;
@@ -5,8 +7,10 @@ export type Classroom = {
   description: string | null;
   specialtyId: string | null;
   gradeLevel: number;
+  academicYear: string;
+  status: ClassroomStatus;
   joinCode: string;
-  archived: boolean;
+  joinCodeEnabled: boolean;
   createdAt: string;
   memberCount?: number;
 };
@@ -16,13 +20,14 @@ export type StudentClassroom = {
   name: string;
   description: string | null;
   gradeLevel: number;
+  academicYear: string;
+  status: ClassroomStatus;
   joinedAt: string;
 };
 
 export type ClassroomReportRow = {
   studentId: string;
   displayName: string | null;
-  email: string | null;
   completedLessons: number;
   xp: number;
   level: number;
@@ -37,21 +42,26 @@ export type ClassroomRow = {
   description: string | null;
   specialty_id: string | null;
   grade_level: number;
+  academic_year: string;
+  status: ClassroomStatus;
   join_code: string;
-  archived: boolean;
+  join_code_enabled: boolean;
   created_at: string;
 };
 
 export type ClassroomReportRpcRow = {
   student_id: string;
   display_name: string | null;
-  email: string | null;
   completed_lessons: number;
   xp: number;
   level: number;
   last_visit: string | null;
   joined_at: string;
 };
+
+export function shortStudentId(studentId: string) {
+  return studentId.replace(/-/g, "").slice(0, 8).toUpperCase();
+}
 
 export function mapClassroomRow(row: ClassroomRow, memberCount?: number): Classroom {
   return {
@@ -61,8 +71,10 @@ export function mapClassroomRow(row: ClassroomRow, memberCount?: number): Classr
     description: row.description,
     specialtyId: row.specialty_id,
     gradeLevel: row.grade_level,
+    academicYear: row.academic_year,
+    status: row.status,
     joinCode: row.join_code,
-    archived: row.archived,
+    joinCodeEnabled: row.join_code_enabled,
     createdAt: row.created_at,
     memberCount
   };
@@ -72,7 +84,6 @@ export function mapClassroomReportRow(row: ClassroomReportRpcRow): ClassroomRepo
   return {
     studentId: row.student_id,
     displayName: row.display_name,
-    email: row.email,
     completedLessons: row.completed_lessons,
     xp: row.xp,
     level: row.level,

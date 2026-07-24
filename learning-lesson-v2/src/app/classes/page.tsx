@@ -125,10 +125,11 @@ export default async function ClassesPage() {
                   <p className="mt-1 text-sm text-ink/60">{classroom.description}</p>
                 ) : null}
                 <p className="mt-3 text-xs font-bold uppercase text-ink/50">
-                  {copy.classroom.gradeLabel}: {classroom.gradeLevel}
+                  {copy.classroom.gradeLabel}: {classroom.gradeLevel} · {classroom.academicYear}
                 </p>
                 <p className="mt-1 text-xs text-ink/50">
                   {copy.classroom.joinedOn} {formatDate(classroom.joinedAt, language)}
+                  {classroom.status === "archived" ? ` · ${copy.classroom.statusArchived}` : ""}
                 </p>
               </div>
             ))}

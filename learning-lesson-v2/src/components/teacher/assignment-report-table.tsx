@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { AssignmentReportRow, AssignmentStatus } from "@/lib/assignments/types";
 import type { AssignmentReportSummary } from "@/lib/assignments/types";
+import { shortStudentId } from "@/lib/classrooms/types";
 import { t, type Language } from "@/lib/i18n";
 
 type AssignmentReportTableProps = {
@@ -120,10 +121,8 @@ export function AssignmentReportTable({ language, rows, summary }: AssignmentRep
               {rows.map((row) => (
                 <tr className="border-b border-ink/5 align-top" key={row.studentId}>
                   <td className="px-4 py-3">
-                    <p className="font-bold">{row.displayName || row.email || row.studentId}</p>
-                    {row.email && row.displayName ? (
-                      <p className="text-xs text-ink/50">{row.email}</p>
-                    ) : null}
+                    <p className="font-bold">{row.displayName || copy.colStudent}</p>
+                    <p className="text-xs font-mono text-ink/50">{shortStudentId(row.studentId)}</p>
                   </td>
                   <td className="px-4 py-3 font-semibold">{statusLabel(copy, row.status)}</td>
                   <td className="px-4 py-3">

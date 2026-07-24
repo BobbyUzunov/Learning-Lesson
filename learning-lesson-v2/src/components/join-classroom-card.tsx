@@ -28,7 +28,15 @@ export function JoinClassroomCard({ language }: { language: Language }) {
     setLoading(false);
 
     if (!response.ok) {
-      setError(copy.classroom.joinError);
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      const codeError = payload?.error ?? "";
+      if (codeError.includes("join_rate_limited") || response.status === 429) {
+        setError(copy.classroom.joinRateLimited);
+      } else if (codeError.includes("classroom_unavailable")) {
+        setError(copy.classroom.joinUnavailable);
+      } else {
+        setError(copy.classroom.joinError);
+      }
       return;
     }
 

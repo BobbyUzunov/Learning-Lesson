@@ -39,7 +39,6 @@ export type AssignmentSubmission = {
 export type AssignmentReportRow = {
   studentId: string;
   displayName: string | null;
-  email: string | null;
   submissionId: string | null;
   status: AssignmentStatus;
   deliverableText: string | null;
@@ -77,7 +76,6 @@ export type AssignmentSubmissionRow = {
 export type AssignmentReportRpcRow = {
   student_id: string;
   display_name: string | null;
-  email: string | null;
   submission_id: string | null;
   status: string;
   deliverable_text: string | null;
@@ -137,7 +135,6 @@ export function mapAssignmentReportRow(row: AssignmentReportRpcRow): AssignmentR
   return {
     studentId: row.student_id,
     displayName: row.display_name,
-    email: row.email,
     submissionId: row.submission_id,
     status: asAssignmentStatus(row.status),
     deliverableText: row.deliverable_text,

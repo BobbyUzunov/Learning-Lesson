@@ -7,6 +7,7 @@ import {
   type ClassroomReportRow,
   type ClassroomReportRpcRow,
   type ClassroomRow,
+  type ClassroomStatus,
   type StudentClassroom
 } from "@/lib/classrooms/types";
 
@@ -14,7 +15,8 @@ type ClassroomWithCountRow = ClassroomRow & {
   classroom_members: { count: number }[] | null;
 };
 
-const classroomColumns = "id, teacher_id, name, description, specialty_id, grade_level, join_code, archived, created_at";
+const classroomColumns =
+  "id, teacher_id, name, description, specialty_id, grade_level, academic_year, status, join_code, join_code_enabled, created_at";
 
 export async function getTeacherClassrooms(): Promise<Classroom[]> {
   const session = await getCurrentSession();
@@ -74,7 +76,7 @@ export async function getStudentClassrooms(): Promise<StudentClassroom[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("classroom_members")
-    .select("joined_at, classrooms(id, name, description, grade_level)")
+    .select("joined_at, classrooms(id, name, description, grade_level, academic_year, status)")
     .eq("student_id", session.user.id)
     .order("joined_at", { ascending: false });
 
@@ -89,6 +91,8 @@ export async function getStudentClassrooms(): Promise<StudentClassroom[]> {
       name: string;
       description: string | null;
       grade_level: number;
+      academic_year: string;
+      status: ClassroomStatus;
     } | null;
   };
 
@@ -101,6 +105,27 @@ export async function getStudentClassrooms(): Promise<StudentClassroom[]> {
       name: row.classrooms.name,
       description: row.classrooms.description,
       gradeLevel: row.classrooms.grade_level,
+      academicYear: row.classrooms.academic_year,
+      status: row.classrooms.status,
       joinedAt: row.joined_at
     }));
+}
+
+export async function listTransferCandidates(excludeUserId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, display_name, email, role")
+    .in("role", ["teacher", "admin"])
+    .neq("id", excludeUserId)
+    .order("display_name", { ascending: true });
+
+  if (error || !data) {
+    return [];
+  }
+
+  return data.map((row) => ({
+    id: row.id as string,
+    label: (row.display_name as string | null) || (row.email as string | null) || (row.id as string)
+  }));
 }

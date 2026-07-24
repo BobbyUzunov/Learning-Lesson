@@ -36,7 +36,6 @@ describe("assignments helpers", () => {
     const mapped = mapAssignmentReportRow({
       student_id: "s1",
       display_name: "Ada",
-      email: "ada@school.bg",
       submission_id: null,
       status: "weird",
       deliverable_text: null,
@@ -49,6 +48,7 @@ describe("assignments helpers", () => {
 
     expect(mapped.status).toBe("missing");
     expect(mapped.displayName).toBe("Ada");
+    expect(mapped).not.toHaveProperty("email");
   });
 
   it("summarizes assignment report statuses", () => {
@@ -56,7 +56,6 @@ describe("assignments helpers", () => {
       {
         studentId: "1",
         displayName: "A",
-        email: null,
         submissionId: null,
         status: "missing",
         deliverableText: null,
@@ -69,7 +68,6 @@ describe("assignments helpers", () => {
       {
         studentId: "2",
         displayName: "B",
-        email: null,
         submissionId: "x",
         status: "draft",
         deliverableText: null,
@@ -82,7 +80,6 @@ describe("assignments helpers", () => {
       {
         studentId: "3",
         displayName: "C",
-        email: null,
         submissionId: "y",
         status: "submitted",
         deliverableText: "done",
@@ -95,7 +92,6 @@ describe("assignments helpers", () => {
       {
         studentId: "4",
         displayName: "D",
-        email: null,
         submissionId: "z",
         status: "approved",
         deliverableText: "done",
@@ -108,7 +104,6 @@ describe("assignments helpers", () => {
       {
         studentId: "5",
         displayName: "E",
-        email: null,
         submissionId: "w",
         status: "needs_changes",
         deliverableText: "done",

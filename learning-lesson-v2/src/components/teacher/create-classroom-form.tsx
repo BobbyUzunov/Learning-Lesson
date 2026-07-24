@@ -8,6 +8,8 @@ import { t, type Language } from "@/lib/i18n";
 type SpecialtyOption = { id: string; title: string };
 
 const gradeOptions = [8, 9, 10, 11, 12] as const;
+const academicYearOptions = ["2025/2026", "2026/2027", "2027/2028"] as const;
+const defaultAcademicYear = "2026/2027";
 
 export function CreateClassroomForm({
   language,
@@ -22,6 +24,7 @@ export function CreateClassroomForm({
   const [description, setDescription] = useState("");
   const [specialtyId, setSpecialtyId] = useState("");
   const [gradeLevel, setGradeLevel] = useState(8);
+  const [academicYear, setAcademicYear] = useState<string>(defaultAcademicYear);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,7 +40,8 @@ export function CreateClassroomForm({
         name,
         description,
         specialtyId: specialtyId || null,
-        gradeLevel
+        gradeLevel,
+        academicYear
       })
     });
 
@@ -52,6 +56,7 @@ export function CreateClassroomForm({
     setDescription("");
     setSpecialtyId("");
     setGradeLevel(8);
+    setAcademicYear(defaultAcademicYear);
     router.refresh();
   }
 
@@ -122,6 +127,22 @@ export function CreateClassroomForm({
           </select>
         </div>
       </div>
+
+      <label className="mt-4 block text-sm font-bold text-ink/80" htmlFor="classroom-year">
+        {copy.teacher.academicYearLabel}
+      </label>
+      <select
+        className="focus-ring mt-2 w-full rounded-md border border-ink/15 bg-white px-3 py-3"
+        id="classroom-year"
+        onChange={(event) => setAcademicYear(event.target.value)}
+        value={academicYear}
+      >
+        {academicYearOptions.map((year) => (
+          <option key={year} value={year}>
+            {year}
+          </option>
+        ))}
+      </select>
 
       {error ? <p className="mt-4 rounded-md bg-coral/15 px-4 py-3 text-sm font-semibold text-ink">{error}</p> : null}
 

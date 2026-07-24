@@ -2,13 +2,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Users } from "lucide-react";
 import { AssignMissionForm } from "@/components/teacher/assign-mission-form";
+import { ClassroomControls } from "@/components/teacher/classroom-controls";
 import { ClassroomReportTable } from "@/components/teacher/classroom-report-table";
 import { CopyCodeButton } from "@/components/teacher/copy-code-button";
 import { getSchoolCurriculum, localizeCurriculumText } from "@/lib/curriculum";
 import { getCommonModules, getSpecialtyModules, getMissionsForModule } from "@/lib/curriculum/helpers";
 import { getClassroomAssignments } from "@/lib/supabase/assignments";
-import { getClassroomById, getClassroomReport } from "@/lib/supabase/classrooms";
+import {
+  getClassroomById,
+  getClassroomReport,
+  listTransferCandidates
+} from "@/lib/supabase/classrooms";
 import { summarizeClassroomReport } from "@/lib/classrooms/types";
+import { getCurrentSession } from "@/lib/supabase/auth";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 
@@ -36,10 +42,16 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
     notFound();
   }
 
-  const [report, assignments, curriculum] = await Promise.all([
+  const session = await getCurrentSession();
+  const canTransfer =
+    Boolean(session.user) &&
+    (session.isAdmin || session.user?.id === classroom.teacherId);
+
+  const [report, assignments, curriculum, transferCandidates] = await Promise.all([
     getClassroomReport(id),
     getClassroomAssignments(id),
-    getSchoolCurriculum()
+    getSchoolCurriculum(),
+    canTransfer ? listTransferCandidates(classroom.teacherId) : Promise.resolve([])
   ]);
   const today = new Date().toISOString().slice(0, 10);
   const summary = summarizeClassroomReport(report, today);
@@ -64,6 +76,12 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
       }))
   );
 
+  const statusLabel =
+    classroom.status === "archived" ? copy.teacher.statusArchived : copy.teacher.statusActive;
+  const joinStateLabel = classroom.joinCodeEnabled
+    ? copy.teacher.joinCodeEnabled
+    : copy.teacher.joinCodeDisabled;
+
   return (
     <div>
       <Link className="inline-flex items-center gap-2 text-sm font-bold text-ink/60 hover:text-ink" href="/teacher">
@@ -80,6 +98,10 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
               <Users className="size-4" />
               {classroom.memberCount ?? 0} {copy.teacher.studentsCount}
             </p>
+            <p className="mt-2 text-sm text-ink/60">
+              {copy.teacher.academicYearLabel}: {classroom.academicYear} · {copy.teacher.gradeLabel}:{" "}
+              {classroom.gradeLevel} · {statusLabel} · {joinStateLabel}
+            </p>
           </div>
           <div className="text-right">
             <p className="text-xs font-bold uppercase text-ink/50">{copy.teacher.joinCodeLabel}</p>
@@ -90,6 +112,17 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
           </div>
         </div>
         <p className="mt-4 rounded-md bg-ink/5 px-4 py-3 text-sm text-ink/70">{copy.teacher.shareHint}</p>
+      </div>
+
+      <div className="mt-6">
+        <ClassroomControls
+          canTransfer={canTransfer}
+          classroomId={classroom.id}
+          joinCodeEnabled={classroom.joinCodeEnabled}
+          language={language}
+          status={classroom.status}
+          transferCandidates={transferCandidates}
+        />
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">

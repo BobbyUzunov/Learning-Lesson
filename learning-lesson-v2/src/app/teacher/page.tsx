@@ -50,10 +50,19 @@ export default async function TeacherPage() {
                         <Users className="size-4" />
                         {classroom.memberCount ?? 0} {copy.teacher.studentsCount}
                       </p>
+                      <p className="mt-2 text-xs text-ink/55">
+                        {classroom.academicYear} · {copy.teacher.gradeLabel} {classroom.gradeLevel} ·{" "}
+                        {classroom.status === "archived"
+                          ? copy.teacher.statusArchived
+                          : copy.teacher.statusActive}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs font-bold uppercase text-ink/50">{copy.teacher.joinCodeLabel}</p>
                       <p className="font-mono text-2xl font-black tracking-[0.2em] text-violet">{classroom.joinCode}</p>
+                      {!classroom.joinCodeEnabled ? (
+                        <p className="mt-1 text-xs font-bold text-coral">{copy.teacher.joinCodeDisabled}</p>
+                      ) : null}
                     </div>
                   </div>
                   <div className="mt-4 flex flex-wrap items-center gap-3">

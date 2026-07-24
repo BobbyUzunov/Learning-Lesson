@@ -38,10 +38,15 @@ export default async function RootLayout({
         { href: "/paths", label: copy.nav.paths },
         { href: "/classes", label: copy.nav.classes },
         { href: "/profile", label: copy.nav.profile },
-        ...(session.isTeacher ? [{ href: "/teacher", label: copy.nav.teacher }] : []),
+        ...(session.isTeacher
+          ? [{ href: "/teacher", label: copy.nav.teacher }]
+          : [{ href: "/for-teachers", label: copy.nav.forTeachers }]),
         ...(session.isAdmin ? [{ href: "/admin", label: copy.nav.admin }] : [])
       ]
-    : [{ href: "/paths", label: copy.nav.paths }];
+    : [
+        { href: "/paths", label: copy.nav.paths },
+        { href: "/for-teachers", label: copy.nav.forTeachers }
+      ];
 
   return (
     <html className={`${displayFont.variable} ${bodyFont.variable}`} lang={language}>

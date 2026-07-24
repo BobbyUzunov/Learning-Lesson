@@ -25,6 +25,10 @@ export async function POST(request: Request) {
   const description = typeof body?.description === "string" ? body.description.trim() : "";
   const specialtyId = typeof body?.specialtyId === "string" && body.specialtyId ? body.specialtyId : null;
   const gradeLevel = typeof body?.gradeLevel === "number" ? Math.trunc(body.gradeLevel) : 8;
+  const academicYear =
+    typeof body?.academicYear === "string" && body.academicYear.trim()
+      ? body.academicYear.trim()
+      : "2026/2027";
 
   if (!name || name.length > 120) {
     return NextResponse.json({ error: "invalid_name" }, { status: 400 });
@@ -34,12 +38,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_grade" }, { status: 400 });
   }
 
+  if (!/^\d{4}\/\d{4}$/.test(academicYear)) {
+    return NextResponse.json({ error: "invalid_academic_year" }, { status: 400 });
+  }
+
   const { data, error } = await auth
     .supabase!.rpc("create_classroom", {
       p_name: name,
       p_description: description,
       p_specialty_id: specialtyId,
-      p_grade_level: gradeLevel
+      p_grade_level: gradeLevel,
+      p_academic_year: academicYear
     })
     .single<CreateClassroomRow>();
 

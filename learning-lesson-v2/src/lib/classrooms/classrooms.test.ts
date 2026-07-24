@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   mapClassroomReportRow,
   mapClassroomRow,
+  shortStudentId,
   summarizeClassroomReport,
   type ClassroomReportRow,
   type ClassroomReportRpcRow,
@@ -15,8 +16,10 @@ const baseRow: ClassroomRow = {
   description: "Pilot class",
   specialty_id: "software-development",
   grade_level: 8,
+  academic_year: "2026/2027",
+  status: "active",
   join_code: "A1B2C3",
-  archived: false,
+  join_code_enabled: true,
   created_at: "2026-07-24T10:00:00Z"
 };
 
@@ -29,17 +32,18 @@ describe("classroom mappers", () => {
       name: "8A Software",
       specialtyId: "software-development",
       gradeLevel: 8,
+      academicYear: "2026/2027",
+      status: "active",
       joinCode: "A1B2C3",
-      archived: false,
+      joinCodeEnabled: true,
       memberCount: 12
     });
   });
 
-  it("maps a report RPC row to camelCase", () => {
+  it("maps a report RPC row without email", () => {
     const rpcRow: ClassroomReportRpcRow = {
-      student_id: "student-1",
+      student_id: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
       display_name: "Ivan",
-      email: "ivan@example.com",
       completed_lessons: 5,
       xp: 500,
       level: 4,
@@ -47,15 +51,15 @@ describe("classroom mappers", () => {
       joined_at: "2026-07-20T09:00:00Z"
     };
     expect(mapClassroomReportRow(rpcRow)).toEqual({
-      studentId: "student-1",
+      studentId: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
       displayName: "Ivan",
-      email: "ivan@example.com",
       completedLessons: 5,
       xp: 500,
       level: 4,
       lastVisit: "2026-07-24",
       joinedAt: "2026-07-20T09:00:00Z"
     });
+    expect(shortStudentId(rpcRow.student_id)).toBe("AAAAAAAA");
   });
 });
 
@@ -65,7 +69,6 @@ describe("summarizeClassroomReport", () => {
     {
       studentId: "a",
       displayName: "A",
-      email: null,
       completedLessons: 4,
       xp: 400,
       level: 3,
@@ -75,7 +78,6 @@ describe("summarizeClassroomReport", () => {
     {
       studentId: "b",
       displayName: "B",
-      email: null,
       completedLessons: 2,
       xp: 200,
       level: 2,
