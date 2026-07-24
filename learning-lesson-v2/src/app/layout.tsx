@@ -22,7 +22,9 @@ export default async function RootLayout({
     ? [
         { href: "/dashboard", label: copy.nav.dashboard },
         { href: "/paths", label: copy.nav.paths },
+        { href: "/classes", label: copy.nav.classes },
         { href: "/profile", label: copy.nav.profile },
+        ...(session.isTeacher ? [{ href: "/teacher", label: copy.nav.teacher }] : []),
         ...(session.isAdmin ? [{ href: "/admin", label: copy.nav.admin }] : [])
       ]
     : [{ href: "/paths", label: copy.nav.paths }];

@@ -21,12 +21,13 @@ export async function getCurrentSession() {
         xp: 0,
         level: 1
       } satisfies UserProfile,
-      isAdmin: false
+      isAdmin: false,
+      isTeacher: false
     };
   }
 
   if (!hasSupabaseEnv()) {
-    return { configured: false, user: null, profile: null, isAdmin: false };
+    return { configured: false, user: null, profile: null, isAdmin: false, isTeacher: false };
   }
 
   const supabase = await createClient();
@@ -35,7 +36,7 @@ export async function getCurrentSession() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { configured: true, user: null, profile: null, isAdmin: false };
+    return { configured: true, user: null, profile: null, isAdmin: false, isTeacher: false };
   }
 
   const { profile } = await ensureUserProfile(supabase, user);
@@ -56,7 +57,8 @@ export async function getCurrentSession() {
     configured: true,
     user,
     profile: normalizedProfile,
-    isAdmin: normalizedProfile.role === "admin"
+    isAdmin: normalizedProfile.role === "admin",
+    isTeacher: normalizedProfile.role === "teacher" || normalizedProfile.role === "admin"
   };
 }
 
@@ -76,6 +78,16 @@ export async function requireAdmin() {
   const session = await requireUser();
 
   if (!session.isAdmin) {
+    redirect("/dashboard");
+  }
+
+  return session;
+}
+
+export async function requireTeacher() {
+  const session = await requireUser();
+
+  if (!session.isTeacher) {
     redirect("/dashboard");
   }
 

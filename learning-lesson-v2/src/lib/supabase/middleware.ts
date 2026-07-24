@@ -44,7 +44,11 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
   const isProtected =
-    pathname.startsWith("/dashboard") || pathname.startsWith("/profile") || pathname.startsWith("/admin");
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/classes") ||
+    pathname.startsWith("/teacher") ||
+    pathname.startsWith("/admin");
 
   if (isProtected && !user) {
     const redirectUrl = request.nextUrl.clone();
@@ -53,10 +57,12 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (pathname.startsWith("/admin") && user) {
+  if ((pathname.startsWith("/admin") || pathname.startsWith("/teacher")) && user) {
     const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+    const role = profile?.role;
+    const allowed = pathname.startsWith("/admin") ? role === "admin" : role === "teacher" || role === "admin";
 
-    if (profile?.role !== "admin") {
+    if (!allowed) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/dashboard";
       return NextResponse.redirect(redirectUrl);
