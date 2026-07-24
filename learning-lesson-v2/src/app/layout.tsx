@@ -1,13 +1,27 @@
 import type { Metadata } from "next";
+import { Manrope, Syne } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getCurrentSession } from "@/lib/supabase/auth";
 import "./globals.css";
 
+const displayFont = Syne({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-display",
+  display: "swap"
+});
+
+const bodyFont = Manrope({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-body",
+  display: "swap"
+});
+
 export const metadata: Metadata = {
-  title: "Learning Lesson v2",
-  description: "A scalable learning platform with paths, lessons, XP, and progress."
+  title: "Learning Lesson",
+  description:
+    "Практическа образователна платформа за професионални гимназии — мисии, уроци и измерим напредък за ученици и учители."
 };
 
 export default async function RootLayout({
@@ -30,7 +44,7 @@ export default async function RootLayout({
     : [{ href: "/paths", label: copy.nav.paths }];
 
   return (
-    <html lang={language}>
+    <html className={`${displayFont.variable} ${bodyFont.variable}`} lang={language}>
       <body>
         <SiteHeader
           brand={copy.nav.brand}

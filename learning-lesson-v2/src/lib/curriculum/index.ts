@@ -95,6 +95,8 @@ export {
   getCommonModules,
   getCourseIdsForSpecialty,
   getMissionForModule,
+  getMissionsForModule,
+  getMissionsForModules,
   getSpecialtyModules,
   localizeCurriculumText,
   mapRowsToSchoolCurriculum

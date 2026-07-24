@@ -3,10 +3,12 @@ import { DailyChallengeCard } from "@/components/daily-challenge-card";
 import { DailyStreakCard } from "@/components/daily-streak-card";
 import { DashboardGameSummary } from "@/components/dashboard-game-summary";
 import { JoinClassroomCard } from "@/components/join-classroom-card";
+import { UpcomingAssignmentsCard } from "@/components/upcoming-assignments-card";
 import { getCourseCatalog, getCatalogLessons } from "@/lib/catalog";
 import { getCourseProjects } from "@/lib/projects/store";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
+import { getMyAssignments } from "@/lib/supabase/assignments";
 import { getCurrentUserProjectSubmissions, toSubmittedProjectIds } from "@/lib/supabase/project-submissions";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 import { requireUser } from "@/lib/supabase/auth";
@@ -19,10 +21,11 @@ export default async function DashboardPage() {
   await requireUser();
   const catalog = await getCourseCatalog();
   const { projects } = await getCourseProjects();
-  const [{ progress, streakCount }, lessons, submissions] = await Promise.all([
+  const [{ progress, streakCount }, lessons, submissions, assignments] = await Promise.all([
     getCurrentUserProgress(),
     getCatalogLessons(),
-    getCurrentUserProjectSubmissions()
+    getCurrentUserProjectSubmissions(),
+    getMyAssignments()
   ]);
   const submittedProjectIds = toSubmittedProjectIds(submissions);
 
@@ -44,8 +47,9 @@ export default async function DashboardPage() {
         <DailyChallengeCard initialProgress={progress} isAuthenticated language={language} />
       </section>
 
-      <section className="mt-4">
+      <section className="mt-4 grid gap-4 md:grid-cols-2">
         <JoinClassroomCard language={language} />
+        <UpcomingAssignmentsCard assignments={assignments} language={language} />
       </section>
 
       <DashboardGameSummary

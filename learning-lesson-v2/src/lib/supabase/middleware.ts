@@ -47,6 +47,7 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/profile") ||
     pathname.startsWith("/classes") ||
+    pathname.startsWith("/assignments") ||
     pathname.startsWith("/teacher") ||
     pathname.startsWith("/admin");
 
