@@ -109,7 +109,11 @@ export function SyllabusView({
         const courseHref = nextLesson ? `/lesson/${nextLesson}` : "/paths";
 
         return (
-          <article className="overflow-hidden rounded-lg border border-ink/10 bg-white/85 shadow-sm" key={quest.id}>
+          <article
+            className="scroll-mt-24 overflow-hidden rounded-lg border border-ink/10 bg-white/85 shadow-sm"
+            id={`course-${quest.id}`}
+            key={quest.id}
+          >
             <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
               <button
                 className="flex flex-1 items-start gap-3 text-left"

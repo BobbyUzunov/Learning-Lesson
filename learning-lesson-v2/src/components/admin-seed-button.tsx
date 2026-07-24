@@ -31,6 +31,9 @@ export function AdminSeedButton({ language }: { language: Language }) {
       quizQuestions?: number;
       lessonQuizTopics?: number;
       projects?: number;
+      specialties?: number;
+      curriculumModules?: number;
+      curriculumMissions?: number;
     };
 
     setMessage(
