@@ -1,12 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { LessonKeyConcepts } from "@/components/lesson-key-concepts";
-import { LessonInteractiveFlow } from "@/components/lesson-interactive-flow";
-import { LessonOutline } from "@/components/lesson-outline";
-import { LessonSection } from "@/components/lesson-section";
+import { LessonStages } from "@/components/lesson-stages";
 import { getCourseCatalog, getFirstLesson, getLessonFromCatalog, getQuestForLesson, isLessonUnlocked } from "@/lib/catalog";
-import { xpPerLesson } from "@/lib/game-data";
 import { formatMessage, localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { localizeLessonStructure } from "@/lib/lesson-structure";
@@ -57,7 +53,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const completedLessonIds = progressData?.progress.filter((item) => item.completed).map((item) => item.lesson_id) ?? [];
 
   if (!session.user && id !== firstLesson?.id) {
-    redirect("/paths?guestLocked=1");
+    redirect("/courses?guestLocked=1");
   }
 
   const gameLesson = getLessonFromCatalog(catalog, id);
@@ -67,7 +63,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   }
 
   if (session.user && !isLessonUnlocked(catalog, id, completedLessonIds)) {
-    redirect("/paths?lessonLocked=1");
+    redirect("/courses?lessonLocked=1");
   }
 
   const rawQuest = getQuestForLesson(catalog, gameLesson.id);
@@ -77,47 +73,22 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const structure = localizeLessonStructure(localized, rawQuest ?? null, language);
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
+    <main className="mx-auto max-w-3xl px-4 py-6 sm:py-8">
       <Link className="inline-flex items-center gap-2 text-sm font-bold text-ink/70 hover:text-ink" href="/paths">
         <ArrowLeft className="size-4" />
         {copy.common.backToPaths}
       </Link>
 
-      <article className="mt-6 space-y-2">
-        <LessonOutline
-          courseTitle={quest?.title ?? copy.paths.badge}
-          language={language}
-          lessonTitle={missionLesson.title}
-          structure={structure}
-        />
-
-        <div className="rounded-lg border border-ink/10 bg-white/80 p-4 shadow-soft sm:p-6">
-          <p className="text-sm font-bold uppercase text-violet">{xpPerLesson} XP</p>
-
-          <LessonSection number={1} title={copy.syllabus.sectionTheory}>
-            <p className="leading-8 text-ink/80">{missionLesson.explanation}</p>
-          </LessonSection>
-
-          <LessonSection number={2} title={copy.syllabus.sectionExample}>
-            <div className="rounded-lg border border-ink/10 bg-ink p-4 text-paper">
-              <pre className="overflow-x-auto rounded-md bg-black/20 p-4 text-sm leading-6">
-                <code>{missionLesson.codeExample}</code>
-              </pre>
-            </div>
-          </LessonSection>
-
-          <LessonInteractiveFlow
-            completedLessonIds={completedLessonIds}
-            courses={catalog.courses}
-            isAuthenticated={Boolean(session.user)}
-            language={language}
-            lesson={missionLesson}
-            quizContent={quizContent}
-          />
-
-          <LessonKeyConcepts language={language} structure={structure} />
-        </div>
-      </article>
+      <LessonStages
+        completedLessonIds={completedLessonIds}
+        courses={catalog.courses}
+        courseTitle={quest?.title ?? copy.paths.badge}
+        isAuthenticated={Boolean(session.user)}
+        language={language}
+        lesson={missionLesson}
+        quizContent={quizContent}
+        structure={structure}
+      />
     </main>
   );
 }

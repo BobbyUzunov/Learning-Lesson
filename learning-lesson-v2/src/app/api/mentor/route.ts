@@ -3,15 +3,14 @@ import { getCatalogLesson } from "@/lib/catalog";
 import { readJsonObject } from "@/lib/http";
 import { localizeGameLesson } from "@/lib/i18n";
 import { hasOpenAIEnv } from "@/lib/mentor/env";
-import { requestMentorHint } from "@/lib/mentor/openai";
-import { buildMentorMessages } from "@/lib/mentor/prompt";
+import { streamMentorHint } from "@/lib/mentor/openai";
+import { buildMentorMessages, isMentorHintLevel, isMentorMode } from "@/lib/mentor/prompt";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { fetchMentorUsage, reserveMentorHint } from "@/lib/supabase/mentor-usage";
 
-const MIN_QUESTION_LENGTH = 8;
-const MAX_QUESTION_LENGTH = 400;
-const MAX_EFFORT_LENGTH = 600;
+const MIN_EFFORT_LENGTH = 4;
+const MAX_EFFORT_LENGTH = 1600;
 
 async function getAuthenticatedSupabase() {
   const supabase = await createClient();
@@ -20,6 +19,31 @@ async function getAuthenticatedSupabase() {
   } = await supabase.auth.getUser();
 
   return { supabase, user };
+}
+
+function extractPreviousHints(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter((message): message is { role: string; parts?: unknown[] } => {
+      return Boolean(message && typeof message === "object" && "role" in message && message.role === "assistant");
+    })
+    .flatMap((message) => {
+      if (!Array.isArray(message.parts)) {
+        return [];
+      }
+
+      return message.parts.flatMap((part) => {
+        if (!part || typeof part !== "object" || !("type" in part) || part.type !== "text" || !("text" in part)) {
+          return [];
+        }
+
+        return typeof part.text === "string" ? [part.text] : [];
+      });
+    })
+    .slice(-2);
 }
 
 export async function GET() {
@@ -65,24 +89,29 @@ export async function POST(request: Request) {
   }
 
   const lessonId = typeof body.lessonId === "string" ? body.lessonId.trim() : "";
-  const question = typeof body.question === "string" ? body.question.trim() : "";
   const effort = typeof body.effort === "string" ? body.effort.trim() : "";
   const language = body.language === "en" ? "en" : "bg";
+  const mode = body.mode;
+  const hintLevel = body.hintLevel;
 
   if (!lessonId) {
     return NextResponse.json({ error: "lesson_required" }, { status: 400 });
   }
 
-  if (question.length < MIN_QUESTION_LENGTH) {
-    return NextResponse.json({ error: "question_too_short" }, { status: 400 });
+  if (!isMentorMode(mode)) {
+    return NextResponse.json({ error: "invalid_mentor_mode" }, { status: 400 });
   }
 
-  if (question.length > MAX_QUESTION_LENGTH) {
-    return NextResponse.json({ error: "question_too_long" }, { status: 400 });
+  if (!isMentorHintLevel(hintLevel)) {
+    return NextResponse.json({ error: "invalid_hint_level" }, { status: 400 });
   }
 
   if (effort.length > MAX_EFFORT_LENGTH) {
     return NextResponse.json({ error: "effort_too_long" }, { status: 400 });
+  }
+
+  if (mode !== "start" && effort.length < MIN_EFFORT_LENGTH) {
+    return NextResponse.json({ error: "effort_required" }, { status: 400 });
   }
 
   const lesson = await getCatalogLesson(lessonId);
@@ -106,15 +135,19 @@ export async function POST(request: Request) {
     const messages = buildMentorMessages({
       lesson: localized,
       language,
-      question,
-      effort: effort || undefined
+      mode,
+      level: hintLevel,
+      effort: effort || undefined,
+      previousHints: extractPreviousHints(body.messages)
     });
-    const hint = await requestMentorHint(messages);
+    const result = streamMentorHint(messages);
 
-    return NextResponse.json({
-      hint,
-      remaining: reservation.remaining,
-      limit: reservation.limit
+    return result.toUIMessageStreamResponse({
+      headers: {
+        "X-Mentor-Limit": String(reservation.limit),
+        "X-Mentor-Remaining": String(reservation.remaining)
+      },
+      onError: () => "mentor_failed"
     });
   } catch {
     return NextResponse.json({ error: "mentor_failed" }, { status: 502 });

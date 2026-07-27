@@ -1,7 +1,11 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
+  content: [
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
+    "./node_modules/streamdown/dist/*.{js,mjs}",
+    "./node_modules/@streamdown/code/dist/*.{js,mjs}"
+  ],
   theme: {
     extend: {
       colors: {

@@ -1,0 +1,414 @@
+"use client";
+
+import { useState } from "react";
+import dynamic from "next/dynamic";
+import { ArrowRight, CheckCircle2, Lightbulb, Lock, ScrollText } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { LessonKeyConcepts } from "@/components/lesson-key-concepts";
+import { QuizGenerator } from "@/components/quiz-generator";
+import { getGlobalNextLessonFromCourses } from "@/lib/catalog/helpers";
+import { lessonDraftKey, type LessonMissionDraft } from "@/lib/draft-storage";
+import type { GameLesson, GameQuest } from "@/lib/game-data";
+import { completeStoredLesson, getGameProgressStats, getStoredProgress, guestContinueKey } from "@/lib/game-progress";
+import { useDraftAutosave } from "@/hooks/use-draft-autosave";
+import { formatMessage, t, type Language } from "@/lib/i18n";
+import type { LocalizedLessonStructure } from "@/lib/lesson-structure";
+import type { QuizAttempt, QuizContent } from "@/lib/quiz/types";
+
+const MIN_EFFORT_CHARS = 12;
+
+const LessonAiHint = dynamic(() =>
+  import("@/components/lesson-ai-hint").then((module) => module.LessonAiHint)
+);
+
+type LessonStage = 1 | 2 | 3;
+
+export function LessonStages({
+  completedLessonIds,
+  courses,
+  isAuthenticated,
+  language,
+  lesson,
+  quizContent,
+  structure,
+  courseTitle
+}: {
+  completedLessonIds: string[];
+  courses: GameQuest[];
+  isAuthenticated: boolean;
+  language: Language;
+  lesson: GameLesson;
+  quizContent: QuizContent;
+  structure: LocalizedLessonStructure;
+  courseTitle: string;
+}) {
+  const copy = t(language);
+  const router = useRouter();
+  const [stage, setStage] = useState<LessonStage>(1);
+  const [quizAttempt, setQuizAttempt] = useState<QuizAttempt | null>(null);
+  const [showSolution, setShowSolution] = useState(false);
+  const [showAi, setShowAi] = useState(false);
+  const [showGuestModal, setShowGuestModal] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [nextLessonId, setNextLessonId] = useState<string | null>(null);
+  const [justCompleted, setJustCompleted] = useState(false);
+
+  const lessonCompleted = completedLessonIds.includes(lesson.id);
+  const {
+    value: missionDraft,
+    setValue: setMissionDraft,
+    status: draftStatus,
+    clearDraft
+  } = useDraftAutosave<LessonMissionDraft>({
+    key: lessonDraftKey(lesson.id),
+    initialValue: { solution: "", hintsUsed: 0 },
+    enabled: !lessonCompleted
+  });
+
+  const solutionInput = missionDraft.solution;
+  const hintsUsed = missionDraft.hintsUsed;
+  const lessonHints = [lesson.hint1, lesson.hint2, lesson.hint3].filter((hint): hint is string => Boolean(hint?.trim()));
+  const effortChars = solutionInput.trim().length;
+  const hasEffort = effortChars >= MIN_EFFORT_CHARS;
+  const allHintsUsed = hintsUsed >= lessonHints.length;
+  const canViewSolution = hasEffort || allHintsUsed;
+  const primaryObjective = structure.learningObjectives[0] ?? lesson.title;
+
+  function resolveNextLesson(updatedCompletedIds: string[]) {
+    return getGlobalNextLessonFromCourses(courses, updatedCompletedIds);
+  }
+
+  function finishMissionSuccess(level: number, updatedCompletedIds: string[], options?: { showGuestModal?: boolean }) {
+    clearDraft();
+    const nextId = resolveNextLesson(updatedCompletedIds);
+    setNextLessonId(nextId);
+    setJustCompleted(true);
+    setMessage(`${copy.lesson.completeMessage} ${level}.`);
+    router.refresh();
+
+    if (options?.showGuestModal) {
+      setShowGuestModal(true);
+      return;
+    }
+
+    if (nextId) {
+      window.setTimeout(() => router.push(`/lesson/${nextId}`), 1800);
+    }
+  }
+
+  async function completeMission() {
+    if (!hasEffort && !allHintsUsed) {
+      setMessage(copy.lesson.completeBeforeFinish);
+      return;
+    }
+
+    if (!quizAttempt?.passed) {
+      setMessage(copy.lesson.quizRequired);
+      setStage(3);
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+
+    if (!isAuthenticated) {
+      const progress = completeStoredLesson(lesson.id);
+      const stats = getGameProgressStats(progress);
+      finishMissionSuccess(stats.level, progress.completedLessonIds, {
+        showGuestModal: lesson.id === "1"
+      });
+      setLoading(false);
+      return;
+    }
+
+    const response = await fetch("/api/progress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lessonId: lesson.id, quizAnswers: quizAttempt.answers })
+    });
+
+    setLoading(false);
+
+    if (!response.ok) {
+      let errorMessage: string = copy.lesson.saveError;
+      try {
+        const body = (await response.json()) as { error?: string };
+        if (body.error === "quiz_not_passed") {
+          errorMessage = copy.lesson.quizRequired;
+        } else if (body.error === "lesson_locked") {
+          errorMessage = copy.paths.lessonLockMessage;
+        }
+      } catch {
+        // Keep fallback.
+      }
+      setMessage(errorMessage);
+      return;
+    }
+
+    const result = (await response.json()) as { level?: number };
+    const updatedCompletedIds = [...new Set([...completedLessonIds, lesson.id])];
+    finishMissionSuccess(result.level ?? 1, updatedCompletedIds);
+  }
+
+  function revealNextHint() {
+    if (hintsUsed < lessonHints.length) {
+      setMissionDraft((current) => ({ ...current, hintsUsed: current.hintsUsed + 1 }));
+      setMessage(null);
+      if (hintsUsed + 1 >= 1) {
+        setShowAi(true);
+      }
+      return;
+    }
+    setMessage(copy.lesson.allHintsUnlocked);
+  }
+
+  function checkAttempt() {
+    if (!hasEffort && hintsUsed === 0) {
+      setMessage(copy.lesson.completeBeforeFinish);
+      return;
+    }
+    setMessage(null);
+    setShowAi(true);
+    setStage(3);
+  }
+
+  const previewNextLesson =
+    nextLessonId ??
+    resolveNextLesson(
+      isAuthenticated
+        ? [...new Set([...completedLessonIds, lesson.id])]
+        : getStoredProgress().completedLessonIds
+    );
+
+  return (
+    <article className="mt-6 space-y-6">
+      <header className="rounded-2xl border border-ink/10 bg-white p-5 shadow-soft">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-ink/45">{courseTitle}</p>
+        <h1 className="mt-3 break-words font-display text-2xl font-bold sm:text-3xl">{lesson.title}</h1>
+        <div className="mt-5 flex gap-2" role="tablist" aria-label={copy.lesson.stagesLabel}>
+          {([1, 2, 3] as const).map((value) => (
+            <button
+              className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                stage === value ? "bg-ink text-paper" : "bg-ink/5 text-ink/50"
+              }`}
+              key={value}
+              onClick={() => {
+                if (value < stage || (value === 2 && stage >= 1) || (value === 3 && stage >= 2)) {
+                  setStage(value);
+                }
+              }}
+              type="button"
+            >
+              {value}. {value === 1 ? copy.lesson.stageLearn : value === 2 ? copy.lesson.stageDo : copy.lesson.stageCheck}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      {stage === 1 ? (
+        <section className="rounded-2xl border border-ink/10 bg-white p-5 shadow-soft sm:p-6">
+          <p className="text-xs font-bold uppercase tracking-[0.12em] text-violet">{copy.lesson.stageLearn}</p>
+          <h2 className="mt-3 text-xl font-bold">{copy.syllabus.objectives}</h2>
+          <p className="mt-2 text-base leading-7 text-ink/75">{primaryObjective}</p>
+
+          <h2 className="mt-8 text-xl font-bold">{copy.syllabus.sectionTheory}</h2>
+          <p className="mt-3 leading-8 text-ink/80">{lesson.explanation}</p>
+
+          <h2 className="mt-8 text-xl font-bold">{copy.syllabus.sectionExample}</h2>
+          <div className="mt-3 rounded-xl border border-ink/10 bg-ink p-4 text-paper">
+            <pre className="overflow-x-auto rounded-md bg-black/20 p-4 text-sm leading-6">
+              <code>{lesson.codeExample}</code>
+            </pre>
+          </div>
+
+          <button
+            className="focus-ring mt-8 inline-flex min-h-12 items-center gap-2 rounded-xl bg-ink px-5 py-3 font-bold text-paper"
+            onClick={() => setStage(2)}
+            type="button"
+          >
+            {copy.lesson.goToTask}
+            <ArrowRight className="size-5" />
+          </button>
+        </section>
+      ) : null}
+
+      {stage === 2 ? (
+        <section className="space-y-5 rounded-2xl border border-ink/10 bg-white p-5 shadow-soft sm:p-6">
+          <p className="text-xs font-bold uppercase tracking-[0.12em] text-violet">{copy.lesson.stageDo}</p>
+          <h2 className="mt-2 text-xl font-bold">{copy.syllabus.sectionTask}</h2>
+          <p className="mt-3 leading-7 text-ink/75">{lesson.mission}</p>
+
+          <div>
+            <div className="flex items-center justify-between gap-3">
+              <label className="text-sm font-bold text-ink/70" htmlFor="lesson-solution">
+                {copy.lesson.yourSolution}
+              </label>
+              <span className="text-xs font-bold text-ink/45">
+                {effortChars}/{MIN_EFFORT_CHARS}
+              </span>
+            </div>
+            {draftStatus === "restored" || draftStatus === "saved" ? (
+              <p className="mt-2 text-xs font-semibold text-ink/50">
+                {draftStatus === "restored" ? copy.lesson.draftRestored : copy.lesson.draftSaved}
+              </p>
+            ) : null}
+            <textarea
+              className="focus-ring mt-3 min-h-40 w-full rounded-xl border border-ink/15 bg-ink px-4 py-3 font-mono text-sm leading-6 text-paper"
+              id="lesson-solution"
+              onChange={(event) => setMissionDraft((current) => ({ ...current, solution: event.target.value }))}
+              placeholder={copy.lesson.solutionPlaceholder}
+              value={solutionInput}
+            />
+          </div>
+
+          {hintsUsed === 0 ? (
+            <button
+              className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink/15 px-4 py-2.5 text-sm font-bold"
+              onClick={revealNextHint}
+              type="button"
+            >
+              <Lightbulb className="size-4" />
+              {copy.lesson.showOneHint}
+            </button>
+          ) : null}
+
+          {hintsUsed > 0 ? (
+            <div className="space-y-3 rounded-xl border border-mint/30 bg-mint/10 p-4">
+              {lessonHints.slice(0, hintsUsed).map((hint, index) => (
+                <div key={`${lesson.id}-hint-${index + 1}`}>
+                  <p className="text-xs font-bold uppercase text-ink/50">
+                    {formatMessage(copy.lesson.hintLabel, { n: index + 1 })}
+                  </p>
+                  <p className="mt-1 text-sm leading-6 text-ink/80">{hint}</p>
+                </div>
+              ))}
+              {hintsUsed < lessonHints.length ? (
+                <button
+                  className="text-sm font-bold text-violet underline-offset-4 hover:underline"
+                  onClick={revealNextHint}
+                  type="button"
+                >
+                  {formatMessage(copy.lesson.hintButton, { n: hintsUsed + 1 })}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
+          {showAi ? (
+            <LessonAiHint effort={solutionInput} isAuthenticated={isAuthenticated} language={language} lessonId={lesson.id} />
+          ) : null}
+
+          {canViewSolution ? (
+            <button
+              className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink/15 px-4 py-2.5 text-sm font-bold"
+              onClick={() => setShowSolution((value) => !value)}
+              type="button"
+            >
+              {showSolution ? <ScrollText className="size-4" /> : <Lock className="size-4" />}
+              {copy.lesson.showSolution}
+            </button>
+          ) : null}
+
+          {showSolution ? (
+            <pre className="max-h-[40vh] overflow-auto rounded-xl bg-ink p-4 text-sm leading-6 text-paper">
+              <code>{lesson.solution}</code>
+            </pre>
+          ) : null}
+
+          {message && stage === 2 ? <p className="text-sm font-semibold text-coral">{message}</p> : null}
+
+          <button
+            className="focus-ring inline-flex min-h-12 items-center gap-2 rounded-xl bg-mint px-5 py-3 font-bold text-ink"
+            onClick={checkAttempt}
+            type="button"
+          >
+            <CheckCircle2 className="size-5" />
+            {copy.lesson.checkAttempt}
+          </button>
+        </section>
+      ) : null}
+
+      {stage === 3 ? (
+        <section className="space-y-6 rounded-2xl border border-ink/10 bg-white p-5 shadow-soft sm:p-6">
+          <p className="text-xs font-bold uppercase tracking-[0.12em] text-violet">{copy.lesson.stageCheck}</p>
+
+          <QuizGenerator
+            language={language}
+            lessonId={lesson.id}
+            onResult={setQuizAttempt}
+            quizContent={quizContent}
+          />
+
+          {quizAttempt ? (
+            <div className="rounded-xl bg-ink/5 px-4 py-3 text-sm font-bold text-ink/80">
+              {quizAttempt.passed ? copy.lesson.quizPassed : copy.lesson.quizFailed}
+            </div>
+          ) : null}
+
+          {quizAttempt?.passed ? <LessonKeyConcepts language={language} structure={structure} /> : null}
+
+          <button
+            className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-mint px-5 py-3 font-bold text-ink disabled:opacity-60 sm:w-auto"
+            disabled={loading}
+            id="complete-mission-button"
+            onClick={completeMission}
+            type="button"
+          >
+            <CheckCircle2 className="size-5" />
+            {loading ? copy.login.working : copy.lesson.completeMission}
+          </button>
+
+          {message ? (
+            <div className="space-y-3 rounded-xl bg-violet/15 p-4">
+              <p className="text-sm font-bold text-ink">{message}</p>
+              {nextLessonId ? <p className="text-sm text-ink/70">{copy.lesson.redirectingNext}</p> : null}
+              {justCompleted && !nextLessonId ? (
+                <p className="text-sm text-ink/70">{copy.lesson.allMissionsComplete}</p>
+              ) : null}
+              {previewNextLesson ? (
+                <button
+                  className="focus-ring inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2 text-sm font-bold text-paper"
+                  onClick={() => router.push(`/lesson/${previewNextLesson}`)}
+                  type="button"
+                >
+                  {copy.lesson.continueNextMission}
+                  <ArrowRight className="size-4" />
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
+      {showGuestModal ? (
+        <div className="fixed inset-0 z-40 grid place-items-center overflow-y-auto bg-ink/50 p-4">
+          <div className="my-auto w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5 shadow-soft sm:p-6">
+            <h3 className="text-2xl font-bold">{copy.lesson.guestModalTitle}</h3>
+            <p className="mt-3 text-sm leading-6 text-ink/75">{copy.lesson.guestModalBody}</p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button
+                className="focus-ring rounded-xl bg-ink px-4 py-3 text-sm font-bold text-paper"
+                onClick={() => router.push("/register")}
+                type="button"
+              >
+                {copy.lesson.guestModalRegister}
+              </button>
+              <button
+                className="focus-ring rounded-xl border border-ink/15 px-4 py-3 text-sm font-bold"
+                onClick={() => {
+                  window.localStorage.setItem(guestContinueKey, "1");
+                  setShowGuestModal(false);
+                  router.push("/paths");
+                }}
+                type="button"
+              >
+                {copy.lesson.guestModalContinue}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </article>
+  );
+}

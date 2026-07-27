@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CheckCircle2, Lightbulb, Lock, ScrollText } from "lucide-react";
-import { LessonAiHint } from "./lesson-ai-hint";
 import type { GameLesson } from "@/lib/game-data";
 import type { GameQuest } from "@/lib/game-data";
 import { getGlobalNextLessonFromCourses } from "@/lib/catalog/helpers";
@@ -14,6 +14,10 @@ import { formatMessage, t, type Language } from "@/lib/i18n";
 import type { QuizAttempt } from "@/lib/quiz/types";
 
 const MIN_EFFORT_CHARS = 12;
+
+const LessonAiHint = dynamic(() =>
+  import("./lesson-ai-hint").then((module) => module.LessonAiHint)
+);
 
 export function MissionPanel({
   completedLessonIds = [],

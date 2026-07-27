@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { CurriculumDetails } from "@/components/curriculum/curriculum-details";
 import { MissionList } from "@/components/curriculum/mission-list";
@@ -11,16 +11,22 @@ import {
   getCommonModules,
   getCourseIdsForSpecialty,
   getMissionsForModules,
-  getSpecialtyModules
+  getSpecialtyModules,
+  localizeCurriculumText
 } from "@/lib/curriculum/helpers";
+import type { MissionPrepInfo } from "@/lib/curriculum/mission-prep";
 import type { SchoolCurriculum } from "@/lib/curriculum/types";
 import { t, type Language } from "@/lib/i18n";
+
+const SPECIALTY_STORAGE_KEY = "ll-selected-specialty";
 
 type SchoolCurriculumExplorerProps = {
   courseLabels: Record<string, string>;
   curriculum: SchoolCurriculum;
   isAuthenticated: boolean;
   language: Language;
+  pathsTitle: string;
+  prepByCourseId: Record<string, MissionPrepInfo>;
 };
 
 function firstSpecialtyMissionId(curriculum: SchoolCurriculum, specialtyId: string) {
@@ -33,15 +39,33 @@ function firstSpecialtyMissionId(curriculum: SchoolCurriculum, specialtyId: stri
 export function SchoolCurriculumExplorer({
   courseLabels,
   curriculum,
-  language
+  isAuthenticated,
+  language,
+  pathsTitle,
+  prepByCourseId
 }: SchoolCurriculumExplorerProps) {
   const copy = t(language).schoolCurriculum;
-  const initialSpecialtyId = curriculum.specialties[0]?.id ?? "software-development";
-  const [selectedSpecialtyId, setSelectedSpecialtyId] = useState(initialSpecialtyId);
+  const fallbackSpecialtyId = curriculum.specialties[0]?.id ?? "software-development";
+  const [selectedSpecialtyId, setSelectedSpecialtyId] = useState(fallbackSpecialtyId);
   const [selectedMissionId, setSelectedMissionId] = useState(() =>
-    firstSpecialtyMissionId(curriculum, initialSpecialtyId)
+    firstSpecialtyMissionId(curriculum, fallbackSpecialtyId)
   );
+  const [hasSavedSpecialty, setHasSavedSpecialty] = useState(false);
+  const [changingDirection, setChangingDirection] = useState(false);
   const allMissionsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(SPECIALTY_STORAGE_KEY);
+      if (stored && curriculum.specialties.some((specialty) => specialty.id === stored)) {
+        setSelectedSpecialtyId(stored);
+        setSelectedMissionId(firstSpecialtyMissionId(curriculum, stored));
+        setHasSavedSpecialty(true);
+      }
+    } catch {
+      // Ignore storage failures.
+    }
+  }, [curriculum]);
 
   const selectedSpecialty =
     curriculum.specialties.find((specialty) => specialty.id === selectedSpecialtyId) ?? curriculum.specialties[0];
@@ -62,36 +86,56 @@ export function SchoolCurriculumExplorer({
   const relatedCourseIds = getCourseIdsForSpecialty(curriculum, selectedSpecialty.id, activeGrade).filter(
     (courseId) => courseLabels[courseId]
   );
+  const prep = relatedCourseIds[0] ? prepByCourseId[relatedCourseIds[0]] ?? null : null;
+  const showSpecialtyPicker = !isAuthenticated || !hasSavedSpecialty || changingDirection;
 
   function selectSpecialty(specialtyId: string) {
     setSelectedSpecialtyId(specialtyId);
     setSelectedMissionId(firstSpecialtyMissionId(curriculum, specialtyId));
-  }
-
-  function browseAllMissions() {
-    allMissionsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setChangingDirection(false);
+    setHasSavedSpecialty(true);
+    try {
+      window.localStorage.setItem(SPECIALTY_STORAGE_KEY, specialtyId);
+    } catch {
+      // Ignore storage failures.
+    }
   }
 
   return (
     <section className="space-y-8">
       <div>
-        <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">{copy.pathsTitle}</h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">{pathsTitle}</h1>
         <p className="mt-3 max-w-2xl text-base leading-7 text-ink/60">{copy.pathsSubtitle}</p>
       </div>
 
-      <SpecialtySelector
-        language={language}
-        onSelect={selectSpecialty}
-        selectedId={selectedSpecialty.id}
-        specialties={curriculum.specialties}
-      />
+      {showSpecialtyPicker ? (
+        <SpecialtySelector
+          language={language}
+          onSelect={selectSpecialty}
+          selectedId={selectedSpecialty.id}
+          specialties={curriculum.specialties}
+        />
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ink/10 bg-white px-4 py-3">
+          <p className="text-sm font-bold text-ink/70">
+            {copy.currentDirection}: {localizeCurriculumText(selectedSpecialty.title, language)}
+          </p>
+          <button
+            className="text-sm font-semibold text-violet underline-offset-4 hover:underline"
+            onClick={() => setChangingDirection(true)}
+            type="button"
+          >
+            {copy.changeDirection}
+          </button>
+        </div>
+      )}
 
       {recommendedMission ? (
         <StudentMissionCard
-          firstCourseId={relatedCourseIds[0]}
           language={language}
           mission={recommendedMission}
-          onBrowseAll={browseAllMissions}
+          onBrowseAll={() => allMissionsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          prep={prep}
           specialty={selectedSpecialty}
         />
       ) : null}

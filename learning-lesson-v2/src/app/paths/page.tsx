@@ -1,59 +1,53 @@
 import { SchoolCurriculumExplorer } from "@/components/school-curriculum-explorer";
-import { SyllabusView } from "@/components/syllabus-view";
-import { getCourseCatalog } from "@/lib/catalog";
+import { getCourseCatalog, getLessonFromCatalog } from "@/lib/catalog";
 import { getSchoolCurriculum } from "@/lib/curriculum";
-import { getCourseProjects } from "@/lib/projects/store";
-import { localizeGameQuest, t } from "@/lib/i18n";
+import type { MissionPrepInfo } from "@/lib/curriculum/mission-prep";
+import { localizeLessonStructure } from "@/lib/lesson-structure";
+import { localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getCurrentSession } from "@/lib/supabase/auth";
-import { getCurrentUserProgress } from "@/lib/supabase/progress";
-import { getCurrentUserProjectSubmissions } from "@/lib/supabase/project-submissions";
 
 export const dynamic = "force-dynamic";
 
-type PathsPageProps = {
-  searchParams: Promise<{ guestLocked?: string; lessonLocked?: string }>;
-};
-
-export default async function PathsPage({ searchParams }: PathsPageProps) {
+export default async function PathsPage() {
   const language = await getLanguage();
   const copy = t(language);
-  const params = await searchParams;
   const session = await getCurrentSession();
-  const [catalog, curriculum, { projects }] = await Promise.all([
-    getCourseCatalog(),
-    getSchoolCurriculum(),
-    getCourseProjects()
-  ]);
-  const progressData = session.user ? await getCurrentUserProgress() : null;
-  const submissions = session.user ? await getCurrentUserProjectSubmissions() : [];
-  const completedLessonIds = progressData?.progress.filter((item) => item.completed).map((item) => item.lesson_id);
+  const [catalog, curriculum] = await Promise.all([getCourseCatalog(), getSchoolCurriculum()]);
+
+  const courseLabels = Object.fromEntries(
+    catalog.courses.map((course) => [course.id, localizeGameQuest(course, language).title])
+  );
+
+  const prepByCourseId: Record<string, MissionPrepInfo> = {};
+  for (const course of catalog.courses) {
+    const lessonId = course.lessonIds[0];
+    if (!lessonId) {
+      continue;
+    }
+    const lesson = getLessonFromCatalog(catalog, lessonId);
+    if (!lesson) {
+      continue;
+    }
+    const localized = localizeGameLesson(lesson, language);
+    const structure = localizeLessonStructure(localized, course, language);
+    prepByCourseId[course.id] = {
+      courseId: course.id,
+      lessonId,
+      minutes: structure.readingTimeMinutes,
+      topic: structure.learningObjectives[0] ?? localized.title
+    };
+  }
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-5 sm:py-8">
       <SchoolCurriculumExplorer
-        courseLabels={Object.fromEntries(
-          catalog.courses.map((course) => [course.id, localizeGameQuest(course, language).title])
-        )}
+        courseLabels={courseLabels}
         curriculum={curriculum}
         isAuthenticated={Boolean(session.user)}
         language={language}
-      />
-      <section className="mt-12 border-t border-ink/10 pt-8" id="practical-courses">
-        <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-          {copy.schoolCurriculum.availableCoursesTitle}
-        </h2>
-        <p className="mt-3 max-w-2xl leading-7 text-ink/70">{copy.schoolCurriculum.availableCoursesSubtitle}</p>
-      </section>
-      <SyllabusView
-        catalog={catalog}
-        completedLessonIds={completedLessonIds}
-        isAuthenticated={Boolean(session.user)}
-        projects={projects}
-        showGuestLockMessage={!session.user && Boolean(params.guestLocked)}
-        showLessonLockMessage={Boolean(session.user && params.lessonLocked)}
-        projectSubmissions={submissions}
-        language={language}
+        pathsTitle={session.user ? copy.schoolCurriculum.pathsTitleStudent : copy.schoolCurriculum.pathsTitle}
+        prepByCourseId={prepByCourseId}
       />
     </main>
   );

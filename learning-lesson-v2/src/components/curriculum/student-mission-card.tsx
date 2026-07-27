@@ -1,28 +1,29 @@
 import Link from "next/link";
 import { ArrowRight, Clock3 } from "lucide-react";
+import type { MissionPrepInfo } from "@/lib/curriculum/mission-prep";
 import { localizeCurriculumText } from "@/lib/curriculum/helpers";
 import type { CurriculumMission, SchoolSpecialty } from "@/lib/curriculum/types";
 import { curriculumAccentStyles } from "@/lib/curriculum/ui";
-import { t, type Language } from "@/lib/i18n";
+import { formatMessage, t, type Language } from "@/lib/i18n";
 
 type StudentMissionCardProps = {
-  firstCourseId?: string;
   language: Language;
   mission: CurriculumMission;
   specialty: SchoolSpecialty;
+  prep: MissionPrepInfo | null;
   onBrowseAll: () => void;
 };
 
 export function StudentMissionCard({
-  firstCourseId,
   language,
   mission,
   specialty,
+  prep,
   onBrowseAll
 }: StudentMissionCardProps) {
   const copy = t(language).schoolCurriculum;
   const style = curriculumAccentStyles[specialty.accent];
-  const startHref = firstCourseId ? `#course-${firstCourseId}` : "#practical-courses";
+  const startHref = prep ? `/lesson/${prep.lessonId}` : "/courses";
 
   return (
     <section
@@ -48,6 +49,11 @@ export function StudentMissionCard({
           <Clock3 className="size-4" />
           {mission.estimatedMinutes} {copy.minutes}
         </p>
+        {prep ? (
+          <p className="rounded-xl bg-ink/5 px-4 py-3 text-sm leading-6 text-ink/70">
+            {formatMessage(copy.missionPrep, { minutes: prep.minutes, topic: prep.topic })}
+          </p>
+        ) : null}
       </div>
 
       <div className="mt-7 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6">
