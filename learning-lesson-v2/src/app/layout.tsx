@@ -32,21 +32,36 @@ export default async function RootLayout({
   const language = await getLanguage();
   const copy = t(language);
   const session = await getCurrentSession();
-  const navItems = session.user
-    ? [
-        { href: "/dashboard", label: copy.nav.dashboard },
-        { href: "/paths", label: copy.nav.paths },
-        { href: "/classes", label: copy.nav.classes },
-        { href: "/profile", label: copy.nav.profile },
-        ...(session.isTeacher
-          ? [{ href: "/teacher", label: copy.nav.teacher }]
-          : [{ href: "/for-teachers", label: copy.nav.forTeachers }]),
-        ...(session.isAdmin ? [{ href: "/admin", label: copy.nav.admin }] : [])
-      ]
-    : [
-        { href: "/paths", label: copy.nav.paths },
-        { href: "/for-teachers", label: copy.nav.forTeachers }
-      ];
+
+  let navItems: { href: string; label: string }[] = [];
+  let showRegister = false;
+
+  if (session.isAdmin) {
+    navItems = [
+      { href: "/admin", label: copy.nav.adminHome },
+      { href: "/admin/teachers", label: copy.nav.adminRoles },
+      { href: "/admin/reviews", label: copy.nav.adminReviews }
+    ];
+  } else if (session.isTeacher) {
+    navItems = [
+      { href: "/teacher", label: copy.nav.teacherClasses },
+      { href: "/teacher/reviews", label: copy.nav.teacherReviews },
+      { href: "/courses", label: copy.nav.teacherContent }
+    ];
+  } else if (session.user) {
+    navItems = [
+      { href: "/dashboard", label: copy.nav.today },
+      { href: "/paths", label: copy.nav.myLearning },
+      { href: "/classes", label: copy.nav.classes },
+      { href: "/profile", label: copy.nav.profile }
+    ];
+  } else {
+    navItems = [
+      { href: "/", label: copy.nav.home },
+      { href: "/paths", label: copy.nav.directions }
+    ];
+    showRegister = false;
+  }
 
   return (
     <html className={`${displayFont.variable} ${bodyFont.variable}`} lang={language}>
@@ -61,6 +76,7 @@ export default async function RootLayout({
           menuLabel={copy.nav.openMenu}
           navItems={navItems}
           registerLabel={copy.nav.register}
+          showRegister={showRegister}
         />
         {children}
       </body>

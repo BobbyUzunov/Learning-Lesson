@@ -21,7 +21,8 @@ export function SiteHeader({
   menuLabel,
   closeMenuLabel,
   navItems,
-  registerLabel
+  registerLabel,
+  showRegister = false
 }: {
   brand: string;
   isAuthenticated: boolean;
@@ -32,6 +33,7 @@ export function SiteHeader({
   closeMenuLabel: string;
   navItems: NavItem[];
   registerLabel: string;
+  showRegister?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -62,7 +64,8 @@ export function SiteHeader({
             <Link
               className="rounded-md px-3 py-2 text-ink/70 transition hover:bg-ink/5 hover:text-ink"
               href={item.href}
-              key={item.href}
+              key={`${item.href}-${item.label}`}
+              onClick={() => setOpen(false)}
             >
               {item.label}
             </Link>
@@ -71,14 +74,9 @@ export function SiteHeader({
           {isAuthenticated ? (
             <LogoutButton label={logoutLabel} />
           ) : (
-            <>
-              <Link className="rounded-md px-3 py-2 text-ink/70 transition hover:bg-ink/5 hover:text-ink" href="/login">
-                {loginLabel}
-              </Link>
-              <Link className="rounded-md bg-ink px-3 py-2 text-paper transition hover:bg-ink/90" href="/register">
-                {registerLabel}
-              </Link>
-            </>
+            <Link className="rounded-md bg-ink px-3 py-2 text-paper transition hover:bg-ink/90" href="/login">
+              {loginLabel}
+            </Link>
           )}
         </div>
 
@@ -101,7 +99,7 @@ export function SiteHeader({
               <Link
                 className="inline-flex min-h-11 items-center rounded-md px-3 py-3 text-ink/80 transition hover:bg-ink/5 hover:text-ink"
                 href={item.href}
-                key={item.href}
+                key={`${item.href}-${item.label}`}
                 onClick={() => setOpen(false)}
               >
                 {item.label}
@@ -115,19 +113,21 @@ export function SiteHeader({
             ) : (
               <div className="grid gap-2 pt-2">
                 <Link
-                  className="inline-flex min-h-11 items-center justify-center rounded-md border border-ink/15 px-3 py-3 text-center"
+                  className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-3 py-3 text-center text-paper"
                   href="/login"
                   onClick={() => setOpen(false)}
                 >
                   {loginLabel}
                 </Link>
-                <Link
-                  className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-3 py-3 text-center text-paper"
-                  href="/register"
-                  onClick={() => setOpen(false)}
-                >
-                  {registerLabel}
-                </Link>
+                {showRegister ? (
+                  <Link
+                    className="inline-flex min-h-11 items-center justify-center rounded-md border border-ink/15 px-3 py-3 text-center"
+                    href="/register"
+                    onClick={() => setOpen(false)}
+                  >
+                    {registerLabel}
+                  </Link>
+                ) : null}
               </div>
             )}
           </div>

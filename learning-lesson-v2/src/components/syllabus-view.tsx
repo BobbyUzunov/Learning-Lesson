@@ -88,6 +88,10 @@ export function SyllabusView({
     showLessonLockMessage
   ]);
 
+  const visibleCourses = !isAuthenticated
+    ? catalog.courses.filter((course) => course.id === "frontend")
+    : catalog.courses;
+
   return (
     <div className="mt-8 space-y-5">
       {!isAuthenticated ? (
@@ -97,7 +101,7 @@ export function SyllabusView({
         <p className="rounded-md bg-violet/15 px-4 py-3 text-sm font-bold text-ink">{lockMessage}</p>
       ) : null}
 
-      {catalog.courses.map((rawQuest) => {
+      {visibleCourses.map((rawQuest) => {
         const quest = localizeGameQuest(rawQuest, language);
         const completed = quest.lessonIds.filter((id) => completedLessonIds.includes(id)).length;
         const progress = Math.round((completed / quest.lessonIds.length) * 100);

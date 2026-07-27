@@ -17,7 +17,7 @@ export async function mockMentorApi(
     hint?: string;
   } = {}
 ) {
-  const remaining = options.remaining ?? 5;
+  let remaining = options.remaining ?? 5;
   const limit = 5;
   const hint =
     options.hint ?? "Try structuring your page with header, main, and footer sections before adding styles.";
@@ -37,14 +37,29 @@ export async function mockMentorApi(
     }
 
     if (route.request().method() === "POST") {
+      remaining = Math.max(remaining - 1, 0);
+      const textId = "mentor-text-1";
+      const streamBody = [
+        { type: "start", messageId: "mentor-message-1" },
+        { type: "text-start", id: textId },
+        { type: "text-delta", id: textId, delta: hint },
+        { type: "text-end", id: textId },
+        { type: "finish", finishReason: "stop" }
+      ]
+        .map((part) => `data: ${JSON.stringify(part)}\n\n`)
+        .join("")
+        .concat("data: [DONE]\n\n");
+
       await route.fulfill({
         status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          hint,
-          remaining: Math.max(remaining - 1, 0),
-          limit
-        })
+        contentType: "text/event-stream",
+        headers: {
+          "cache-control": "no-cache",
+          "x-mentor-limit": String(limit),
+          "x-mentor-remaining": String(remaining),
+          "x-vercel-ai-ui-message-stream": "v1"
+        },
+        body: streamBody
       });
       return;
     }

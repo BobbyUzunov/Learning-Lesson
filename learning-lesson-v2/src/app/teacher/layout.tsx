@@ -15,14 +15,17 @@ export default async function TeacherLayout({ children }: { children: React.Reac
         <p className="text-xs font-bold uppercase text-ink/50">{copy.nav.teacher}</p>
         <p className="mt-2 break-words text-sm font-bold">{email}</p>
         <nav className="mt-5 grid gap-2 text-sm font-bold">
-          <Link className="rounded-md bg-ink px-3 py-2 text-paper" href="/teacher">
-            {copy.teacher.classesNav}
+          <Link className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink" href="/teacher">
+            {copy.teacher.navClasses}
           </Link>
-          <Link className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink" href="/paths">
-            {copy.nav.paths}
+          <Link className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink" href="/teacher/reviews">
+            {copy.teacher.navReviews}
           </Link>
-          <Link className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink" href="/dashboard">
-            {copy.nav.dashboard}
+          <Link className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink" href="/courses">
+            {copy.teacher.navContent}
+          </Link>
+          <Link className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink" href="/teacher">
+            {copy.teacher.navReports}
           </Link>
         </nav>
       </aside>
