@@ -4,7 +4,7 @@ test("home page shows hero and paths CTA", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.getByRole("link", { name: /paths|пътеки/i })).toBeVisible();
+  await expect(page.locator('main a[href="/paths"]').first()).toBeVisible();
 });
 
 test("paths page lists learning quests", async ({ page }) => {
