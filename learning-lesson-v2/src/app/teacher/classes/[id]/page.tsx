@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft, ClipboardCheck, Users } from "lucide-react";
 import { AssignMissionForm } from "@/components/teacher/assign-mission-form";
 import { ClassroomControls } from "@/components/teacher/classroom-controls";
 import { ClassroomReportTable } from "@/components/teacher/classroom-report-table";
@@ -8,6 +8,7 @@ import { CopyCodeButton } from "@/components/teacher/copy-code-button";
 import { getSchoolCurriculum, localizeCurriculumText } from "@/lib/curriculum";
 import { getCommonModules, getSpecialtyModules, getMissionsForModule } from "@/lib/curriculum/helpers";
 import { getClassroomAssignments } from "@/lib/supabase/assignments";
+import { getClassroomAssessments } from "@/lib/supabase/assessments";
 import {
   getClassroomById,
   getClassroomReport,
@@ -47,9 +48,10 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
     Boolean(session.user) &&
     (session.isAdmin || session.user?.id === classroom.teacherId);
 
-  const [report, assignments, curriculum, transferCandidates] = await Promise.all([
+  const [report, assignments, assessments, curriculum, transferCandidates] = await Promise.all([
     getClassroomReport(id),
     getClassroomAssignments(id),
+    getClassroomAssessments(id),
     getSchoolCurriculum(),
     canTransfer ? listTransferCandidates(classroom.teacherId) : Promise.resolve([])
   ]);
@@ -124,6 +126,24 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
           transferCandidates={transferCandidates}
         />
       </div>
+
+      <Link
+        className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-violet/20 bg-violet/10 p-5 transition hover:border-violet/40"
+        href={`/teacher/classes/${classroom.id}/assessments`}
+      >
+        <span className="flex items-center gap-3">
+          <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-violet text-white">
+            <ClipboardCheck className="size-5" />
+          </span>
+          <span>
+            <span className="block font-black">{copy.assessment.teacherTitle}</span>
+            <span className="mt-1 block text-sm text-ink/60">{copy.assessment.teacherSubtitle}</span>
+          </span>
+        </span>
+        <span className="shrink-0 text-sm font-black text-violet">
+          {assessments.length} · {copy.assessment.openAssessment}
+        </span>
+      </Link>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
         <AssignMissionForm classroomId={classroom.id} language={language} missions={missionOptions} />

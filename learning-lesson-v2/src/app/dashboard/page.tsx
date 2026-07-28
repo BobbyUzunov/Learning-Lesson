@@ -4,6 +4,8 @@ import { getCourseCatalog, getCatalogLessons, getGlobalNextLessonFromCourses } f
 import { localizeGameLesson, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getMyAssignments } from "@/lib/supabase/assignments";
+import { getMyAssessments } from "@/lib/supabase/assessments";
+import { isAssessmentExpired } from "@/lib/assessments/types";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 import { requireUser } from "@/lib/supabase/auth";
 
@@ -14,10 +16,11 @@ export default async function DashboardPage() {
   const copy = t(language);
   await requireUser();
   const catalog = await getCourseCatalog();
-  const [{ progress }, lessons, assignments] = await Promise.all([
+  const [{ progress }, lessons, assignments, assessments] = await Promise.all([
     getCurrentUserProgress(),
     getCatalogLessons(),
-    getMyAssignments()
+    getMyAssignments(),
+    getMyAssessments()
   ]);
 
   const completedLessonIds = progress.filter((item) => item.completed).map((item) => item.lesson_id);
@@ -32,24 +35,34 @@ export default async function DashboardPage() {
     null;
 
   const lastFeedback = assignments.find((item) => item.teacherNote)?.teacherNote ?? null;
+  const activeAssessment =
+    assessments.find((item) => !item.attempt && !isAssessmentExpired(item)) ?? null;
 
-  const primaryHref = activeAssignment
-    ? `/assignments/${activeAssignment.id}`
-    : localizedNext
-      ? `/lesson/${localizedNext.id}`
-      : "/paths";
+  const primaryHref = activeAssessment
+    ? `/assessments/${activeAssessment.id}`
+    : activeAssignment
+      ? `/assignments/${activeAssignment.id}`
+      : localizedNext
+        ? `/lesson/${localizedNext.id}`
+        : "/paths";
 
-  const primaryLabel = activeAssignment
-    ? copy.dashboard.openAssignment
-    : localizedNext
-      ? copy.dashboard.continueHere
-      : copy.dashboard.chooseMission;
+  const primaryLabel = activeAssessment
+    ? copy.assessment.openAssessment
+    : activeAssignment
+      ? copy.dashboard.openAssignment
+      : localizedNext
+        ? copy.dashboard.continueHere
+        : copy.dashboard.chooseMission;
 
-  const missionTitle = activeAssignment
-    ? language === "bg"
-      ? activeAssignment.missionTitleBg || activeAssignment.missionTitle || activeAssignment.missionId
-      : activeAssignment.missionTitle || activeAssignment.missionId
-    : localizedNext?.title ?? copy.dashboard.noCurrentMission;
+  const missionTitle = activeAssessment
+    ? activeAssessment.title
+    : activeAssignment
+      ? language === "bg"
+        ? activeAssignment.missionTitleBg || activeAssignment.missionTitle || activeAssignment.missionId
+        : activeAssignment.missionTitle || activeAssignment.missionId
+      : localizedNext?.title ?? copy.dashboard.noCurrentMission;
+
+  const activeDueAt = activeAssessment?.dueAt ?? activeAssignment?.dueAt;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-6 sm:py-8">
@@ -61,10 +74,10 @@ export default async function DashboardPage() {
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-ink/45">{copy.dashboard.currentMission}</p>
         <h2 className="mt-3 text-2xl font-bold">{missionTitle}</h2>
 
-        {activeAssignment?.dueAt ? (
+        {activeDueAt ? (
           <p className="mt-3 text-sm font-bold text-ink/60">
             {copy.dashboard.dueLabel}:{" "}
-            {new Date(activeAssignment.dueAt).toLocaleString(language === "bg" ? "bg-BG" : "en-US", {
+            {new Date(activeDueAt).toLocaleString(language === "bg" ? "bg-BG" : "en-US", {
               day: "2-digit",
               month: "short",
               hour: "2-digit",

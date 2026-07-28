@@ -2,7 +2,7 @@
 
 Активната версия на Learning Lesson — учебна платформа за **дигитални професии в професионална гимназия**.
 
-Учениците избират направление, изпълняват практически мисии с ясен резултат и участват в клас. Учителите създават класове, възлагат мисии и следят напредъка.
+Учениците избират направление, изпълняват практически мисии, участват в клас и решават проверки на знанията. Учителите създават класове, възлагат мисии, публикуват входни/текущи/финални проверки и следят резултатите.
 
 **Live:** [learning-lesson-v2.vercel.app](https://learning-lesson-v2.vercel.app)
 
@@ -19,7 +19,7 @@
 
 Всяко направление свързва официални модули, учебни резултати и практически мисии. Общите предмети са отделени. Учителите работят с класове (код, архив, задания, справки без ученически имейл).
 
-Паралелно остават достъпни практическите курсове в платформата (теория → задача → quiz, проекти, сертификати) и **AI подсказки** в урок — насоки, не готови решения.
+Паралелно остават достъпни практическите курсове в платформата (теория → задача → quiz, проекти, сертификати), **AI подсказки** в урок — насоки, не готови решения — и отделни учителски проверки с автоматично оценяване.
 
 Съдържанието е **DB-first** с fallback в кода: курсове, уроци, мисии и проекти се зареждат от Supabase, когато е конфигуриран.
 
@@ -84,6 +84,11 @@ Run this only through the Supabase SQL Editor or another trusted administrator c
 | `/admin/projects`, `/admin/projects/[id]` | Project brief editor |
 | `/admin/reviews` | Capstone submission review queue |
 | `/admin/reviews/[id]` | Approve or request changes |
+| `/teacher/assessments` | Всички проверки на учителя и справки по класове |
+| `/teacher/classes/[id]/assessments/new` | Създаване на входна, текуща или финална проверка |
+| `/teacher/classes/[id]/assessments/[assessmentId]` | Резултати по ученик и анализ по въпрос |
+| `/assessments` | Възложените проверки на ученика |
+| `/assessments/[id]` | Решаване, резултат и обяснения след предаване |
 | `POST /api/mentor` | Authenticated AI hint request |
 | `GET /api/mentor` | Authenticated daily quota status |
 | `/api/progress`, `/api/streak`, `/api/daily-challenge` | Protected learner state APIs |
@@ -153,7 +158,7 @@ src/components/
 - Public RPC wrappers preserve the client API while anonymous execution is revoked for protected operations.
 - Admin APIs verify the authenticated user's `profiles.role` before making changes.
 
-Public tables include `profiles`, `user_progress`, `courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `lesson_quiz_topics`, `course_projects`, `project_submissions`, `mentor_daily_usage`, `specialties`, `curriculum_modules`, `curriculum_missions`, and `curriculum_course_links`. `private.mentor_settings` is server-managed.
+Public tables include `profiles`, `user_progress`, `courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `lesson_quiz_topics`, `course_projects`, `project_submissions`, `mentor_daily_usage`, `specialties`, `curriculum_modules`, `curriculum_missions`, `curriculum_course_links`, `classrooms`, `classroom_members`, `classroom_assignments`, `assignment_submissions`, `classroom_assessments`, `assessment_questions`, and `assessment_attempts`. `private.mentor_settings` is server-managed.
 
 ## Content
 
@@ -176,7 +181,9 @@ Guests can complete the first Frontend lesson without an account; progress syncs
 - XP, levels, achievements, daily streak and challenge
 - Admin CMS for courses, lessons, quiz, projects, and metadata (writes to Supabase)
 - Admin review workflow for capstone submissions
-- 61 Vitest unit tests and 20 Playwright E2E tests, including curriculum integrity, secure completion, mentor, auth, and mobile flows
+- Teacher classrooms, join codes, mission assignments, submissions, and feedback
+- Diagnostic, formative, and summative classroom checks with one attempt, automatic scoring, post-submission explanations, and per-question analysis
+- Vitest and Playwright coverage for curriculum integrity, secure completion, mentor, auth, assessment helpers, and mobile flows
 
 ## Scripts
 
@@ -203,6 +210,7 @@ npm run check        # lint + typecheck + unit tests + production build
 - [x] Draft autosave for mission and project submissions
 - [x] Certificate print/PDF and shareable link
 - [x] Grade 8 vocational curriculum foundation for four professions
-- [ ] Teacher roles, classrooms, assignments, and school reports
+- [x] Teacher roles, classrooms, assignments, and school reports
+- [x] Classroom knowledge checks with automatic scoring and question analysis
 - [ ] Expand the official curriculum structure through grades 9–12
 - [ ] Expanded mentor analytics and admin usage dashboard

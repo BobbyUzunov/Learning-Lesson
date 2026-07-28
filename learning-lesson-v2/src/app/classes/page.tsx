@@ -3,6 +3,7 @@ import { GraduationCap } from "lucide-react";
 import { JoinClassroomCard } from "@/components/join-classroom-card";
 import type { AssignmentStatus } from "@/lib/assignments/types";
 import { getMyAssignments } from "@/lib/supabase/assignments";
+import { getMyAssessments } from "@/lib/supabase/assessments";
 import { getStudentClassrooms } from "@/lib/supabase/classrooms";
 import { requireUser } from "@/lib/supabase/auth";
 import { t } from "@/lib/i18n";
@@ -49,7 +50,11 @@ export default async function ClassesPage() {
   const language = await getLanguage();
   const copy = t(language);
   await requireUser();
-  const [classrooms, assignments] = await Promise.all([getStudentClassrooms(), getMyAssignments()]);
+  const [classrooms, assignments, assessments] = await Promise.all([
+    getStudentClassrooms(),
+    getMyAssignments(),
+    getMyAssessments()
+  ]);
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-6 sm:py-8">
@@ -62,6 +67,24 @@ export default async function ClassesPage() {
       <div className="mt-6">
         <JoinClassroomCard language={language} />
       </div>
+
+      <section className="mt-8 rounded-xl border border-violet/20 bg-violet/10 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-black">{copy.assessment.studentTitle}</h2>
+            <p className="mt-1 text-sm text-ink/60">{copy.assessment.studentSubtitle}</p>
+            <p className="mt-3 text-sm font-bold text-violet">
+              {assessments.length} {copy.assessment.checksCount}
+            </p>
+          </div>
+          <Link
+            className="inline-flex min-h-11 items-center rounded-lg bg-ink px-4 py-2 font-bold text-paper"
+            href="/assessments"
+          >
+            {copy.assessment.openAssessment}
+          </Link>
+        </div>
+      </section>
 
       <section className="mt-8">
         <h2 className="text-xl font-black">{copy.classroom.assignmentsTitle}</h2>

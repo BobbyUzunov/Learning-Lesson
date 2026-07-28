@@ -18,6 +18,9 @@ export default async function TeacherLayout({ children }: { children: React.Reac
           <Link className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink" href="/teacher">
             {copy.teacher.navClasses}
           </Link>
+          <Link className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink" href="/teacher/assessments">
+            {copy.nav.teacherAssessments}
+          </Link>
           <Link className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink" href="/teacher/reviews">
             {copy.teacher.navReviews}
           </Link>

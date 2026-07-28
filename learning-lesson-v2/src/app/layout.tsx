@@ -45,6 +45,7 @@ export default async function RootLayout({
   } else if (session.isTeacher) {
     navItems = [
       { href: "/teacher", label: copy.nav.teacherClasses },
+      { href: "/teacher/assessments", label: copy.nav.teacherAssessments },
       { href: "/teacher/reviews", label: copy.nav.teacherReviews },
       { href: "/courses", label: copy.nav.teacherContent }
     ];
@@ -52,6 +53,7 @@ export default async function RootLayout({
     navItems = [
       { href: "/dashboard", label: copy.nav.today },
       { href: "/paths", label: copy.nav.myLearning },
+      { href: "/assessments", label: copy.nav.assessments },
       { href: "/classes", label: copy.nav.classes },
       { href: "/profile", label: copy.nav.profile }
     ];
