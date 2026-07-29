@@ -1,10 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { gameQuests } from "../game-data";
 import { fallbackSchoolCurriculum } from "./data";
 import {
   getActiveGradeLevel,
   getCommonModules,
-  getCourseIdsForSpecialty,
   getMissionForModule,
   getMissionMinutesRange,
   getMissionsForModule,
@@ -73,14 +71,8 @@ describe("school curriculum", () => {
     expect(getMissionsForModules(fallbackSchoolCurriculum, [])).toEqual([]);
   });
 
-  it("links every recommended course to a course that exists in the catalog", () => {
-    const knownCourseIds = new Set(gameQuests.map((course) => course.id));
-
-    for (const specialty of fallbackSchoolCurriculum.specialties) {
-      const courseIds = getCourseIdsForSpecialty(fallbackSchoolCurriculum, specialty.id, 8);
-      expect(courseIds.length).toBeGreaterThan(0);
-      expect(courseIds.every((courseId) => knownCourseIds.has(courseId))).toBe(true);
-    }
+  it("keeps the official Grade 8 curriculum independent from optional advanced courses", () => {
+    expect(fallbackSchoolCurriculum.courseLinks).toEqual([]);
   });
 
   it("derives the active grade from pilot modules instead of hardcoding it", () => {
@@ -115,7 +107,7 @@ describe("school curriculum", () => {
     expect(mapped.specialties).toHaveLength(4);
     expect(mapped.modules).toHaveLength(8);
     expect(mapped.missions).toHaveLength(64);
-    expect(mapped.courseLinks).toHaveLength(11);
+    expect(mapped.courseLinks).toEqual([]);
     expect(mapped.missions[0]?.sortOrder).toBe(0);
   });
 });

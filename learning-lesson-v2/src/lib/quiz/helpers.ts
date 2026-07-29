@@ -32,6 +32,20 @@ function shuffle<T>(items: T[], random: () => number) {
   return copy;
 }
 
+function shuffleQuestionOptions(question: QuizQuestion, random: () => number): QuizQuestion {
+  const optionOrder = shuffle(
+    question.options.map((_, index) => index),
+    random
+  );
+
+  return {
+    ...question,
+    options: optionOrder.map((index) => question.options[index]),
+    optionsBg: optionOrder.map((index) => question.optionsBg[index]),
+    correctIndex: optionOrder.indexOf(question.correctIndex)
+  };
+}
+
 export function createSeededRandom(seed: string) {
   let state = 2166136261;
   for (let index = 0; index < seed.length; index += 1) {
@@ -55,9 +69,9 @@ export function generateQuizQuestions(
   random: () => number = Math.random
 ) {
   const pool = content.questions.filter((item) => item.topic === topic);
-  const fallback = content.questions.filter((item) => item.topic === "html");
-  const source = pool.length >= count ? pool : [...pool, ...fallback];
-  return shuffle(source, random).slice(0, Math.min(count, source.length));
+  return shuffle(pool, random)
+    .slice(0, Math.min(count, pool.length))
+    .map((question) => shuffleQuestionOptions(question, random));
 }
 
 export function getQuestionBankSize(content: QuizContent, topic: QuizTopic) {

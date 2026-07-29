@@ -26,13 +26,13 @@ export const fallbackQuestionBank: QuizQuestion[] = [
   {
     id: "html-3",
     topic: "html",
-    question: "Which attribute makes a button submit a form by default?",
-    questionBg: "Кой атрибут кара бутон да изпраща форма по подразбиране?",
-    options: ['type="button"', 'type="submit"', 'role="button"', "href='#'"],
-    optionsBg: ['type="button"', 'type="submit"', 'role="button"', "href='#'"],
-    correctIndex: 1,
-    explanation: 'Buttons inside forms default to type="submit" unless you change it.',
-    explanationBg: 'Бутоните във форма са type="submit" по подразбиране, освен ако го смениш.'
+    question: "Which explicit button type submits a form?",
+    questionBg: "Кой изрично зададен тип бутон изпраща формуляр?",
+    options: ['type="reset"', 'type="button"', 'type="submit"', 'type="menu"'],
+    optionsBg: ['type="reset"', 'type="button"', 'type="submit"', 'type="menu"'],
+    correctIndex: 2,
+    explanation: 'type="submit" clearly states that the button submits the form.',
+    explanationBg: 'type="submit" ясно задава, че бутонът изпраща формуляра.'
   },
   {
     id: "css-1",
@@ -48,13 +48,13 @@ export const fallbackQuestionBank: QuizQuestion[] = [
   {
     id: "css-2",
     topic: "css",
-    question: "Which layout is best for a simple two-column card?",
-    questionBg: "Кой layout е най-добър за проста карта с две колони?",
-    options: ["float", "display: grid", "text-align", "position: fixed"],
-    optionsBg: ["float", "display: grid", "text-align", "position: fixed"],
-    correctIndex: 1,
-    explanation: "CSS Grid handles columns and gaps with little code.",
-    explanationBg: "CSS Grid управлява колони и gap-ове с малко код."
+    question: "Which declaration creates two equal grid columns?",
+    questionBg: "Коя декларация създава две еднакво широки колони в CSS Grid?",
+    options: ["grid-template-columns: 1fr 1fr", "grid-template-rows: 1fr 1fr", "text-align: center", "position: fixed"],
+    optionsBg: ["grid-template-columns: 1fr 1fr", "grid-template-rows: 1fr 1fr", "text-align: center", "position: fixed"],
+    correctIndex: 0,
+    explanation: "Two 1fr tracks divide the available horizontal space equally.",
+    explanationBg: "Две колони по 1fr разделят наличното хоризонтално пространство поравно."
   },
   {
     id: "css-3",
@@ -116,11 +116,22 @@ export const fallbackQuestionBank: QuizQuestion[] = [
     topic: "dom",
     question: "What does document.querySelector('.card') return?",
     questionBg: "Какво връща document.querySelector('.card')?",
-    options: ["All cards", "The first matching element", "A CSS file", "An event"],
-    optionsBg: ["Всички карти", "Първия съвпадащ елемент", "CSS файл", "Event"],
+    options: ["All matching elements", "The first matching element, or null", "A CSS file", "The last click event"],
+    optionsBg: ["Всички съвпадащи елементи", "Първия съвпадащ елемент или null", "CSS файл", "Последното събитие click"],
     correctIndex: 1,
-    explanation: "querySelector returns the first match for a CSS selector.",
-    explanationBg: "querySelector връща първото съвпадение за CSS селектор."
+    explanation: "querySelector returns the first match for a CSS selector, or null when nothing matches.",
+    explanationBg: "querySelector връща първото съвпадение за CSS селектор или null, когато няма такова."
+  },
+  {
+    id: "dom-3",
+    topic: "dom",
+    question: "A form field contains invalid data. What is the clearest response?",
+    questionBg: "Поле във формуляр съдържа невалидни данни. Коя реакция е най-ясна?",
+    options: ["Ignore the input", "Delete the whole form", "Show a specific message next to the field and keep the entered value", "Reload without explanation"],
+    optionsBg: ["Да се игнорира въведеното", "Да се изтрие целият формуляр", "Да се покаже конкретно съобщение до полето и да се запази въведеното", "Да се презареди без обяснение"],
+    correctIndex: 2,
+    explanation: "A nearby, specific message helps the user identify and correct the problem.",
+    explanationBg: "Конкретно съобщение до полето помага на потребителя да открие и поправи проблема."
   },
   {
     id: "fetch-1",
@@ -145,6 +156,17 @@ export const fallbackQuestionBank: QuizQuestion[] = [
     explanationBg: "POST изпраща body за създаване или изпращане на нови данни."
   },
   {
+    id: "fetch-3",
+    topic: "fetch",
+    question: "What should an interface do when a network request fails?",
+    questionBg: "Какво трябва да направи интерфейсът, когато мрежова заявка е неуспешна?",
+    options: ["Pretend the data was saved", "Show a clear error and offer a safe retry", "Erase all local work", "Keep loading forever"],
+    optionsBg: ["Да се престори, че данните са записани", "Да покаже ясна грешка и безопасна възможност за нов опит", "Да изтрие цялата локална работа", "Да зарежда безкрайно"],
+    correctIndex: 1,
+    explanation: "Clear feedback and a controlled retry help the user recover without losing work.",
+    explanationBg: "Ясната обратна връзка и контролиран нов опит помагат без загуба на работа."
+  },
+  {
     id: "react-1",
     topic: "react",
     question: "What is a React component?",
@@ -167,15 +189,26 @@ export const fallbackQuestionBank: QuizQuestion[] = [
     explanationBg: "Props са стандартният начин да подадеш read-only данни към components."
   },
   {
+    id: "react-3",
+    topic: "react",
+    question: "When should state be used in an interface component?",
+    questionBg: "Кога е подходящо да се използва state в компонент на интерфейса?",
+    options: ["For a value that changes after user interaction", "For a fixed heading that never changes", "To replace every CSS rule", "To store a private server key"],
+    optionsBg: ["За стойност, която се променя след действие на потребителя", "За постоянно заглавие, което не се променя", "За замяна на всяко CSS правило", "За съхраняване на таен сървърен ключ"],
+    correctIndex: 0,
+    explanation: "State represents data that can change and should cause the component to update.",
+    explanationBg: "State представя данни, които се променят и трябва да обновят компонента."
+  },
+  {
     id: "api-1",
     topic: "api",
-    question: "What should a good API response include?",
-    questionBg: "Какво трябва да включва добър API response?",
-    options: ["Random HTML", "Predictable JSON shape", "Only images", "Private keys"],
-    optionsBg: ["Случаен HTML", "Предвидима JSON форма", "Само изображения", "Частни ключове"],
-    correctIndex: 1,
-    explanation: "Consistent JSON makes frontend rendering and error handling easier.",
-    explanationBg: "Консистентният JSON улеснява render-а и error handling-а."
+    question: "What makes an API response easier for a client to use safely?",
+    questionBg: "Какво прави отговора на API по-лесен за безопасно използване от клиента?",
+    options: ["A consistent data and error structure", "A different field name on every request", "Secrets included for debugging", "Success status for every error"],
+    optionsBg: ["Постоянна структура за данни и грешки", "Различно име на полето при всяка заявка", "Включени тайни за отстраняване на грешки", "Успешен статус за всяка грешка"],
+    correctIndex: 0,
+    explanation: "A consistent contract lets the client validate data and handle failures predictably.",
+    explanationBg: "Постоянният формат позволява на клиента да проверява данните и да обработва грешките предвидимо."
   },
   {
     id: "api-2",
@@ -191,19 +224,19 @@ export const fallbackQuestionBank: QuizQuestion[] = [
   {
     id: "api-3",
     topic: "api",
-    question: "Where should Supabase service role keys live?",
-    questionBg: "Къде трябва да живеят Supabase service role ключовете?",
-    options: ["In a public React component", "Server-only environment variables", "In README", "In CSS"],
-    optionsBg: ["В публичен React component", "Server-only environment variables", "В README", "В CSS"],
-    correctIndex: 1,
-    explanation: "Service role keys bypass RLS and must never ship to the browser.",
-    explanationBg: "Service role ключовете заобикалят RLS и никога не трябва да отиват в браузъра."
+    question: "Where should a private API key be stored in a web application?",
+    questionBg: "Къде трябва да се съхранява частен API ключ в уеб приложение?",
+    options: ["In browser code", "In a public repository", "In protected server-side configuration", "In an image file"],
+    optionsBg: ["В кода на браузъра", "В публично хранилище", "В защитена сървърна конфигурация", "Във файл с изображение"],
+    correctIndex: 2,
+    explanation: "Private keys must remain on the server and must not be sent to the browser or committed publicly.",
+    explanationBg: "Частните ключове трябва да останат на сървъра и да не се изпращат към браузъра или публично хранилище."
   },
   {
     id: "api-4",
     topic: "api",
-    question: "What should a protected route return when there is no session?",
-    questionBg: "Какво трябва да върне защитен route, когато няма сесия?",
+    question: "What status should a protected API endpoint return when authentication is missing?",
+    questionBg: "Какъв статус трябва да върне защитена API крайна точка, когато липсва удостоверяване?",
     options: ["200 with empty body", "401 Unauthorized", "302 to homepage", "500"],
     optionsBg: ["200 с празно body", "401 Unauthorized", "302 към homepage", "500"],
     correctIndex: 1,
@@ -213,167 +246,178 @@ export const fallbackQuestionBank: QuizQuestion[] = [
   {
     id: "api-5",
     topic: "api",
-    question: "How do you read JSON from a Next.js route handler request?",
-    questionBg: "Как четеш JSON от request в Next.js route handler?",
-    options: ["request.text()", "await request.json()", "request.headers.json()", "JSON.parse(request)"],
-    optionsBg: ["request.text()", "await request.json()", "request.headers.json()", "JSON.parse(request)"],
+    question: "What should a server do before saving data received from a client?",
+    questionBg: "Какво трябва да направи сървърът, преди да запише данни, получени от клиент?",
+    options: ["Trust every field", "Validate type, range, length, and permission", "Remove all error messages", "Save the data twice"],
+    optionsBg: ["Да се довери на всяко поле", "Да провери тип, диапазон, дължина и право за действие", "Да премахне всички съобщения за грешки", "Да запише данните два пъти"],
     correctIndex: 1,
-    explanation: "request.json() parses the body into a JavaScript object.",
-    explanationBg: "request.json() парсва body към JavaScript обект."
+    explanation: "Server-side validation protects data even when browser checks are bypassed.",
+    explanationBg: "Сървърната проверка защитава данните дори когато проверките в браузъра са заобиколени."
   },
   {
     id: "quiz-gen-1",
     topic: "quiz-generator",
     question: "What input does a quiz generator need at minimum?",
     questionBg: "Какво трябва да има генераторът за въпроси като минимум?",
-    options: ["A topic and question bank", "A printer", "A video file", "A CSS reset"],
-    optionsBg: ["Тема и банка от въпроси", "Принтер", "Видео файл", "CSS reset"],
+    options: ["A learning objective and a reviewed question bank", "Only a timer and a title", "Only the correct answers", "A list of student passwords"],
+    optionsBg: ["Учебна цел и проверена банка от въпроси", "Само таймер и заглавие", "Само верните отговори", "Списък с пароли на ученици"],
     correctIndex: 0,
-    explanation: "Pick a topic, filter questions, then randomly select a few for practice.",
-    explanationBg: "Избери тема, филтрирай въпросите и случайно избери няколко за практика."
+    explanation: "Questions should measure a stated learning objective and be reviewed for correctness and clarity.",
+    explanationBg: "Въпросите трябва да измерват заявена учебна цел и да са проверени за вярност и яснота."
   },
   {
     id: "quiz-gen-2",
     topic: "quiz-generator",
-    question: "Why store both question and answer in quiz data?",
-    questionBg: "Защо quiz данните пазят и въпрос, и отговор?",
-    options: ["For instant feedback", "For slower pages", "To hide the UI", "To remove XP"],
-    optionsBg: ["За моментален feedback", "За по-бавни страници", "За скриване на UI", "За премахване на XP"],
+    question: "Why should a quiz store an explanation with the correct answer?",
+    questionBg: "Защо тестът трябва да пази обяснение към верния отговор?",
+    options: ["To give useful feedback after an attempt", "To make every answer look correct", "To replace the question", "To reveal student passwords"],
+    optionsBg: ["За да даде полезна обратна връзка след опита", "За да изглежда всеки отговор верен", "За да замени въпроса", "За да разкрива пароли на ученици"],
     correctIndex: 0,
-    explanation: "Structured quiz objects let the app check answers and explain mistakes.",
-    explanationBg: "Структурираните quiz обекти позволяват проверка и обяснение на грешки."
+    explanation: "An explanation helps the learner understand the reasoning instead of seeing only a score.",
+    explanationBg: "Обяснението помага на ученика да разбере логиката, вместо да вижда само резултат."
+  },
+  {
+    id: "quiz-gen-3",
+    topic: "quiz-generator",
+    question: "Which question is the fairest knowledge check?",
+    questionBg: "Кой въпрос е най-подходящ за справедлива проверка на знанията?",
+    options: ["A clear question linked to a taught objective with one defensible answer", "A trick question on an untaught detail", "A question with two equally correct answers", "A question whose wording reveals the answer"],
+    optionsBg: ["Ясен въпрос по изучавана цел с един защитим верен отговор", "Подвеждащ въпрос за непреподаван детайл", "Въпрос с два еднакво верни отговора", "Въпрос, чиято формулировка подсказва отговора"],
+    correctIndex: 0,
+    explanation: "A fair item measures what was taught, uses clear language, and has one unambiguous answer.",
+    explanationBg: "Справедливият въпрос измерва преподаваното, използва ясен език и има един недвусмислен отговор."
   },
   {
     id: "fullstack-1",
     topic: "fullstack",
-    question: "What happens first when a learner completes a mission?",
-    questionBg: "Какво се случва първо, когато learner завърши мисия?",
-    options: ["Database backup", "Client calls an API route", "CSS reload", "Git commit"],
-    optionsBg: ["Database backup", "Client вика API route", "CSS reload", "Git commit"],
-    correctIndex: 1,
-    explanation: "The UI sends the completion to an API route before data is persisted.",
-    explanationBg: "UI изпраща завършването към API route, преди данните да се запишат."
+    question: "Which sequence best describes submitting data in a full-stack application?",
+    questionBg: "Коя последователност най-добре описва изпращането на данни в пълно уеб приложение?",
+    options: ["Interface → server validation → database → response", "Database → CSS → keyboard → response", "Interface → public secret → database → no response", "Browser → printer → database → image"],
+    optionsBg: ["Интерфейс → сървърна проверка → база данни → отговор", "База данни → CSS → клавиатура → отговор", "Интерфейс → публична тайна → база данни → без отговор", "Браузър → принтер → база данни → изображение"],
+    correctIndex: 0,
+    explanation: "The client sends input, the server validates and stores it, then returns a clear result.",
+    explanationBg: "Клиентът изпраща данните, сървърът ги проверява и записва, след което връща ясен резултат."
   },
   {
     id: "fullstack-2",
     topic: "fullstack",
-    question: "Where should guest progress live before login?",
-    questionBg: "Къде трябва да живее guest progress преди login?",
-    options: ["Supabase only", "localStorage", "Cookies only", "README"],
-    optionsBg: ["Само Supabase", "localStorage", "Само cookies", "README"],
-    correctIndex: 1,
-    explanation: "Guests can store progress locally until they authenticate and sync.",
-    explanationBg: "Guests могат да пазят progress локално, докато не се authenticate-нат и sync-нат."
+    question: "Which information must not be stored as plain text in browser local storage?",
+    questionBg: "Коя информация не трябва да се съхранява като обикновен текст в локалното хранилище на браузъра?",
+    options: ["A selected color theme", "An unfinished filter choice", "Passwords and private API keys", "The current page number"],
+    optionsBg: ["Избраната цветова тема", "Недовършен избор на филтър", "Пароли и частни API ключове", "Номерът на текущата страница"],
+    correctIndex: 2,
+    explanation: "Browser storage is accessible to page scripts and is not a safe vault for passwords or private keys.",
+    explanationBg: "Локалното хранилище е достъпно за скриптовете на страницата и не е безопасно място за пароли или частни ключове."
   },
   {
     id: "fullstack-3",
     topic: "fullstack",
-    question: "Which routes should require authentication in this app?",
-    questionBg: "Кои routes трябва да изискват authentication в това app?",
-    options: ["/lesson/1", "/dashboard and /profile", "/paths only", "/register"],
-    optionsBg: ["/lesson/1", "/dashboard и /profile", "Само /paths", "/register"],
+    question: "Which page should require an authenticated user?",
+    questionBg: "Коя страница трябва да изисква удостоверен потребител?",
+    options: ["A public school homepage", "A personal page with grades and progress", "A public contact page", "A sign-in page"],
+    optionsBg: ["Публична начална страница на училище", "Лична страница с оценки и напредък", "Публична страница за контакт", "Страница за вход"],
     correctIndex: 1,
-    explanation: "Personal progress views should be protected while public onboarding stays open.",
-    explanationBg: "Личните progress изгледи трябва да са защитени, а public onboarding остава отворен."
+    explanation: "Personal educational data should be available only to authorized users.",
+    explanationBg: "Личните образователни данни трябва да са достъпни само за упълномощени потребители."
   },
   {
     id: "ai-1",
     topic: "ai",
-    question: "Why ask AI for JSON output?",
-    questionBg: "Защо да искаш JSON output от AI?",
-    options: ["To slow the app", "So the app can parse fields safely", "To hide answers", "To remove hints"],
-    optionsBg: ["За да забави app-а", "За да parse-не полетата safely", "За да скрие отговори", "За да махне hints"],
-    correctIndex: 1,
-    explanation: "Structured JSON makes rendering and validation predictable.",
-    explanationBg: "Структурираният JSON прави render-а и validation предвидими."
+    question: "What is the main difference between a fixed rule and a learned model?",
+    questionBg: "Каква е основната разлика между зададено правило и научен модел?",
+    options: ["A rule is written directly, while a model finds patterns from examples", "A model is always correct", "A rule requires more training data", "There is no difference"],
+    optionsBg: ["Правилото се задава пряко, а моделът открива закономерности от примери", "Моделът винаги е верен", "Правилото изисква повече обучаващи данни", "Няма разлика"],
+    correctIndex: 0,
+    explanation: "Rules are specified by people; learned models are fitted from data and can still make mistakes.",
+    explanationBg: "Правилата се задават от хора, а научените модели се настройват по данни и могат да грешат."
   },
   {
     id: "ai-2",
     topic: "ai",
-    question: "What should never be sent to an AI provider?",
-    questionBg: "Какво никога не трябва да се изпраща към AI provider?",
-    options: ["Lesson topic", "Service role keys", "Beginner level", "HTML topic"],
-    optionsBg: ["Lesson topic", "Service role keys", "Beginner level", "HTML topic"],
-    correctIndex: 1,
-    explanation: "Secrets must stay on the server and out of prompts.",
-    explanationBg: "Secrets трябва да останат на сървъра и извън prompts."
+    question: "What should not be included in a prompt sent to a public AI service?",
+    questionBg: "Какво не трябва да се включва в заявка към публична AI услуга?",
+    options: ["A general topic", "An invented example", "Passwords, personal data, or confidential documents", "The desired answer format"],
+    optionsBg: ["Обща тема", "Измислен пример", "Пароли, лични данни или поверителни документи", "Желаният формат на отговора"],
+    correctIndex: 2,
+    explanation: "Sensitive data may be processed outside the school's control and should not be shared without authorization.",
+    explanationBg: "Чувствителните данни може да се обработват извън контрола на училището и не трябва да се споделят без разрешение."
   },
   {
     id: "ai-3",
     topic: "ai",
-    question: "What should you validate in AI quiz output?",
-    questionBg: "Какво трябва да валидираш в AI quiz output?",
-    options: ["Font color only", "correctIndex and options length", "Git branch", "Image size"],
-    optionsBg: ["Само font color", "correctIndex и options length", "Git branch", "Image size"],
+    question: "An AI answer sounds confident but gives no sources. What should you do?",
+    questionBg: "Отговор от AI звучи уверено, но няма източници. Какво трябва да направиш?",
+    options: ["Submit it as a proven fact", "Verify its claims with reliable independent sources", "Add personal data to improve it", "Remove any conflicting evidence"],
+    optionsBg: ["Да го предадеш като доказан факт", "Да провериш твърденията в надеждни независими източници", "Да добавиш лични данни, за да го подобриш", "Да премахнеш всяко противоречащо доказателство"],
     correctIndex: 1,
-    explanation: "Bounds checks prevent broken quizzes from reaching learners.",
-    explanationBg: "Bounds checks спират счупени quizzes да стигнат до learners."
+    explanation: "A confident tone does not guarantee accuracy; the learner remains responsible for verification.",
+    explanationBg: "Увереният тон не гарантира вярност; ученикът остава отговорен за проверката."
   },
   {
     id: "mobile-1",
     topic: "mobile",
-    question: "What is a good minimum touch target height?",
-    questionBg: "Каква е добра минимална touch target височина?",
-    options: ["12px", "48px", "2px", "200px"],
-    optionsBg: ["12px", "48px", "2px", "200px"],
-    correctIndex: 1,
-    explanation: "Around 44–48px is a common accessible tap target size.",
-    explanationBg: "Около 44–48px е често срещан accessible tap target размер."
+    question: "Which button height is the easiest practical target to tap among these options?",
+    questionBg: "Коя от тези височини е най-практична за лесно натискане на бутон?",
+    options: ["12px", "24px", "32px", "48px"],
+    optionsBg: ["12px", "24px", "32px", "48px"],
+    correctIndex: 3,
+    explanation: "Around 44–48 CSS pixels is a common practical target for comfortable touch interaction.",
+    explanationBg: "Около 44–48 CSS пиксела е честа практическа цел за удобно взаимодействие чрез докосване."
   },
   {
     id: "mobile-2",
     topic: "mobile",
     question: "What does width=device-width do?",
     questionBg: "Какво прави width=device-width?",
-    options: ["Hides the navbar", "Matches layout width to the device screen", "Deletes CSS", "Adds XP"],
-    optionsBg: ["Скрива navbar", "Съпоставя layout width с device screen", "Изтрива CSS", "Добавя XP"],
+    options: ["Makes every element 100 pixels wide", "Matches the layout viewport to the device width", "Forces landscape mode", "Disables page zoom by itself"],
+    optionsBg: ["Прави всеки елемент широк 100 пиксела", "Съпоставя ширината на оформлението с ширината на устройството", "Налага хоризонтален режим", "Самостоятелно забранява увеличаването"],
     correctIndex: 1,
     explanation: "It prevents mobile browsers from rendering a tiny scaled desktop page.",
-    explanationBg: "Спира mobile browsers да render-ват намалена desktop страница."
+    explanationBg: "Предотвратява показването на умалена настолна страница в мобилен браузър."
   },
   {
     id: "mobile-3",
     topic: "mobile",
-    question: "How should quest cards behave on phones?",
-    questionBg: "Как трябва да се държат quest cards на телефони?",
-    options: ["Five columns", "Single column stack", "Horizontal scroll only", "Hidden"],
-    optionsBg: ["Пет колони", "Една колона", "Само horizontal scroll", "Скрити"],
+    question: "How should a row of wide content cards usually adapt to a narrow phone screen?",
+    questionBg: "Как обикновено трябва да се адаптира ред от широки карти към тесен телефонен екран?",
+    options: ["Keep five narrow columns", "Stack cards in one readable column", "Hide all card text", "Require sideways scrolling for the whole page"],
+    optionsBg: ["Да запази пет тесни колони", "Да подреди картите в една четима колона", "Да скрие целия текст в картите", "Да изисква странично превъртане на цялата страница"],
     correctIndex: 1,
-    explanation: "A single column keeps cards readable without sideways scrolling.",
-    explanationBg: "Една колона държи cards четими без horizontal scrolling."
+    explanation: "A single-column stack preserves readable content and avoids page-level horizontal scrolling.",
+    explanationBg: "Една колона запазва съдържанието четимо и избягва хоризонталното превъртане на страницата."
   },
   {
     id: "product-1",
     topic: "product",
-    question: "What is a good first deploy goal for an MVP?",
-    questionBg: "Каква е добра първа deploy цел за MVP?",
-    options: ["Perfect design only", "Working auth and progress loop", "100 quests", "No database"],
-    optionsBg: ["Само perfect design", "Работещ auth и progress loop", "100 quests", "Без database"],
+    question: "What is the main purpose of a first prototype?",
+    questionBg: "Каква е основната цел на първия прототип?",
+    options: ["To include every planned feature", "To test the riskiest assumption quickly with users", "To avoid feedback until launch", "To look finished even if it cannot be used"],
+    optionsBg: ["Да съдържа всяка планирана функция", "Бързо да провери най-рисковото допускане с потребители", "Да избегне обратна връзка до пускането", "Да изглежда завършен, дори да не може да се използва"],
     correctIndex: 1,
-    explanation: "Ship the core learning loop before adding every planned feature.",
-    explanationBg: "Ship-вай core learning loop, преди да добавиш всяка планирана feature."
+    explanation: "A prototype is a quick, low-cost way to learn whether an idea solves the intended problem.",
+    explanationBg: "Прототипът е бърз и евтин начин да се провери дали идеята решава поставения проблем."
   },
   {
     id: "product-2",
     topic: "product",
-    question: "Which tables store learner state in this app?",
-    questionBg: "Кои таблици пазят learner state в това app?",
-    options: ["profiles and user_progress", "Only CSS files", "Git branches", "Vercel logs"],
-    optionsBg: ["profiles и user_progress", "Само CSS files", "Git branches", "Vercel logs"],
-    correctIndex: 0,
-    explanation: "Profiles track XP and user metadata; user_progress stores completed lessons.",
-    explanationBg: "Profiles следят XP и user metadata; user_progress пази завършени уроци."
+    question: "Which interview question is most useful when researching a user problem?",
+    questionBg: "Кой въпрос е най-полезен при проучване на потребителски проблем?",
+    options: ["Our idea is great, isn't it?", "Tell me about the last time you faced this problem", "Would you buy every feature we add?", "Why do you dislike our design?"],
+    optionsBg: ["Нашата идея е страхотна, нали?", "Разкажи ми за последния път, когато срещна този проблем", "Би ли купил всяка функция, която добавим?", "Защо не харесваш нашия дизайн?"],
+    correctIndex: 1,
+    explanation: "A neutral question about real past behavior produces more reliable evidence than a leading question.",
+    explanationBg: "Неутралният въпрос за реално минало поведение дава по-надеждни данни от подвеждащ въпрос."
   },
   {
     id: "product-3",
     topic: "product",
-    question: "What makes a Cursor task prompt effective?",
-    questionBg: "Какво прави Cursor task prompt ефективен?",
-    options: ["Vague goals", "Clear scope and expected files", "No context", "Only emojis"],
-    optionsBg: ["Неясни цели", "Ясен scope и expected files", "Без context", "Само emojis"],
+    question: "Which is the strongest evidence that a prototype is useful?",
+    questionBg: "Кое е най-силното доказателство, че прототипът е полезен?",
+    options: ["The team says it is excellent", "Relevant users complete the main task and explain the benefit", "The presentation has many slides", "The logo uses a fashionable color"],
+    optionsBg: ["Екипът казва, че е отличен", "Подходящи потребители изпълняват основната задача и обясняват ползата", "Презентацията има много слайдове", "Логото използва модерен цвят"],
     correctIndex: 1,
-    explanation: "Specific scope and file targets produce smaller, reviewable changes.",
-    explanationBg: "Конкретният scope и file targets дават по-малки, reviewable промени."
+    explanation: "Observed behavior from target users is stronger evidence than the creators' opinion or visual polish.",
+    explanationBg: "Наблюдаваното поведение на целеви потребители е по-силно доказателство от мнението на създателите или добрия външен вид."
   }
 ];
 

@@ -34,7 +34,7 @@ async function loadSchoolCurriculumFromDatabase(): Promise<SchoolCurriculum | nu
   const modules = (modulesResult.data ?? []) as CurriculumModuleRow[];
   const missions = (missionsResult.data ?? []) as CurriculumMissionRow[];
   const links = (linksResult.data ?? []) as CurriculumCourseLinkRow[];
-  if (specialties.length === 0 || modules.length === 0 || missions.length === 0 || links.length === 0) {
+  if (specialties.length === 0 || modules.length === 0 || missions.length === 0) {
     return null;
   }
 
@@ -75,11 +75,24 @@ export async function seedSchoolCurriculumToDatabase() {
     throw new Error(missionsError.message);
   }
 
-  const { error: linksError } = await supabase
-    .from("curriculum_course_links")
-    .upsert(courseLinks, { onConflict: "module_id,course_id" });
-  if (linksError) {
-    throw new Error(linksError.message);
+  const managedModuleIds = modules.map((row) => row.id);
+  if (managedModuleIds.length > 0) {
+    const { error: clearLinksError } = await supabase
+      .from("curriculum_course_links")
+      .delete()
+      .in("module_id", managedModuleIds);
+    if (clearLinksError) {
+      throw new Error(clearLinksError.message);
+    }
+  }
+
+  if (courseLinks.length > 0) {
+    const { error: linksError } = await supabase
+      .from("curriculum_course_links")
+      .upsert(courseLinks, { onConflict: "module_id,course_id" });
+    if (linksError) {
+      throw new Error(linksError.message);
+    }
   }
 
   return {
@@ -93,7 +106,6 @@ export async function seedSchoolCurriculumToDatabase() {
 export { fallbackSchoolCurriculum } from "./data";
 export {
   getCommonModules,
-  getCourseIdsForSpecialty,
   getMissionForModule,
   getMissionsForModule,
   getMissionsForModules,

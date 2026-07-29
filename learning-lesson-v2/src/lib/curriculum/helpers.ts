@@ -66,16 +66,6 @@ export function getMissionsForModules(curriculum: SchoolCurriculum, modules: Cur
     .filter((group) => group.missions.length > 0);
 }
 
-export function getCourseIdsForSpecialty(curriculum: SchoolCurriculum, specialtyId: string, gradeLevel: number) {
-  const moduleIds = new Set(getSpecialtyModules(curriculum, specialtyId, gradeLevel).map((module) => module.id));
-
-  return curriculum.courseLinks
-    .filter((link) => moduleIds.has(link.moduleId))
-    .sort((left, right) => left.sortOrder - right.sortOrder)
-    .map((link) => link.courseId)
-    .filter((courseId, index, courseIds) => courseIds.indexOf(courseId) === index);
-}
-
 function asStringArray(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 }

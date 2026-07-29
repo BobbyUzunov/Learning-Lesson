@@ -9,24 +9,20 @@ import { StudentMissionCard } from "@/components/curriculum/student-mission-card
 import {
   getActiveGradeLevel,
   getCommonModules,
-  getCourseIdsForSpecialty,
   getMissionsForModules,
   getSpecialtyModules,
   localizeCurriculumText
 } from "@/lib/curriculum/helpers";
-import type { MissionPrepInfo } from "@/lib/curriculum/mission-prep";
 import type { SchoolCurriculum } from "@/lib/curriculum/types";
 import { t, type Language } from "@/lib/i18n";
 
 const SPECIALTY_STORAGE_KEY = "ll-selected-specialty";
 
 type SchoolCurriculumExplorerProps = {
-  courseLabels: Record<string, string>;
   curriculum: SchoolCurriculum;
   isAuthenticated: boolean;
   language: Language;
   pathsTitle: string;
-  prepByCourseId: Record<string, MissionPrepInfo>;
 };
 
 function firstSpecialtyMissionId(curriculum: SchoolCurriculum, specialtyId: string) {
@@ -37,12 +33,10 @@ function firstSpecialtyMissionId(curriculum: SchoolCurriculum, specialtyId: stri
 }
 
 export function SchoolCurriculumExplorer({
-  courseLabels,
   curriculum,
   isAuthenticated,
   language,
-  pathsTitle,
-  prepByCourseId
+  pathsTitle
 }: SchoolCurriculumExplorerProps) {
   const copy = t(language).schoolCurriculum;
   const fallbackSpecialtyId = curriculum.specialties[0]?.id ?? "software-development";
@@ -83,10 +77,6 @@ export function SchoolCurriculumExplorer({
   const allMissions = [...specialtyMissions, ...commonGroups.flatMap((group) => group.missions)];
   const recommendedMission =
     allMissions.find((mission) => mission.id === selectedMissionId) ?? specialtyMissions[0] ?? null;
-  const relatedCourseIds = getCourseIdsForSpecialty(curriculum, selectedSpecialty.id, activeGrade).filter(
-    (courseId) => courseLabels[courseId]
-  );
-  const prep = relatedCourseIds[0] ? prepByCourseId[relatedCourseIds[0]] ?? null : null;
   const showSpecialtyPicker = !isAuthenticated || !hasSavedSpecialty || changingDirection;
 
   function selectSpecialty(specialtyId: string) {
@@ -135,7 +125,6 @@ export function SchoolCurriculumExplorer({
           language={language}
           mission={recommendedMission}
           onBrowseAll={() => allMissionsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-          prep={prep}
           specialty={selectedSpecialty}
         />
       ) : null}

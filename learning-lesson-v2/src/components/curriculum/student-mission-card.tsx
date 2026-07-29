@@ -1,16 +1,14 @@
 import Link from "next/link";
 import { ArrowRight, Clock3 } from "lucide-react";
-import type { MissionPrepInfo } from "@/lib/curriculum/mission-prep";
 import { localizeCurriculumText } from "@/lib/curriculum/helpers";
 import type { CurriculumMission, SchoolSpecialty } from "@/lib/curriculum/types";
 import { curriculumAccentStyles } from "@/lib/curriculum/ui";
-import { formatMessage, t, type Language } from "@/lib/i18n";
+import { t, type Language } from "@/lib/i18n";
 
 type StudentMissionCardProps = {
   language: Language;
   mission: CurriculumMission;
   specialty: SchoolSpecialty;
-  prep: MissionPrepInfo | null;
   onBrowseAll: () => void;
 };
 
@@ -18,12 +16,10 @@ export function StudentMissionCard({
   language,
   mission,
   specialty,
-  prep,
   onBrowseAll
 }: StudentMissionCardProps) {
   const copy = t(language).schoolCurriculum;
   const style = curriculumAccentStyles[specialty.accent];
-  const startHref = prep ? `/lesson/${prep.lessonId}` : "/courses";
 
   return (
     <section
@@ -49,19 +45,14 @@ export function StudentMissionCard({
           <Clock3 className="size-4" />
           {mission.estimatedMinutes} {copy.minutes}
         </p>
-        {prep ? (
-          <p className="rounded-xl bg-ink/5 px-4 py-3 text-sm leading-6 text-ink/70">
-            {formatMessage(copy.missionPrep, { minutes: prep.minutes, topic: prep.topic })}
-          </p>
-        ) : null}
       </div>
 
       <div className="mt-7 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6">
         <Link
           className={`focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 py-3 font-bold transition hover:-translate-y-0.5 ${style.button}`}
-          href={startHref}
+          href={`/missions/${mission.id}`}
         >
-          {copy.startMission}
+          {copy.openMission}
           <ArrowRight className="size-5" />
         </Link>
         <button

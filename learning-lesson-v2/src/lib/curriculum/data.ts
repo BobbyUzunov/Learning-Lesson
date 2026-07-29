@@ -236,17 +236,5 @@ export const fallbackSchoolCurriculum: SchoolCurriculum = {
     }
   ],
   missions: gradeEightMissions,
-  courseLinks: [
-    { moduleId: "grade-8-software-digital-technologies", courseId: "frontend", sortOrder: 0 },
-    { moduleId: "grade-8-software-digital-technologies", courseId: "backend", sortOrder: 1 },
-    { moduleId: "grade-8-software-digital-technologies", courseId: "fullstack", sortOrder: 2 },
-    { moduleId: "grade-8-software-digital-technologies", courseId: "mobile", sortOrder: 3 },
-    { moduleId: "grade-8-intelligent-digital-technologies", courseId: "ai", sortOrder: 0 },
-    { moduleId: "grade-8-intelligent-digital-technologies", courseId: "ai-product-builder", sortOrder: 1 },
-    { moduleId: "grade-8-intelligent-digital-technologies", courseId: "backend", sortOrder: 2 },
-    { moduleId: "grade-8-graphics-composition", courseId: "frontend", sortOrder: 0 },
-    { moduleId: "grade-8-graphics-composition", courseId: "mobile", sortOrder: 1 },
-    { moduleId: "grade-8-cyber-communication-ethics", courseId: "backend", sortOrder: 0 },
-    { moduleId: "grade-8-cyber-communication-ethics", courseId: "fullstack", sortOrder: 1 }
-  ]
+  courseLinks: []
 };

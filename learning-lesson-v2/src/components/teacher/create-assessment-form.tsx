@@ -2,7 +2,8 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2 } from "lucide-react";
+import { BookOpenCheck, Plus, Trash2 } from "lucide-react";
+import type { LocalizedAssessmentTemplate } from "@/lib/assessments/templates";
 import { t, type Language } from "@/lib/i18n";
 
 type QuestionDraft = {
@@ -25,10 +26,19 @@ function emptyQuestion(index: number): QuestionDraft {
   };
 }
 
-export function CreateAssessmentForm({ classroomId, language }: { classroomId: string; language: Language }) {
+export function CreateAssessmentForm({
+  classroomId,
+  language,
+  templates
+}: {
+  classroomId: string;
+  language: Language;
+  templates: LocalizedAssessmentTemplate[];
+}) {
   const copy = t(language).assessment;
   const router = useRouter();
   const nextQuestionId = useRef(3);
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState("formative");
@@ -37,6 +47,31 @@ export function CreateAssessmentForm({ classroomId, language }: { classroomId: s
   const [questions, setQuestions] = useState<QuestionDraft[]>([emptyQuestion(1), emptyQuestion(2)]);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const selectedTemplate = templates.find((template) => template.id === selectedTemplateId);
+
+  function loadTemplate() {
+    if (!selectedTemplate) {
+      return;
+    }
+
+    const firstQuestionId = nextQuestionId.current;
+    setTitle(selectedTemplate.title);
+    setDescription(selectedTemplate.description);
+    setType(selectedTemplate.suggestedType);
+    setDurationMinutes(String(selectedTemplate.durationMinutes));
+    setQuestions(
+      selectedTemplate.questions.map((question, index) => ({
+        key: `${selectedTemplate.id}-${firstQuestionId + index}`,
+        prompt: question.prompt,
+        options: [...question.options],
+        correctOption: question.correctOption,
+        explanation: question.explanation,
+        points: question.points
+      }))
+    );
+    nextQuestionId.current += selectedTemplate.questions.length;
+    setError(null);
+  }
 
   function updateQuestion(index: number, update: Partial<QuestionDraft>) {
     setQuestions((current) =>
@@ -131,6 +166,52 @@ export function CreateAssessmentForm({ classroomId, language }: { classroomId: s
 
   return (
     <form className="space-y-6" onSubmit={onSubmit}>
+      {templates.length > 0 ? (
+        <section className="rounded-xl border border-violet/20 bg-violet/5 p-5 sm:p-6">
+          <div className="flex gap-3">
+            <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-violet text-white">
+              <BookOpenCheck className="size-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black">{copy.templateTitle}</h2>
+              <p className="mt-1 text-sm leading-6 text-ink/65">{copy.templateSubtitle}</p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <label className="block text-sm font-bold">
+              {copy.templateLabel}
+              <select
+                className="mt-1 w-full rounded-lg border border-ink/15 bg-white px-3 py-2.5"
+                onChange={(event) => setSelectedTemplateId(event.target.value)}
+                value={selectedTemplateId}
+              >
+                <option value="">{copy.templateBlank}</option>
+                {templates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.specialtyId === null ? copy.templateCommon : copy.templateSpecialty}: {template.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-violet px-5 py-2.5 font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!selectedTemplate}
+              onClick={loadTemplate}
+              type="button"
+            >
+              {copy.loadTemplate}
+            </button>
+          </div>
+
+          {selectedTemplate ? (
+            <p className="mt-3 text-sm leading-6 text-ink/65">
+              {selectedTemplate.description} · {selectedTemplate.questions.length} {copy.templateQuestions}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
       <section className="rounded-xl border border-ink/10 bg-white/80 p-5 shadow-soft sm:p-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-sm font-bold sm:col-span-2">

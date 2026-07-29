@@ -17,9 +17,9 @@
 - компютърна графика;
 - киберсигурност.
 
-Всяко направление свързва официални модули, учебни резултати и практически мисии. Общите предмети са отделени. Учителите работят с класове (код, архив, задания, справки без ученически имейл).
+Всяко направление свързва официални модули, учебни резултати и самостоятелни практически мисии. Общите предмети са отделени. Учителите работят с класове (код, архив, задания, справки без ученически имейл).
 
-Паралелно остават достъпни практическите курсове в платформата (теория → задача → quiz, проекти, сертификати), **AI подсказки** в урок — насоки, не готови решения — и отделни учителски проверки с автоматично оценяване.
+Паралелно остават достъпни практическите курсове в платформата (теория → задача → quiz, проекти, сертификати) като **допълнителни технологични лаборатории**, а не като задължителна част от програмата за VIII клас. Налични са и **AI подсказки** в урок — насоки, не готови решения — и отделни учителски проверки с автоматично оценяване.
 
 Съдържанието е **DB-first** с fallback в кода: курсове, уроци, мисии и проекти се зареждат от Supabase, когато е конфигуриран.
 
@@ -69,7 +69,8 @@ Run this only through the Supabase SQL Editor or another trusted administrator c
 | Route | Description |
 |-------|-------------|
 | `/` | Landing page with course preview |
-| `/paths` | Grade 8 vocational curriculum explorer, course syllabus, and progress |
+| `/paths` | Избор на направление и мисии от програмата за VIII клас |
+| `/missions/[id]` | Кратко условие, очакван резултат и план за работа по мисия |
 | `/lesson/[id]` | Lesson workspace (theory, example, mission, **AI hint**, quiz) |
 | `/projects/[id]` | Mini project or capstone submission |
 | `/dashboard` | Continue learning, XP, pending projects |
@@ -129,7 +130,7 @@ Then seed content as an admin user:
 fetch('/api/admin/seed-catalog', { method: 'POST' }).then(r => r.json()).then(console.log)
 ```
 
-Expected seed result: 6 courses, 63 lessons, 34 quiz questions, 3 projects (2 mini + 1 capstone), 4 specialties, 6 curriculum modules, and 4 orientation missions.
+Expected seed result: 6 courses, 63 lessons, 38 lesson quiz questions, 3 projects (2 mini + 1 capstone), 4 specialties, 8 grade 8 curriculum modules, and 64 curriculum missions.
 
 Set `profiles.role = 'admin'` for your user to access `/admin` and the seed endpoint.
 
@@ -139,8 +140,9 @@ Set `profiles.role = 'admin'` for your user to access `/admin` and the seed endp
 src/lib/
   game-data.ts       # Fallback/seed source for courses and lessons
   catalog/           # DB-first courses, lessons, lesson_metadata
-  curriculum/        # DB-first school specialties, grade modules, missions, course links
+  curriculum/        # DB-first school specialties, grade modules, missions, optional future course links
   quiz/              # DB-first quiz questions and lesson→topic mapping
+  assessments/       # Classroom checks, reports, and editable curriculum templates
   projects/          # DB-first course projects (mini + capstone)
   mentor/            # AI hint prompts, OpenAI client, quota helpers
   supabase/          # Auth, progress, project submissions, mentor usage RPC
@@ -162,8 +164,10 @@ Public tables include `profiles`, `user_progress`, `courses`, `lessons`, `lesson
 
 ## Content
 
-- **6 courses**, **63 lessons**, **34 quiz questions**, and **3 projects** (bilingual EN/BG)
-- **4 vocational specialties**, **6 grade 8 curriculum modules**, and **4 orientation missions** mapped to the existing courses
+- **6 courses**, **63 lessons**, **38 lesson quiz questions**, and **3 projects** (bilingual EN/BG)
+- **4 vocational specialties**, **8 grade 8 curriculum modules**, and **64 curriculum missions**
+- Grade 8 missions are self-contained and do not redirect students into the optional advanced course catalog
+- **7 editable assessment templates** with **56 curriculum-aligned questions**: 3 shared checks and 1 specialty check per class
 - **100 XP** per completed lesson
 - **Quiz** on every lesson page; at least 2/3 correct answers are verified server-side before XP is awarded
 - **Projects** on AI Product Builder: product brief (mini), live deploy (mini), capstone with admin review
@@ -183,6 +187,8 @@ Guests can complete the first Frontend lesson without an account; progress syncs
 - Admin review workflow for capstone submissions
 - Teacher classrooms, join codes, mission assignments, submissions, and feedback
 - Diagnostic, formative, and summative classroom checks with one attempt, automatic scoring, post-submission explanations, and per-question analysis
+- Grade 8 teacher templates for shared digital foundations, IT, entrepreneurship, and each of the four vocational specialties
+- Self-contained mission guides with a clear brief, deliverable, work plan, skills, and classroom handoff
 - Vitest and Playwright coverage for curriculum integrity, secure completion, mentor, auth, assessment helpers, and mobile flows
 
 ## Scripts
@@ -212,5 +218,7 @@ npm run check        # lint + typecheck + unit tests + production build
 - [x] Grade 8 vocational curriculum foundation for four professions
 - [x] Teacher roles, classrooms, assignments, and school reports
 - [x] Classroom knowledge checks with automatic scoring and question analysis
+- [x] Curriculum-aligned Grade 8 question banks and editable teacher check templates
+- [x] Separate the official Grade 8 missions from optional advanced technology labs
 - [ ] Expand the official curriculum structure through grades 9–12
 - [ ] Expanded mentor analytics and admin usage dashboard
