@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminMissionEditor } from "@/components/admin-mission-editor";
-import { getCourseCatalog, getCatalogLesson, getQuestForLesson } from "@/lib/catalog";
+import { getCourseCatalog, getLessonFromCatalog, getQuestForLesson } from "@/lib/catalog";
 import { localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 
@@ -12,11 +12,9 @@ type AdminMissionPageProps = {
 };
 
 export default async function AdminMissionPage({ params }: AdminMissionPageProps) {
-  const language = await getLanguage();
+  const [language, { id }, catalog] = await Promise.all([getLanguage(), params, getCourseCatalog()]);
   const copy = t(language);
-  const { id } = await params;
-  const catalog = await getCourseCatalog();
-  const lesson = await getCatalogLesson(id);
+  const lesson = getLessonFromCatalog(catalog, id);
 
   if (!lesson) {
     notFound();

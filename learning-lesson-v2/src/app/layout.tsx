@@ -29,12 +29,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const language = await getLanguage();
+  const [language, session] = await Promise.all([getLanguage(), getCurrentSession()]);
   const copy = t(language);
-  const session = await getCurrentSession();
 
   let navItems: { href: string; label: string }[] = [];
-  let showRegister = false;
 
   if (session.isAdmin) {
     navItems = [
@@ -62,7 +60,6 @@ export default async function RootLayout({
       { href: "/", label: copy.nav.home },
       { href: "/paths", label: copy.nav.directions }
     ];
-    showRegister = false;
   }
 
   return (
@@ -77,8 +74,6 @@ export default async function RootLayout({
           logoutLabel={copy.nav.logout}
           menuLabel={copy.nav.openMenu}
           navItems={navItems}
-          registerLabel={copy.nav.register}
-          showRegister={showRegister}
         />
         {children}
       </body>

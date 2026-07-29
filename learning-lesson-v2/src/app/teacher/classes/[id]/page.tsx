@@ -53,7 +53,7 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
     getClassroomAssignments(id),
     getClassroomAssessments(id),
     getSchoolCurriculum(),
-    canTransfer ? listTransferCandidates(classroom.teacherId) : Promise.resolve([])
+    canTransfer ? listTransferCandidates(classroom.id) : Promise.resolve([])
   ]);
   const today = new Date().toISOString().slice(0, 10);
   const summary = summarizeClassroomReport(report, today);

@@ -48,17 +48,10 @@ export type CurriculumMission = {
   sortOrder: number;
 };
 
-export type CurriculumCourseLink = {
-  moduleId: string;
-  courseId: string;
-  sortOrder: number;
-};
-
 export type SchoolCurriculum = {
   specialties: SchoolSpecialty[];
   modules: CurriculumModule[];
   missions: CurriculumMission[];
-  courseLinks: CurriculumCourseLink[];
   source: CurriculumCatalogSource;
 };
 
@@ -105,11 +98,5 @@ export type CurriculumMissionRow = {
   skills: string[];
   skills_bg: string[];
   estimated_minutes: number;
-  sort_order: number;
-};
-
-export type CurriculumCourseLinkRow = {
-  module_id: string;
-  course_id: string;
   sort_order: number;
 };

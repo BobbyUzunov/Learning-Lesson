@@ -1,8 +1,7 @@
 import type { GameLesson, GameQuest } from "./game-data";
+import type { Language } from "./language";
 
-export type Language = "bg" | "en";
-
-export const languageCookie = "ll_lang";
+export type { Language } from "./language";
 
 export function localizeGameQuest(quest: GameQuest, language: Language): GameQuest {
   if (language === "en") {
@@ -47,10 +46,6 @@ export function formatLessonsProgress(language: Language, completed: number, tot
   return `${completed} / ${total} modules`;
 }
 
-export function formatMissionsProgress(language: Language, available: number, planned: number) {
-  return formatLessonsProgress(language, available, planned);
-}
-
 export function formatMessage(template: string, values: Record<string, string | number>) {
   return Object.entries(values).reduce((result, [key, value]) => {
     return result.replace(new RegExp(`\\{${key}\\}`, "g"), String(value));
@@ -65,7 +60,7 @@ export function formatStreakDays(language: Language, count: number) {
   return count === 1 ? `${count} Day` : `${count} Days`;
 }
 
-export const dictionary = {
+const dictionary = {
   bg: {
     nav: {
       dashboard: "Табло",
@@ -104,7 +99,6 @@ export const dictionary = {
       navClasses: "Класове",
       navReviews: "За проверка",
       navContent: "Съдържание",
-      navReports: "Справки",
       reviewsTitle: "За проверка",
       reviewsSubtitle: "Предадени задачи, които чакат рецензия.",
       reviewsEmpty: "Няма задачи за проверка в момента.",
@@ -893,6 +887,7 @@ export const dictionary = {
       roleAdmin: "Админ",
       roleUpdated: "Ролята е обновена.",
       roleError: "Грешка при смяна на ролята.",
+      roleTeacherHasClasses: "Първо прехвърли класовете на друг учител, след това промени ролята.",
       reviewsTitle: "Project reviews",
       reviewsSubtitle: "Review capstone submissions and approve or request changes.",
       reviewsEmpty: "Няма pending submissions за review.",
@@ -1005,7 +1000,6 @@ export const dictionary = {
       navClasses: "Classes",
       navReviews: "To review",
       navContent: "Content",
-      navReports: "Reports",
       reviewsTitle: "To review",
       reviewsSubtitle: "Submitted work waiting for your feedback.",
       reviewsEmpty: "Nothing to review right now.",
@@ -1793,6 +1787,7 @@ export const dictionary = {
       roleAdmin: "Admin",
       roleUpdated: "Role updated.",
       roleError: "Could not change the role.",
+      roleTeacherHasClasses: "Transfer the teacher's classrooms first, then change the role.",
       reviewsTitle: "Project reviews",
       reviewsSubtitle: "Review capstone submissions and approve or request changes.",
       reviewsEmpty: "No pending submissions to review.",

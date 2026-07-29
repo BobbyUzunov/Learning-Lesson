@@ -32,7 +32,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .single<SetRoleRow>();
 
   if (error) {
-    const status = error.message.includes("unknown_user") ? 404 : 400;
+    const status = error.message.includes("unknown_user")
+      ? 404
+      : error.message.includes("teacher_has_classrooms")
+        ? 409
+        : 400;
     return NextResponse.json({ error: error.message }, { status });
   }
 

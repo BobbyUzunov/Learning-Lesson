@@ -8,8 +8,11 @@ export type ProfileRow = {
   role: string;
   xp: number;
   level: number;
+  streak_count: number;
   created_at?: string;
 };
+
+const profileColumns = "id,auth_user_id,email,display_name,role,xp,level,streak_count,created_at";
 
 export function deriveDisplayName(user: Pick<User, "email" | "user_metadata">, fallback?: string) {
   const metadata = user.user_metadata ?? {};
@@ -37,7 +40,7 @@ export async function ensureUserProfile(
 ) {
   const { data: existing, error: readError } = await supabase
     .from("profiles")
-    .select("id,auth_user_id,email,display_name,role,xp,level,created_at")
+    .select(profileColumns)
     .eq("id", user.id)
     .maybeSingle();
 
@@ -59,14 +62,14 @@ export async function ensureUserProfile(
   const { data: inserted, error: insertError } = await supabase
     .from("profiles")
     .insert(row)
-    .select("id,auth_user_id,email,display_name,role,xp,level,created_at")
+    .select(profileColumns)
     .maybeSingle();
 
   if (insertError) {
     if (insertError.code === "23505") {
       const { data: raced } = await supabase
         .from("profiles")
-        .select("id,auth_user_id,email,display_name,role,xp,level,created_at")
+        .select(profileColumns)
         .eq("id", user.id)
         .maybeSingle();
 

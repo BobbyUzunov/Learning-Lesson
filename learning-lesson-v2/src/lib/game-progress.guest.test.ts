@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { completeStoredLesson, getGameProgressStats, getStoredProgress } from "./game-progress";
+import { getGameProgressStats } from "./game-progress";
+import { completeStoredLesson, getStoredProgress } from "./game-progress-storage";
 
 describe("guest mission completion", () => {
   it("stores guest progress locally without calling the API", () => {

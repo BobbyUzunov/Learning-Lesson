@@ -124,7 +124,7 @@ With the Supabase CLI linked to the target project:
 npx supabase db push
 ```
 
-Then seed content as an admin user:
+For a controlled initial import, temporarily set `ENABLE_ADMIN_CONTENT_SEED=1`, deploy, and seed content as an admin user:
 
 ```javascript
 fetch('/api/admin/seed-catalog', { method: 'POST' }).then(r => r.json()).then(console.log)
@@ -132,7 +132,7 @@ fetch('/api/admin/seed-catalog', { method: 'POST' }).then(r => r.json()).then(co
 
 Expected seed result: 6 courses, 63 lessons, 38 lesson quiz questions, 3 projects (2 mini + 1 capstone), 4 specialties, 8 grade 8 curriculum modules, and 64 curriculum missions.
 
-Set `profiles.role = 'admin'` for your user to access `/admin` and the seed endpoint.
+Set `profiles.role = 'admin'` for your user to access `/admin` and the seed endpoint. Set `ENABLE_ADMIN_CONTENT_SEED=0` again immediately after the import; the endpoint and button are disabled by default so a production admin cannot accidentally overwrite edited content.
 
 ## Architecture
 
@@ -140,7 +140,7 @@ Set `profiles.role = 'admin'` for your user to access `/admin` and the seed endp
 src/lib/
   game-data.ts       # Fallback/seed source for courses and lessons
   catalog/           # DB-first courses, lessons, lesson_metadata
-  curriculum/        # DB-first school specialties, grade modules, missions, optional future course links
+  curriculum/        # DB-first school specialties, grade modules, and missions
   quiz/              # DB-first quiz questions and lesson→topic mapping
   assessments/       # Classroom checks, reports, and editable curriculum templates
   projects/          # DB-first course projects (mini + capstone)
@@ -160,7 +160,7 @@ src/components/
 - Public RPC wrappers preserve the client API while anonymous execution is revoked for protected operations.
 - Admin APIs verify the authenticated user's `profiles.role` before making changes.
 
-Public tables include `profiles`, `user_progress`, `courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `lesson_quiz_topics`, `course_projects`, `project_submissions`, `mentor_daily_usage`, `specialties`, `curriculum_modules`, `curriculum_missions`, `curriculum_course_links`, `classrooms`, `classroom_members`, `classroom_assignments`, `assignment_submissions`, `classroom_assessments`, `assessment_questions`, and `assessment_attempts`. `private.mentor_settings` is server-managed.
+Public tables include `profiles`, `user_progress`, `courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `lesson_quiz_topics`, `course_projects`, `project_submissions`, `mentor_daily_usage`, `specialties`, `curriculum_modules`, `curriculum_missions`, `classrooms`, `classroom_members`, `classroom_assignments`, `assignment_submissions`, `classroom_assessments`, `assessment_questions`, and `assessment_attempts`. `private.mentor_settings` is server-managed.
 
 ## Content
 

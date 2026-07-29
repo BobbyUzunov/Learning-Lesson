@@ -42,12 +42,14 @@ function withProgressiveHints(
 }
 
 export default async function LessonPage({ params }: LessonPageProps) {
-  const language = await getLanguage();
+  const [language, session, { id }, catalog, quizContent] = await Promise.all([
+    getLanguage(),
+    getCurrentSession(),
+    params,
+    getCourseCatalog(),
+    getQuizContent()
+  ]);
   const copy = t(language);
-  const session = await getCurrentSession();
-  const { id } = await params;
-  const catalog = await getCourseCatalog();
-  const quizContent = await getQuizContent();
   const firstLesson = getFirstLesson(catalog);
   const progressData = session.user ? await getCurrentUserProgress() : null;
   const completedLessonIds = progressData?.progress.filter((item) => item.completed).map((item) => item.lesson_id) ?? [];

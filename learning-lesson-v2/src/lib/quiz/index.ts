@@ -1,10 +1,13 @@
+import { cache } from "react";
 import { unstable_noStore as noStore } from "next/cache";
 import { createClient } from "../supabase/server";
 import { hasSupabaseEnv } from "../supabase/env";
 import { fallbackQuestionBank, fallbackLessonTopicMap } from "./fallback-data";
 import { mapQuizRowsToContent } from "./helpers";
-import { buildQuizSeedPayload } from "./seed-payload";
 import type { QuizContent, QuizQuestion, QuizQuestionRow, QuizTopic } from "./types";
+
+const questionColumns =
+  "id, topic, question, question_bg, options, options_bg, correct_index, explanation, explanation_bg";
 
 export function getFallbackQuizContent(): QuizContent {
   return {
@@ -22,8 +25,8 @@ async function loadQuizFromDatabase(): Promise<QuizContent | null> {
   noStore();
   const supabase = await createClient();
   const [questionsResult, topicsResult] = await Promise.all([
-    supabase.from("quiz_questions").select("*").order("topic").order("id"),
-    supabase.from("lesson_quiz_topics").select("*")
+    supabase.from("quiz_questions").select(questionColumns).order("topic").order("id"),
+    supabase.from("lesson_quiz_topics").select("lesson_id, topic")
   ]);
 
   if (questionsResult.error) {
@@ -59,47 +62,17 @@ async function loadQuizFromDatabase(): Promise<QuizContent | null> {
   );
 }
 
-export async function getQuizContent(): Promise<QuizContent> {
+async function loadQuizContent(): Promise<QuizContent> {
   return (await loadQuizFromDatabase()) ?? getFallbackQuizContent();
 }
 
-export async function seedQuizToDatabase() {
-  if (!hasSupabaseEnv()) {
-    throw new Error("Supabase env is not configured.");
-  }
-
-  const supabase = await createClient();
-  const { questions, lessonTopics } = buildQuizSeedPayload();
-  const now = new Date().toISOString();
-
-  const { error: questionsError } = await supabase
-    .from("quiz_questions")
-    .upsert(questions.map((row) => ({ ...row, updated_at: now })), { onConflict: "id" });
-
-  if (questionsError) {
-    throw new Error(questionsError.message);
-  }
-
-  const { error: topicsError } = await supabase
-    .from("lesson_quiz_topics")
-    .upsert(lessonTopics.map((row) => ({ ...row, updated_at: now })), { onConflict: "lesson_id" });
-
-  if (topicsError) {
-    throw new Error(topicsError.message);
-  }
-
-  return {
-    questions: questions.length,
-    lessonTopics: lessonTopics.length
-  };
-}
+export const getQuizContent = cache(loadQuizContent);
 
 export type { QuizContent, QuizQuestion, QuizTopic } from "./types";
 export {
   createSeededRandom,
   generateQuizQuestions,
   getQuestionBankSize,
-  getQuizQuestionById,
   getQuizTopicForLesson,
   localizeQuizQuestion
 } from "./helpers";

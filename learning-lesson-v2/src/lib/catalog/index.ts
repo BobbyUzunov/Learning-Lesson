@@ -1,13 +1,17 @@
+import { cache } from "react";
 import { unstable_noStore as noStore } from "next/cache";
 import { createClient } from "../supabase/server";
 import { hasSupabaseEnv } from "../supabase/env";
 import { getFallbackCatalog } from "./fallback";
 import { getLessonFromCatalog, mapRowsToCatalog } from "./helpers";
-import { seedProjectsToDatabase } from "../projects/store";
-import { seedQuizToDatabase } from "../quiz";
-import { buildCatalogSeedPayload } from "./seed-payload";
-import { seedSchoolCurriculumToDatabase } from "../curriculum";
 import type { CourseCatalog, CourseRow, LessonMetadataRow, LessonRow } from "./types";
+
+const courseColumns =
+  "id, title, title_bg, description, description_bg, difficulty, difficulty_bg, estimated_time, estimated_time_bg, reward_badge, reward_badge_bg, xp_reward, sort_order";
+const lessonColumns =
+  "id, course_id, sort_order, title, title_bg, explanation, explanation_bg, code_example, mission, mission_bg, solution, hint1, hint1_bg, hint2, hint2_bg, hint3, hint3_bg";
+const metadataColumns =
+  "lesson_id, learning_objectives, learning_objectives_bg, prerequisites, prerequisites_bg, key_concepts, key_concepts_bg, reading_time_minutes";
 
 async function loadCatalogFromDatabase(): Promise<CourseCatalog | null> {
   if (!hasSupabaseEnv()) {
@@ -17,9 +21,9 @@ async function loadCatalogFromDatabase(): Promise<CourseCatalog | null> {
   noStore();
   const supabase = await createClient();
   const [coursesResult, lessonsResult, metadataResult] = await Promise.all([
-    supabase.from("courses").select("*").order("sort_order"),
-    supabase.from("lessons").select("*").order("course_id").order("sort_order"),
-    supabase.from("lesson_metadata").select("*")
+    supabase.from("courses").select(courseColumns).order("sort_order"),
+    supabase.from("lessons").select(lessonColumns).order("course_id").order("sort_order"),
+    supabase.from("lesson_metadata").select(metadataColumns)
   ]);
 
   if (coursesResult.error) {
@@ -49,10 +53,12 @@ async function loadCatalogFromDatabase(): Promise<CourseCatalog | null> {
   );
 }
 
-export async function getCourseCatalog(): Promise<CourseCatalog> {
+async function loadCourseCatalog(): Promise<CourseCatalog> {
   const fromDatabase = await loadCatalogFromDatabase();
   return fromDatabase ?? getFallbackCatalog();
 }
+
+export const getCourseCatalog = cache(loadCourseCatalog);
 
 export async function getCatalogLessons() {
   const catalog = await getCourseCatalog();
@@ -62,58 +68,6 @@ export async function getCatalogLessons() {
 export async function getCatalogLesson(id: string) {
   const catalog = await getCourseCatalog();
   return getLessonFromCatalog(catalog, id) ?? null;
-}
-
-export async function seedCatalogToDatabase() {
-  if (!hasSupabaseEnv()) {
-    throw new Error("Supabase env is not configured.");
-  }
-
-  const supabase = await createClient();
-  const { courses, lessons, metadataRows } = buildCatalogSeedPayload();
-  const now = new Date().toISOString();
-
-  const courseRows = courses.map((row) => ({ ...row, updated_at: now }));
-  const lessonRows = lessons.map((row) => ({ ...row, updated_at: now }));
-  const metadata = metadataRows.map((row) => ({ ...row, updated_at: now }));
-
-  const { error: coursesError } = await supabase.from("courses").upsert(courseRows, { onConflict: "id" });
-  if (coursesError) {
-    throw new Error(coursesError.message);
-  }
-
-  const { error: lessonsError } = await supabase.from("lessons").upsert(lessonRows, { onConflict: "id" });
-  if (lessonsError) {
-    throw new Error(lessonsError.message);
-  }
-
-  const { error: metadataError } = await supabase.from("lesson_metadata").upsert(metadata, { onConflict: "lesson_id" });
-  if (metadataError) {
-    throw new Error(metadataError.message);
-  }
-
-  return {
-    courses: courses.length,
-    lessons: lessons.length,
-    metadata: metadataRows.length
-  };
-}
-
-export async function seedAllContentToDatabase() {
-  const catalog = await seedCatalogToDatabase();
-  const [quiz, projects, curriculum] = await Promise.all([
-    seedQuizToDatabase(),
-    seedProjectsToDatabase(),
-    seedSchoolCurriculumToDatabase()
-  ]);
-
-  return {
-    ...catalog,
-    quizQuestions: quiz.questions,
-    lessonQuizTopics: quiz.lessonTopics,
-    projects: projects.projects,
-    ...curriculum
-  };
 }
 
 export type { CourseCatalog, CourseCatalogSource } from "./types";
@@ -134,4 +88,3 @@ export {
   mapRowsToCatalog
 } from "./helpers";
 export { getFallbackCatalog } from "./fallback";
-export { buildCatalogSeedPayload } from "./seed-payload";

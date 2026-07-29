@@ -1,6 +1,5 @@
 import { fallbackSchoolCurriculum } from "./data";
 import type {
-  CurriculumCourseLinkRow,
   CurriculumMissionRow,
   CurriculumModuleRow,
   SpecialtyRow
@@ -53,11 +52,5 @@ export function buildSchoolCurriculumSeedPayload() {
     sort_order: mission.sortOrder
   }));
 
-  const courseLinks: CurriculumCourseLinkRow[] = fallbackSchoolCurriculum.courseLinks.map((link) => ({
-    module_id: link.moduleId,
-    course_id: link.courseId,
-    sort_order: link.sortOrder
-  }));
-
-  return { specialties, modules, missions, courseLinks };
+  return { specialties, modules, missions };
 }

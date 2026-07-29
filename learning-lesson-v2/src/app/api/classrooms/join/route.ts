@@ -5,8 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
 type JoinClassroomRow = {
-  classroom_id: string;
-  name: string;
+  classroom_id: string | null;
+  name: string | null;
+  error_code: string | null;
 };
 
 function joinErrorStatus(message: string) {
@@ -48,6 +49,17 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: joinErrorStatus(error.message) });
+  }
+
+  if (data.error_code) {
+    return NextResponse.json(
+      { error: data.error_code },
+      { status: joinErrorStatus(data.error_code) }
+    );
+  }
+
+  if (!data.classroom_id || !data.name) {
+    return NextResponse.json({ error: "join_failed" }, { status: 500 });
   }
 
   revalidatePath("/classes");

@@ -15,6 +15,8 @@ type ClassroomWithCountRow = ClassroomRow & {
   classroom_members: { count: number }[] | null;
 };
 
+type TransferCandidateRpcRow = { id: string; label: string };
+
 const classroomColumns =
   "id, teacher_id, name, description, specialty_id, grade_level, academic_year, status, join_code, join_code_enabled, created_at";
 
@@ -111,21 +113,14 @@ export async function getStudentClassrooms(): Promise<StudentClassroom[]> {
     }));
 }
 
-export async function listTransferCandidates(excludeUserId: string) {
+export async function listTransferCandidates(classroomId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("profiles")
-    .select("id, display_name, email, role")
-    .in("role", ["teacher", "admin"])
-    .neq("id", excludeUserId)
-    .order("display_name", { ascending: true });
+    .rpc("list_classroom_transfer_candidates", { p_classroom_id: classroomId });
 
   if (error || !data) {
     return [];
   }
 
-  return data.map((row) => ({
-    id: row.id as string,
-    label: (row.display_name as string | null) || (row.email as string | null) || (row.id as string)
-  }));
+  return (data as TransferCandidateRpcRow[]).map((row) => ({ id: row.id, label: row.label }));
 }

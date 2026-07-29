@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutButton } from "@/components/logout-button";
-import type { Language } from "@/lib/i18n";
+import type { Language } from "@/lib/language";
 
 type NavItem = {
   href: string;
@@ -20,9 +20,7 @@ export function SiteHeader({
   logoutLabel,
   menuLabel,
   closeMenuLabel,
-  navItems,
-  registerLabel,
-  showRegister = false
+  navItems
 }: {
   brand: string;
   isAuthenticated: boolean;
@@ -32,8 +30,6 @@ export function SiteHeader({
   menuLabel: string;
   closeMenuLabel: string;
   navItems: NavItem[];
-  registerLabel: string;
-  showRegister?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -111,7 +107,7 @@ export function SiteHeader({
             {isAuthenticated ? (
               <LogoutButton className="mt-2 w-full min-h-11 justify-center" label={logoutLabel} />
             ) : (
-              <div className="grid gap-2 pt-2">
+              <div className="pt-2">
                 <Link
                   className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-3 py-3 text-center text-paper"
                   href="/login"
@@ -119,15 +115,6 @@ export function SiteHeader({
                 >
                   {loginLabel}
                 </Link>
-                {showRegister ? (
-                  <Link
-                    className="inline-flex min-h-11 items-center justify-center rounded-md border border-ink/15 px-3 py-3 text-center"
-                    href="/register"
-                    onClick={() => setOpen(false)}
-                  >
-                    {registerLabel}
-                  </Link>
-                ) : null}
               </div>
             )}
           </div>

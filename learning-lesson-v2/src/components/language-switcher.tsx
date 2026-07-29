@@ -1,8 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type { Language } from "@/lib/i18n";
-import { languageCookie } from "@/lib/i18n";
+import { languageCookie, type Language } from "@/lib/language";
 
 export function LanguageSwitcher({ language }: { language: Language }) {
   const router = useRouter();

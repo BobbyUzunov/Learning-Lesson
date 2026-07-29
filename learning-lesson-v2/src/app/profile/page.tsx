@@ -16,13 +16,14 @@ import { getAchievements, getGameProgressStats, toGameProgress } from "@/lib/gam
 import { localizeGameQuest } from "@/lib/i18n";
 
 export default async function ProfilePage() {
-  const language = await getLanguage();
+  const [language, session] = await Promise.all([getLanguage(), requireUser()]);
   const copy = t(language);
-  const session = await requireUser();
-  const catalog = await getCourseCatalog();
-  const { projects } = await getCourseProjects();
-  const { progress, streakCount } = await getCurrentUserProgress();
-  const submissions = await getCurrentUserProjectSubmissions();
+  const [catalog, { projects }, { progress, streakCount }, submissions] = await Promise.all([
+    getCourseCatalog(),
+    getCourseProjects(),
+    getCurrentUserProgress(),
+    getCurrentUserProjectSubmissions()
+  ]);
   const gameProgress = toGameProgress(progress, streakCount);
   const stats = getGameProgressStats(gameProgress, catalog.lessons, catalog.courses);
   const completedCount = stats.completedCount;

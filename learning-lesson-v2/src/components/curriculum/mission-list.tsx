@@ -2,33 +2,31 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, Clock3 } from "lucide-react";
-import { localizeCurriculumText } from "@/lib/curriculum/helpers";
-import type { CurriculumAccent, CurriculumMission, CurriculumModule } from "@/lib/curriculum/types";
+import type {
+  CurriculumExplorerCopy,
+  CurriculumExplorerGroup,
+  CurriculumExplorerMission
+} from "@/lib/curriculum/explorer";
+import type { CurriculumAccent } from "@/lib/curriculum/types";
 import { curriculumAccentStyles } from "@/lib/curriculum/ui";
-import { t, type Language } from "@/lib/i18n";
-
-export type MissionGroup = {
-  module: CurriculumModule;
-  missions: CurriculumMission[];
-};
 
 const PREVIEW_COUNT = 3;
 
 type MissionListProps = {
   accent: CurriculumAccent;
-  specialtyGroups: MissionGroup[];
-  commonGroups: MissionGroup[];
-  language: Language;
+  specialtyGroups: CurriculumExplorerGroup[];
+  commonGroups: CurriculumExplorerGroup[];
+  copy: CurriculumExplorerCopy;
   onSelect: (missionId: string) => void;
   selectedMissionId: string;
-  selectedMission: CurriculumMission | null;
+  selectedMission: CurriculumExplorerMission | null;
 };
 
 function ModuleAccordion({
   accent,
+  copy,
   group,
   isOpen,
-  language,
   onToggle,
   onSelect,
   selectedMissionId,
@@ -36,16 +34,15 @@ function ModuleAccordion({
   selectedMission
 }: {
   accent: CurriculumAccent;
-  group: MissionGroup;
+  copy: CurriculumExplorerCopy;
+  group: CurriculumExplorerGroup;
   isOpen: boolean;
-  language: Language;
   onToggle: () => void;
   onSelect: (missionId: string) => void;
   selectedMissionId: string;
   showDetail: boolean;
-  selectedMission: CurriculumMission | null;
+  selectedMission: CurriculumExplorerMission | null;
 }) {
-  const copy = t(language).schoolCurriculum;
   const style = curriculumAccentStyles[accent];
   const [showAll, setShowAll] = useState(false);
   const selectedIndex = group.missions.findIndex((mission) => mission.id === selectedMissionId);
@@ -74,7 +71,7 @@ function ModuleAccordion({
         type="button"
       >
         <span className="min-w-0 flex-1">
-          <span className="block font-bold leading-6">{localizeCurriculumText(group.module.title, language)}</span>
+          <span className="block font-bold leading-6">{group.module.title}</span>
           <span className="mt-1 block text-xs font-bold text-ink/45">
             {group.missions.length} {copy.missionsLabel}
           </span>
@@ -114,7 +111,7 @@ function ModuleAccordion({
                       {index + 1}
                     </span>
                     <span className="min-w-0 flex-1 text-sm font-bold leading-5">
-                      {localizeCurriculumText(mission.title, language)}
+                      {mission.title}
                     </span>
                     <span className="flex shrink-0 items-center gap-1 text-[11px] font-bold text-ink/40">
                       <Clock3 className="size-3" />
@@ -138,14 +135,14 @@ function ModuleAccordion({
 
           {showDetail && selectedMission ? (
             <div className={`mt-4 rounded-xl border p-4 ${style.border} ${style.soft}`} id="selected-mission-detail">
-              <p className="font-bold leading-6">{localizeCurriculumText(selectedMission.title, language)}</p>
+              <p className="font-bold leading-6">{selectedMission.title}</p>
               <p className="mt-2 text-sm leading-6 text-ink/70">
                 <span className="font-bold text-ink/80">{copy.whatYouWillDo}: </span>
-                {localizeCurriculumText(selectedMission.brief, language)}
+                {selectedMission.brief}
               </p>
               <p className="mt-2 text-sm leading-6 text-ink/70">
                 <span className="font-bold text-ink/80">{copy.whatYouWillSubmit}: </span>
-                {localizeCurriculumText(selectedMission.deliverable, language)}
+                {selectedMission.deliverable}
               </p>
               <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-ink/55">
                 <Clock3 className="size-3.5" />
@@ -163,12 +160,11 @@ export function MissionList({
   accent,
   specialtyGroups,
   commonGroups,
-  language,
+  copy,
   onSelect,
   selectedMissionId,
   selectedMission
 }: MissionListProps) {
-  const copy = t(language).schoolCurriculum;
   const firstModuleId = specialtyGroups[0]?.module.id ?? "";
   const [openModuleId, setOpenModuleId] = useState(firstModuleId);
   const [commonOpen, setCommonOpen] = useState(false);
@@ -212,10 +208,10 @@ export function MissionList({
         {specialtyGroups.map((group) => (
           <ModuleAccordion
             accent={accent}
+            copy={copy}
             group={group}
             isOpen={openModuleId === group.module.id}
             key={group.module.id}
-            language={language}
             onSelect={onSelect}
             onToggle={() => setOpenModuleId((current) => (current === group.module.id ? "" : group.module.id))}
             selectedMission={selectedMission}
@@ -245,10 +241,10 @@ export function MissionList({
               {commonGroups.map((group) => (
                 <ModuleAccordion
                   accent={accent}
+                  copy={copy}
                   group={group}
                   isOpen={openModuleId === group.module.id}
                   key={group.module.id}
-                  language={language}
                   onSelect={onSelect}
                   onToggle={() => setOpenModuleId((current) => (current === group.module.id ? "" : group.module.id))}
                   selectedMission={selectedMission}

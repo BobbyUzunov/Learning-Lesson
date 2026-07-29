@@ -1,24 +1,25 @@
 import Link from "next/link";
 import { ArrowRight, Clock3 } from "lucide-react";
-import { localizeCurriculumText } from "@/lib/curriculum/helpers";
-import type { CurriculumMission, SchoolSpecialty } from "@/lib/curriculum/types";
+import type {
+  CurriculumExplorerCopy,
+  CurriculumExplorerMission,
+  CurriculumExplorerSpecialty
+} from "@/lib/curriculum/explorer";
 import { curriculumAccentStyles } from "@/lib/curriculum/ui";
-import { t, type Language } from "@/lib/i18n";
 
 type StudentMissionCardProps = {
-  language: Language;
-  mission: CurriculumMission;
-  specialty: SchoolSpecialty;
+  copy: CurriculumExplorerCopy;
+  mission: CurriculumExplorerMission;
+  specialty: CurriculumExplorerSpecialty;
   onBrowseAll: () => void;
 };
 
 export function StudentMissionCard({
-  language,
+  copy,
   mission,
   specialty,
   onBrowseAll
 }: StudentMissionCardProps) {
-  const copy = t(language).schoolCurriculum;
   const style = curriculumAccentStyles[specialty.accent];
 
   return (
@@ -29,17 +30,17 @@ export function StudentMissionCard({
     >
       <p className={`text-xs font-bold uppercase tracking-[0.14em] ${style.text}`}>{copy.recommendedMission}</p>
       <h2 className="mt-3 font-display text-2xl font-bold leading-tight sm:text-3xl">
-        {localizeCurriculumText(mission.title, language)}
+        {mission.title}
       </h2>
 
       <div className="mt-6 space-y-5">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-ink/45">{copy.whatYouWillDo}</p>
-          <p className="mt-2 text-base leading-7 text-ink/70">{localizeCurriculumText(mission.brief, language)}</p>
+          <p className="mt-2 text-base leading-7 text-ink/70">{mission.brief}</p>
         </div>
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-ink/45">{copy.whatYouWillSubmit}</p>
-          <p className="mt-2 text-base leading-7 text-ink/70">{localizeCurriculumText(mission.deliverable, language)}</p>
+          <p className="mt-2 text-base leading-7 text-ink/70">{mission.deliverable}</p>
         </div>
         <p className="inline-flex items-center gap-2 text-sm font-bold text-ink/60">
           <Clock3 className="size-4" />

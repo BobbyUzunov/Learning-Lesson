@@ -9,7 +9,7 @@ import {
   getNextLessonInQuest,
   isLessonUnlocked
 } from "@/lib/catalog/helpers";
-import { getStoredProgress } from "@/lib/game-progress";
+import { getStoredProgress } from "@/lib/game-progress-storage";
 import { xpPerLesson } from "@/lib/game-data";
 import type { CourseProject, ProjectSubmissionRecord } from "@/lib/projects/types";
 import { getProjectsForCourse, isProjectUnlocked, localizeProject } from "@/lib/projects/helpers";

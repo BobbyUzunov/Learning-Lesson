@@ -12,6 +12,9 @@ export const config = {
     "/classes/:path*",
     "/assessments/:path*",
     "/assignments/:path*",
+    "/certificate/:path*",
+    "/projects/:path*",
+    "/verify-email/:path*",
     "/teacher/:path*",
     "/admin/:path*"
   ]

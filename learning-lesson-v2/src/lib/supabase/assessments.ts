@@ -17,6 +17,7 @@ import {
 } from "@/lib/assessments/types";
 import { getCurrentSession } from "./auth";
 import { createClient } from "./server";
+import { getMyClassroomIds } from "./memberships";
 
 const assessmentColumns =
   "id, classroom_id, created_by, title, description, assessment_type, status, due_at, duration_minutes, question_count, created_at";
@@ -149,17 +150,12 @@ export async function getMyAssessments(): Promise<Assessment[]> {
     return [];
   }
 
-  const supabase = await createClient();
-  const { data: memberships, error: membershipError } = await supabase
-    .from("classroom_members")
-    .select("classroom_id")
-    .eq("student_id", session.user.id);
-
-  if (membershipError || !memberships?.length) {
+  const classroomIds = await getMyClassroomIds();
+  if (!classroomIds.length) {
     return [];
   }
 
-  const classroomIds = memberships.map((membership) => membership.classroom_id as string);
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("classroom_assessments")
     .select(

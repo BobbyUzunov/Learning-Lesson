@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { Bot, Bug, ChevronDown, ChevronUp, Compass, SearchCheck, Sparkles } from "lucide-react";
-import { MessageResponse } from "@/components/ai-elements/message";
 import { formatMessage, t, type Language } from "@/lib/i18n";
 import type { MentorHintLevel, MentorMode } from "@/lib/mentor/prompt";
 
@@ -299,9 +298,7 @@ export function LessonAiHint({
               <p className="text-xs font-bold uppercase tracking-wide text-ink/45">
                 {formatMessage(copy.mentor.hintLevel, { level: displayLevel })}
               </p>
-              <MessageResponse className="mt-2 text-sm leading-6 text-ink/80" isAnimating={busy}>
-                {hint}
-              </MessageResponse>
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-ink/80">{hint}</p>
               {!taskLimitReached && !hasNewAttempt ? (
                 <p className="mt-3 border-t border-ink/10 pt-3 text-xs font-semibold text-ink/55">
                   {copy.mentor.tryBeforeNext}

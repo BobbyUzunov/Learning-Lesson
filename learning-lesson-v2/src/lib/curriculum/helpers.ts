@@ -1,6 +1,5 @@
 import type { Language } from "../i18n";
 import type {
-  CurriculumCourseLinkRow,
   CurriculumMissionRow,
   CurriculumModule,
   CurriculumModuleRow,
@@ -73,8 +72,7 @@ function asStringArray(value: unknown) {
 export function mapRowsToSchoolCurriculum(
   specialtyRows: SpecialtyRow[],
   moduleRows: CurriculumModuleRow[],
-  missionRows: CurriculumMissionRow[],
-  courseLinkRows: CurriculumCourseLinkRow[]
+  missionRows: CurriculumMissionRow[]
 ): SchoolCurriculum {
   return {
     source: "db",
@@ -133,11 +131,6 @@ export function mapRowsToSchoolCurriculum(
           estimatedMinutes: row.estimated_minutes,
           sortOrder: row.sort_order
         };
-      }),
-    courseLinks: courseLinkRows.map((row) => ({
-      moduleId: row.module_id,
-      courseId: row.course_id,
-      sortOrder: row.sort_order
-    }))
+      })
   };
 }
