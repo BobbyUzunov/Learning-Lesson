@@ -1,5 +1,14 @@
 import { test, expect } from "@playwright/test";
 import { openLessonTask } from "./helpers/lesson";
+import { fallbackLessonTopicMap, fallbackQuestionBank } from "../src/lib/quiz/fallback-data";
+import { createSeededRandom, generateQuizQuestions, getQuizTopicForLesson } from "../src/lib/quiz/helpers";
+import type { QuizContent } from "../src/lib/quiz/types";
+
+const fallbackQuizContent: QuizContent = {
+  questions: fallbackQuestionBank,
+  lessonTopics: fallbackLessonTopicMap,
+  source: "fallback"
+};
 
 test("guest can open the first free lesson", async ({ page }) => {
   await page.goto("/lesson/1");
@@ -21,9 +30,15 @@ test("guest completes the first lesson and sees signup prompt", async ({ page })
   await page.locator("#lesson-solution").fill("Built a semantic HTML page with header, main, and footer sections.");
   await page.getByRole("button", { name: /check my attempt|провери опита/i }).click();
   const quizQuestions = page.locator("article article");
-  await expect(quizQuestions).toHaveCount(3);
-  for (let index = 0; index < 3; index += 1) {
-    await quizQuestions.nth(index).getByRole("button").nth(1).click();
+  const expectedQuestions = generateQuizQuestions(
+    fallbackQuizContent,
+    getQuizTopicForLesson(fallbackQuizContent, "1"),
+    3,
+    createSeededRandom("1:0")
+  );
+  await expect(quizQuestions).toHaveCount(expectedQuestions.length);
+  for (const [index, question] of expectedQuestions.entries()) {
+    await quizQuestions.nth(index).getByRole("button").nth(question.correctIndex).click();
   }
   await page.getByRole("button", { name: /check answers|провери отговорите/i }).click();
   await expect(page.getByText(/passed|успешно/i)).toBeVisible();
