@@ -38,7 +38,12 @@ export function PromoteTeacherButton({
     setLoading(false);
 
     if (!response.ok) {
-      setError(copy.admin.roleError);
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      setError(
+        payload?.error?.includes("teacher_has_classrooms")
+          ? copy.admin.roleTeacherHasClasses
+          : copy.admin.roleError
+      );
       return;
     }
 

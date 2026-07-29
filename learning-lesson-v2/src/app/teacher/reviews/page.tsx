@@ -1,55 +1,14 @@
 import Link from "next/link";
 import { ArrowRight, ClipboardCheck } from "lucide-react";
-import { getTeacherClassrooms } from "@/lib/supabase/classrooms";
-import { getClassroomAssignments } from "@/lib/supabase/assignments";
-import { createClient } from "@/lib/supabase/server";
+import { getPendingTeacherReviews } from "@/lib/supabase/assignments";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
 export default async function TeacherReviewsPage() {
-  const language = await getLanguage();
+  const [language, pending] = await Promise.all([getLanguage(), getPendingTeacherReviews()]);
   const copy = t(language);
-  const classrooms = await getTeacherClassrooms();
-  const assignmentGroups = await Promise.all(
-    classrooms.map(async (classroom) => ({
-      classroom,
-      assignments: await getClassroomAssignments(classroom.id)
-    }))
-  );
-
-  const supabase = await createClient();
-  const pending: {
-    classroomId: string;
-    classroomName: string;
-    assignmentId: string;
-    title: string;
-    count: number;
-  }[] = [];
-
-  for (const group of assignmentGroups) {
-    for (const assignment of group.assignments) {
-      const { count } = await supabase
-        .from("assignment_submissions")
-        .select("id", { count: "exact", head: true })
-        .eq("assignment_id", assignment.id)
-        .eq("status", "submitted");
-
-      if ((count ?? 0) > 0) {
-        pending.push({
-          classroomId: group.classroom.id,
-          classroomName: group.classroom.name,
-          assignmentId: assignment.id,
-          title:
-            language === "bg"
-              ? assignment.missionTitleBg || assignment.missionTitle || assignment.missionId
-              : assignment.missionTitle || assignment.missionId,
-          count: count ?? 0
-        });
-      }
-    }
-  }
 
   return (
     <div>
@@ -70,9 +29,11 @@ export default async function TeacherReviewsPage() {
                     <ClipboardCheck className="size-4" />
                     {item.classroomName}
                   </p>
-                  <p className="mt-2 font-bold">{item.title}</p>
+                  <p className="mt-2 font-bold">
+                    {language === "bg" ? item.missionTitleBg || item.missionTitle : item.missionTitle}
+                  </p>
                   <p className="mt-1 text-sm text-ink/60">
-                    {item.count} {copy.teacher.reviewsPending}
+                    {item.pendingCount} {copy.teacher.reviewsPending}
                   </p>
                 </div>
                 <Link

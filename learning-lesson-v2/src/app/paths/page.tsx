@@ -1,5 +1,6 @@
 import { SchoolCurriculumExplorer } from "@/components/school-curriculum-explorer";
 import { getSchoolCurriculum } from "@/lib/curriculum";
+import { buildCurriculumExplorerData, pickCurriculumExplorerCopy } from "@/lib/curriculum/explorer";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getCurrentSession } from "@/lib/supabase/auth";
@@ -13,13 +14,14 @@ export default async function PathsPage() {
     getSchoolCurriculum()
   ]);
   const copy = t(language);
+  const explorerData = buildCurriculumExplorerData(curriculum, language);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-5 sm:py-8">
       <SchoolCurriculumExplorer
-        curriculum={curriculum}
+        copy={pickCurriculumExplorerCopy(copy.schoolCurriculum)}
+        data={explorerData}
         isAuthenticated={Boolean(session.user)}
-        language={language}
         pathsTitle={session.user ? copy.schoolCurriculum.pathsTitleStudent : copy.schoolCurriculum.pathsTitle}
       />
     </main>

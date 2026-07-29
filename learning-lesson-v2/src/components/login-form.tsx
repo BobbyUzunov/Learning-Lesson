@@ -4,7 +4,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogIn, UserPlus } from "lucide-react";
-import { clearStoredProgress, getStoredProgress, guestContinueKey } from "@/lib/game-progress";
+import { clearStoredProgress, getStoredProgress, guestContinueKey } from "@/lib/game-progress-storage";
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { ensureUserProfile } from "@/lib/supabase/profile";

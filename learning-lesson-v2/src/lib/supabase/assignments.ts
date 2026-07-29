@@ -1,5 +1,6 @@
 import { createClient } from "./server";
 import { getCurrentSession } from "./auth";
+import { getMyClassroomIds } from "./memberships";
 import {
   mapAssignmentReportRow,
   mapAssignmentSubmissionRow,
@@ -34,6 +35,24 @@ type StudentAssignmentRow = ClassroomAssignmentRow & {
   curriculum_missions: MissionJoin | null;
   classrooms: { name: string } | null;
   assignment_submissions: AssignmentSubmissionRow[] | null;
+};
+
+export type PendingTeacherReview = {
+  classroomId: string;
+  classroomName: string;
+  assignmentId: string;
+  missionTitle: string;
+  missionTitleBg: string;
+  pendingCount: number;
+};
+
+type PendingTeacherReviewRpcRow = {
+  classroom_id: string;
+  classroom_name: string;
+  assignment_id: string;
+  mission_title: string;
+  mission_title_bg: string;
+  pending_count: number | string;
 };
 
 function missionExtras(mission: MissionJoin | null): Partial<ClassroomAssignment> {
@@ -105,23 +124,36 @@ export async function getAssignmentReport(assignmentId: string): Promise<Assignm
   return (data as AssignmentReportRpcRow[]).map(mapAssignmentReportRow);
 }
 
+export async function getPendingTeacherReviews(): Promise<PendingTeacherReview[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_pending_teacher_reviews");
+
+  if (error || !data) {
+    return [];
+  }
+
+  return (data as PendingTeacherReviewRpcRow[]).map((row) => ({
+    classroomId: row.classroom_id,
+    classroomName: row.classroom_name,
+    assignmentId: row.assignment_id,
+    missionTitle: row.mission_title,
+    missionTitleBg: row.mission_title_bg,
+    pendingCount: Number(row.pending_count)
+  }));
+}
+
 export async function getMyAssignments(): Promise<ClassroomAssignment[]> {
   const session = await getCurrentSession();
   if (!session.user) {
     return [];
   }
 
-  const supabase = await createClient();
-  const { data: memberships, error: membershipError } = await supabase
-    .from("classroom_members")
-    .select("classroom_id")
-    .eq("student_id", session.user.id);
-
-  if (membershipError || !memberships || memberships.length === 0) {
+  const classroomIds = await getMyClassroomIds();
+  if (classroomIds.length === 0) {
     return [];
   }
 
-  const classroomIds = memberships.map((row) => row.classroom_id as string);
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("classroom_assignments")
     .select(

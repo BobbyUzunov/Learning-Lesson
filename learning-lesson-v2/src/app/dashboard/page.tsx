@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { getCourseCatalog, getCatalogLessons, getGlobalNextLessonFromCourses } from "@/lib/catalog";
+import { getCourseCatalog, getGlobalNextLessonFromCourses } from "@/lib/catalog";
 import { localizeGameLesson, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getMyAssignments } from "@/lib/supabase/assignments";
@@ -15,13 +15,13 @@ export default async function DashboardPage() {
   const language = await getLanguage();
   const copy = t(language);
   await requireUser();
-  const catalog = await getCourseCatalog();
-  const [{ progress }, lessons, assignments, assessments] = await Promise.all([
+  const [catalog, { progress }, assignments, assessments] = await Promise.all([
+    getCourseCatalog(),
     getCurrentUserProgress(),
-    getCatalogLessons(),
     getMyAssignments(),
     getMyAssessments()
   ]);
+  const lessons = catalog.lessons;
 
   const completedLessonIds = progress.filter((item) => item.completed).map((item) => item.lesson_id);
   const nextLessonId = getGlobalNextLessonFromCourses(catalog.courses, completedLessonIds);

@@ -6,43 +6,34 @@ import { CurriculumDetails } from "@/components/curriculum/curriculum-details";
 import { MissionList } from "@/components/curriculum/mission-list";
 import { SpecialtySelector } from "@/components/curriculum/specialty-selector";
 import { StudentMissionCard } from "@/components/curriculum/student-mission-card";
-import {
-  getActiveGradeLevel,
-  getCommonModules,
-  getMissionsForModules,
-  getSpecialtyModules,
-  localizeCurriculumText
-} from "@/lib/curriculum/helpers";
-import type { SchoolCurriculum } from "@/lib/curriculum/types";
-import { t, type Language } from "@/lib/i18n";
+import type {
+  CurriculumExplorerCopy,
+  CurriculumExplorerData
+} from "@/lib/curriculum/explorer";
 
 const SPECIALTY_STORAGE_KEY = "ll-selected-specialty";
 
 type SchoolCurriculumExplorerProps = {
-  curriculum: SchoolCurriculum;
+  copy: CurriculumExplorerCopy;
+  data: CurriculumExplorerData;
   isAuthenticated: boolean;
-  language: Language;
   pathsTitle: string;
 };
 
-function firstSpecialtyMissionId(curriculum: SchoolCurriculum, specialtyId: string) {
-  const activeGrade = getActiveGradeLevel(curriculum);
-  const specialtyModules = getSpecialtyModules(curriculum, specialtyId, activeGrade);
-  const groups = getMissionsForModules(curriculum, specialtyModules);
-  return groups[0]?.missions[0]?.id ?? "";
+function firstSpecialtyMissionId(data: CurriculumExplorerData, specialtyId: string) {
+  return data.specialties.find((specialty) => specialty.id === specialtyId)?.groups[0]?.missions[0]?.id ?? "";
 }
 
 export function SchoolCurriculumExplorer({
-  curriculum,
+  copy,
+  data,
   isAuthenticated,
-  language,
   pathsTitle
 }: SchoolCurriculumExplorerProps) {
-  const copy = t(language).schoolCurriculum;
-  const fallbackSpecialtyId = curriculum.specialties[0]?.id ?? "software-development";
+  const fallbackSpecialtyId = data.specialties[0]?.id ?? "software-development";
   const [selectedSpecialtyId, setSelectedSpecialtyId] = useState(fallbackSpecialtyId);
   const [selectedMissionId, setSelectedMissionId] = useState(() =>
-    firstSpecialtyMissionId(curriculum, fallbackSpecialtyId)
+    firstSpecialtyMissionId(data, fallbackSpecialtyId)
   );
   const [hasSavedSpecialty, setHasSavedSpecialty] = useState(false);
   const [changingDirection, setChangingDirection] = useState(false);
@@ -51,28 +42,25 @@ export function SchoolCurriculumExplorer({
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(SPECIALTY_STORAGE_KEY);
-      if (stored && curriculum.specialties.some((specialty) => specialty.id === stored)) {
+      if (stored && data.specialties.some((specialty) => specialty.id === stored)) {
         setSelectedSpecialtyId(stored);
-        setSelectedMissionId(firstSpecialtyMissionId(curriculum, stored));
+        setSelectedMissionId(firstSpecialtyMissionId(data, stored));
         setHasSavedSpecialty(true);
       }
     } catch {
       // Ignore storage failures.
     }
-  }, [curriculum]);
+  }, [data]);
 
   const selectedSpecialty =
-    curriculum.specialties.find((specialty) => specialty.id === selectedSpecialtyId) ?? curriculum.specialties[0];
+    data.specialties.find((specialty) => specialty.id === selectedSpecialtyId) ?? data.specialties[0];
 
   if (!selectedSpecialty) {
     return null;
   }
 
-  const activeGrade = getActiveGradeLevel(curriculum);
-  const commonModules = getCommonModules(curriculum, activeGrade);
-  const specialtyModules = getSpecialtyModules(curriculum, selectedSpecialty.id, activeGrade);
-  const specialtyGroups = getMissionsForModules(curriculum, specialtyModules);
-  const commonGroups = getMissionsForModules(curriculum, commonModules);
+  const specialtyGroups = selectedSpecialty.groups;
+  const commonGroups = data.commonGroups;
   const specialtyMissions = specialtyGroups.flatMap((group) => group.missions);
   const allMissions = [...specialtyMissions, ...commonGroups.flatMap((group) => group.missions)];
   const recommendedMission =
@@ -81,7 +69,7 @@ export function SchoolCurriculumExplorer({
 
   function selectSpecialty(specialtyId: string) {
     setSelectedSpecialtyId(specialtyId);
-    setSelectedMissionId(firstSpecialtyMissionId(curriculum, specialtyId));
+    setSelectedMissionId(firstSpecialtyMissionId(data, specialtyId));
     setChangingDirection(false);
     setHasSavedSpecialty(true);
     try {
@@ -100,15 +88,15 @@ export function SchoolCurriculumExplorer({
 
       {showSpecialtyPicker ? (
         <SpecialtySelector
-          language={language}
+          copy={copy}
           onSelect={selectSpecialty}
           selectedId={selectedSpecialty.id}
-          specialties={curriculum.specialties}
+          specialties={data.specialties}
         />
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ink/10 bg-white px-4 py-3">
           <p className="text-sm font-bold text-ink/70">
-            {copy.currentDirection}: {localizeCurriculumText(selectedSpecialty.title, language)}
+            {copy.currentDirection}: {selectedSpecialty.title}
           </p>
           <button
             className="text-sm font-semibold text-violet underline-offset-4 hover:underline"
@@ -122,7 +110,7 @@ export function SchoolCurriculumExplorer({
 
       {recommendedMission ? (
         <StudentMissionCard
-          language={language}
+          copy={copy}
           mission={recommendedMission}
           onBrowseAll={() => allMissionsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
           specialty={selectedSpecialty}
@@ -133,7 +121,7 @@ export function SchoolCurriculumExplorer({
         <MissionList
           accent={selectedSpecialty.accent}
           commonGroups={commonGroups}
-          language={language}
+          copy={copy}
           onSelect={setSelectedMissionId}
           selectedMission={recommendedMission}
           selectedMissionId={recommendedMission?.id ?? ""}
@@ -142,10 +130,10 @@ export function SchoolCurriculumExplorer({
       </div>
 
       <CurriculumDetails
-        commonModules={commonModules}
-        language={language}
+        commonModules={commonGroups.map((group) => group.module)}
+        copy={copy}
         professionCode={selectedSpecialty.professionCode}
-        specialtyModules={specialtyModules}
+        specialtyModules={specialtyGroups.map((group) => group.module)}
         specialtyTitle={selectedSpecialty.title}
       />
 

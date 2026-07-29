@@ -78,10 +78,6 @@ export function getQuestionBankSize(content: QuizContent, topic: QuizTopic) {
   return content.questions.filter((item) => item.topic === topic).length;
 }
 
-export function getQuizQuestionById(content: QuizContent, id: string) {
-  return content.questions.find((item) => item.id === id);
-}
-
 export function mapQuizRowsToContent(
   questionRows: QuizContent["questions"],
   topicRows: Array<{ lesson_id: string; topic: string }>

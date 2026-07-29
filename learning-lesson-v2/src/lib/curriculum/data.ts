@@ -235,6 +235,5 @@ export const fallbackSchoolCurriculum: SchoolCurriculum = {
       sortOrder: 2
     }
   ],
-  missions: gradeEightMissions,
-  courseLinks: []
+  missions: gradeEightMissions
 };

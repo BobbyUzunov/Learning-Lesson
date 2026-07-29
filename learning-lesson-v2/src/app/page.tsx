@@ -23,10 +23,12 @@ function findFeaturedMission(missions: CurriculumMission[]) {
 }
 
 export default async function HomePage() {
-  const language = await getLanguage();
+  const [language, session, curriculum] = await Promise.all([
+    getLanguage(),
+    getCurrentSession(),
+    getSchoolCurriculum()
+  ]);
   const copy = t(language).home;
-  const session = await getCurrentSession();
-  const curriculum = await getSchoolCurriculum();
   const featuredMission = findFeaturedMission(curriculum.missions);
   const featuredModule = featuredMission
     ? curriculum.modules.find((module) => module.id === featuredMission.moduleId)

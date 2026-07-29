@@ -1,5 +1,5 @@
 import { gameQuests, type GameQuest } from "./game-data";
-import type { GameProgress } from "./game-progress";
+import type { GameProgress } from "./game-progress-storage";
 import type { Language } from "./i18n";
 import { localizeGameQuest } from "./i18n";
 import { fallbackCourseProjects } from "./projects/fallback-data";

@@ -20,18 +20,20 @@ type ProjectPageProps = {
 };
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
-  const language = await getLanguage();
+  const [language, { id }, { projects }, session, catalog] = await Promise.all([
+    getLanguage(),
+    params,
+    getCourseProjects(),
+    getCurrentSession(),
+    getCourseCatalog()
+  ]);
   const copy = t(language);
-  const { id } = await params;
-  const { projects } = await getCourseProjects();
   const projectDef = getProjectById(projects, id);
 
   if (!projectDef) {
     notFound();
   }
 
-  const session = await getCurrentSession();
-  const catalog = await getCourseCatalog();
   const project = localizeProject(projectDef, language);
   const course = getQuestFromCatalog(catalog, project.courseId);
   const localizedCourse = course ? localizeGameQuest(course, language) : null;
@@ -46,14 +48,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const unlocked = isProjectUnlocked(projectDef, completedLessonIds);
 
   if (!unlocked) {
-    redirect("/paths?lessonLocked=1");
+    redirect("/courses?lessonLocked=1");
   }
 
   const existingSubmission = submissions.find((item) => item.project_id === project.id) ?? null;
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
-      <Link className="inline-flex items-center gap-2 text-sm font-bold text-ink/70 hover:text-ink" href="/paths">
+      <Link className="inline-flex items-center gap-2 text-sm font-bold text-ink/70 hover:text-ink" href="/courses">
         <ArrowLeft className="size-4" />
         {copy.common.backToPaths}
       </Link>

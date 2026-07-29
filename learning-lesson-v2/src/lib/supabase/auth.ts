@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "./server";
 import { createE2eUser, hasE2eAuthCookie } from "./e2e-auth";
@@ -6,7 +7,7 @@ import { ensureUserProfile, type ProfileRow } from "./profile";
 
 export type UserProfile = ProfileRow;
 
-export async function getCurrentSession() {
+async function loadCurrentSession() {
   if (await hasE2eAuthCookie()) {
     const user = createE2eUser();
     return {
@@ -19,7 +20,8 @@ export async function getCurrentSession() {
         display_name: "E2E Learner",
         role: "user",
         xp: 0,
-        level: 1
+        level: 1,
+        streak_count: 0
       } satisfies UserProfile,
       isAdmin: false,
       isTeacher: false
@@ -50,7 +52,8 @@ export async function getCurrentSession() {
       display_name: user.email?.split("@")[0] ?? "Learner",
       role: "user",
       xp: 0,
-      level: 1
+      level: 1,
+      streak_count: 0
     } satisfies UserProfile);
 
   return {
@@ -61,6 +64,8 @@ export async function getCurrentSession() {
     isTeacher: normalizedProfile.role === "teacher" || normalizedProfile.role === "admin"
   };
 }
+
+export const getCurrentSession = cache(loadCurrentSession);
 
 export async function requireUser(message = "Please login to continue your learning journey.") {
   const session = await getCurrentSession();

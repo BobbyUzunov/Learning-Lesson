@@ -17,19 +17,23 @@ type CertificatePageProps = {
 };
 
 export default async function CertificatePage({ params }: CertificatePageProps) {
-  const { questId } = await params;
-  const catalog = await getCourseCatalog();
-  const { projects } = await getCourseProjects();
+  const [{ questId }, catalog, { projects }, language, session] = await Promise.all([
+    params,
+    getCourseCatalog(),
+    getCourseProjects(),
+    getLanguage(),
+    requireUser()
+  ]);
   const quest = getQuestFromCatalog(catalog, questId);
   if (!quest) {
     notFound();
   }
 
-  const language = await getLanguage();
   const copy = t(language);
-  const session = await requireUser();
-  const { progress } = await getCurrentUserProgress();
-  const submissions = await getCurrentUserProjectSubmissions();
+  const [{ progress }, submissions] = await Promise.all([
+    getCurrentUserProgress(),
+    getCurrentUserProjectSubmissions()
+  ]);
   const gameProgress = toGameProgress(progress);
   const earned = getEarnedCertificates(gameProgress, language, progress, submissions, catalog.courses, projects).find(
     (item) => item.questId === questId

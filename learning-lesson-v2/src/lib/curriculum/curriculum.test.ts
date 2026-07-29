@@ -71,10 +71,6 @@ describe("school curriculum", () => {
     expect(getMissionsForModules(fallbackSchoolCurriculum, [])).toEqual([]);
   });
 
-  it("keeps the official Grade 8 curriculum independent from optional advanced courses", () => {
-    expect(fallbackSchoolCurriculum.courseLinks).toEqual([]);
-  });
-
   it("derives the active grade from pilot modules instead of hardcoding it", () => {
     expect(getActiveGradeLevel(fallbackSchoolCurriculum)).toBe(8);
 
@@ -99,15 +95,13 @@ describe("school curriculum", () => {
     const mapped = mapRowsToSchoolCurriculum(
       payload.specialties,
       payload.modules,
-      payload.missions,
-      payload.courseLinks
+      payload.missions
     );
 
     expect(mapped.source).toBe("db");
     expect(mapped.specialties).toHaveLength(4);
     expect(mapped.modules).toHaveLength(8);
     expect(mapped.missions).toHaveLength(64);
-    expect(mapped.courseLinks).toEqual([]);
     expect(mapped.missions[0]?.sortOrder).toBe(0);
   });
 });

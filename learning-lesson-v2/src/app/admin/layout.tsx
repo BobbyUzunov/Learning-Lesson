@@ -4,9 +4,8 @@ import { getLanguage } from "@/lib/i18n-server";
 import { requireAdmin } from "@/lib/supabase/auth";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const language = await getLanguage();
+  const [language, session] = await Promise.all([getLanguage(), requireAdmin()]);
   const copy = t(language);
-  const session = await requireAdmin();
   const email = session.user.email;
 
   return (

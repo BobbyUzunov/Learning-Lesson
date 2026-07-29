@@ -2,6 +2,7 @@ import type { ProgressRecord } from "@/lib/types";
 import { hasE2eAuthCookie } from "./e2e-auth";
 import { createClient } from "./server";
 import { hasSupabaseEnv } from "./env";
+import { getCurrentSession } from "./auth";
 
 export async function getCurrentUserProgress(): Promise<{
   progress: ProgressRecord[];
@@ -18,22 +19,16 @@ export async function getCurrentUserProgress(): Promise<{
     return { progress: demoProgress, userEmail: null, isDemo: true, streakCount: 1 };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  const session = await getCurrentSession();
+  if (!session.user) {
     return { progress: [], userEmail: null, isDemo: false, streakCount: 0 };
   }
 
-  const [{ data, error }, { data: profile }] = await Promise.all([
-    supabase
-      .from("user_progress")
-      .select("lesson_id, completed, xp_earned, completed_at")
-      .eq("user_id", user.id),
-    supabase.from("profiles").select("streak_count").eq("id", user.id).maybeSingle()
-  ]);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("user_progress")
+    .select("lesson_id, completed, xp_earned, completed_at")
+    .eq("user_id", session.user.id);
 
   if (error) {
     throw new Error(error.message);
@@ -41,8 +36,8 @@ export async function getCurrentUserProgress(): Promise<{
 
   return {
     progress: (data ?? []) as ProgressRecord[],
-    userEmail: user.email ?? null,
+    userEmail: session.user.email ?? null,
     isDemo: false,
-    streakCount: profile?.streak_count ?? 0
+    streakCount: session.profile?.streak_count ?? 0
   };
 }

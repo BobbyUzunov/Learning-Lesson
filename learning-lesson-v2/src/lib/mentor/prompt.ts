@@ -1,10 +1,10 @@
 import type { GameLesson } from "@/lib/game-data";
 import type { Language } from "@/lib/i18n";
 
-export const mentorModes = ["start", "review", "explain"] as const;
+const mentorModes = ["start", "review", "explain"] as const;
 export type MentorMode = (typeof mentorModes)[number];
 
-export const mentorHintLevels = [1, 2, 3] as const;
+const mentorHintLevels = [1, 2, 3] as const;
 export type MentorHintLevel = (typeof mentorHintLevels)[number];
 
 export type MentorRequestInput = {

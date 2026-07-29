@@ -14,13 +14,17 @@ type CoursesPageProps = {
 };
 
 export default async function CoursesPage({ searchParams }: CoursesPageProps) {
-  const language = await getLanguage();
+  const [language, params, session, catalog, { projects }] = await Promise.all([
+    getLanguage(),
+    searchParams,
+    getCurrentSession(),
+    getCourseCatalog(),
+    getCourseProjects()
+  ]);
   const copy = t(language);
-  const params = await searchParams;
-  const session = await getCurrentSession();
-  const [catalog, { projects }] = await Promise.all([getCourseCatalog(), getCourseProjects()]);
-  const progressData = session.user ? await getCurrentUserProgress() : null;
-  const submissions = session.user ? await getCurrentUserProjectSubmissions() : [];
+  const [progressData, submissions] = session.user
+    ? await Promise.all([getCurrentUserProgress(), getCurrentUserProjectSubmissions()])
+    : [null, []];
   const completedLessonIds = progressData?.progress.filter((item) => item.completed).map((item) => item.lesson_id);
 
   return (

@@ -1,10 +1,9 @@
 "use client";
 
 import { BrainCircuit, Code2, Palette, ShieldCheck } from "lucide-react";
-import { localizeCurriculumText } from "@/lib/curriculum/helpers";
-import type { CurriculumIcon, SchoolSpecialty } from "@/lib/curriculum/types";
+import type { CurriculumExplorerCopy, CurriculumExplorerSpecialty } from "@/lib/curriculum/explorer";
+import type { CurriculumIcon } from "@/lib/curriculum/types";
 import { curriculumAccentStyles } from "@/lib/curriculum/ui";
-import { t, type Language } from "@/lib/i18n";
 
 const specialtyIcons: Record<CurriculumIcon, typeof Code2> = {
   code: Code2,
@@ -14,15 +13,13 @@ const specialtyIcons: Record<CurriculumIcon, typeof Code2> = {
 };
 
 type SpecialtySelectorProps = {
-  language: Language;
+  copy: CurriculumExplorerCopy;
   onSelect: (specialtyId: string) => void;
   selectedId: string;
-  specialties: SchoolSpecialty[];
+  specialties: CurriculumExplorerSpecialty[];
 };
 
-export function SpecialtySelector({ language, onSelect, selectedId, specialties }: SpecialtySelectorProps) {
-  const copy = t(language).schoolCurriculum;
-
+export function SpecialtySelector({ copy, onSelect, selectedId, specialties }: SpecialtySelectorProps) {
   return (
     <fieldset>
       <legend className="sr-only">{copy.chooseSpecialty}</legend>
@@ -49,7 +46,7 @@ export function SpecialtySelector({ language, onSelect, selectedId, specialties 
                 </span>
                 <span className="min-w-0">
                   <span className="block text-sm font-black leading-5 sm:text-base">
-                    {localizeCurriculumText(specialty.title, language)}
+                    {specialty.title}
                   </span>
                   <span className={`mt-1 block text-xs font-bold ${selected ? style.text : "text-ink/40"}`}>
                     {selected ? copy.selectedLabel : copy.selectLabel}

@@ -4,9 +4,8 @@ import { getLanguage } from "@/lib/i18n-server";
 import { requireTeacher } from "@/lib/supabase/auth";
 
 export default async function TeacherLayout({ children }: { children: React.ReactNode }) {
-  const language = await getLanguage();
+  const [language, session] = await Promise.all([getLanguage(), requireTeacher()]);
   const copy = t(language);
-  const session = await requireTeacher();
   const email = session.user.email;
 
   return (
@@ -26,9 +25,6 @@ export default async function TeacherLayout({ children }: { children: React.Reac
           </Link>
           <Link className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink" href="/courses">
             {copy.teacher.navContent}
-          </Link>
-          <Link className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink" href="/teacher">
-            {copy.teacher.navReports}
           </Link>
         </nav>
       </aside>

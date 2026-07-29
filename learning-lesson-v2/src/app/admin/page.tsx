@@ -2,7 +2,6 @@ import Link from "next/link";
 import { AdminSeedButton } from "@/components/admin-seed-button";
 import {
   getCourseCatalog,
-  getCatalogLessons,
   getLessonOrderInQuest,
   getLessonUnlockRule,
   getQuestLessons,
@@ -17,12 +16,16 @@ import { getLanguage } from "@/lib/i18n-server";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const language = await getLanguage();
+  const [language, catalog, { projects }, quiz] = await Promise.all([
+    getLanguage(),
+    getCourseCatalog(),
+    getCourseProjects(),
+    getQuizContent()
+  ]);
   const copy = t(language);
-  const catalog = await getCourseCatalog();
-  const [{ projects }, quiz] = await Promise.all([getCourseProjects(), getQuizContent()]);
+  const contentSeedEnabled = process.env.ENABLE_ADMIN_CONTENT_SEED === "1";
   const quests = catalog.courses.map((quest) => localizeGameQuest(quest, language));
-  const lessons = await getCatalogLessons();
+  const lessons = catalog.lessons;
   const localizedLessons = lessons.map((lesson) => localizeGameLesson(lesson, language));
 
   return (
@@ -36,7 +39,7 @@ export default async function AdminPage() {
         </p>
       </div>
 
-      <AdminSeedButton language={language} />
+      {contentSeedEnabled ? <AdminSeedButton language={language} /> : null}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div className="rounded-lg bg-white/80 p-4">
@@ -121,9 +124,9 @@ export default async function AdminPage() {
                   <td className="px-4 py-3">{xpPerLesson}</td>
                   <td className="px-4 py-3">{unlockRule ?? copy.admin.open}</td>
                   <td className="px-4 py-3">
-                    <a className="font-bold text-violet hover:underline" href={`/admin/missions/${lesson.id}`}>
+                    <Link className="font-bold text-violet hover:underline" href={`/admin/missions/${lesson.id}`}>
                       {copy.admin.editMission}
-                    </a>
+                    </Link>
                   </td>
                 </tr>
               );

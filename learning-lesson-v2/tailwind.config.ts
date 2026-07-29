@@ -1,11 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: [
-    "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    "./node_modules/streamdown/dist/*.{js,mjs}",
-    "./node_modules/@streamdown/code/dist/*.{js,mjs}"
-  ],
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
       colors: {
@@ -26,16 +22,10 @@ const config: Config = {
         "home-rise": {
           from: { opacity: "0", transform: "translateY(18px)" },
           to: { opacity: "1", transform: "translateY(0)" }
-        },
-        "home-fade": {
-          from: { opacity: "0" },
-          to: { opacity: "1" }
         }
       },
       animation: {
-        "home-rise": "home-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both",
-        "home-rise-delayed": "home-rise 800ms 120ms cubic-bezier(0.22, 1, 0.36, 1) both",
-        "home-fade": "home-fade 900ms 180ms ease-out both"
+        "home-rise": "home-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both"
       }
     }
   },

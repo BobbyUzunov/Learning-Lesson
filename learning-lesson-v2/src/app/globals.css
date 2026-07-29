@@ -29,9 +29,7 @@ body {
     scroll-behavior: auto;
   }
 
-  .animate-home-rise,
-  .animate-home-rise-delayed,
-  .animate-home-fade {
+  .animate-home-rise {
     animation: none !important;
   }
 }

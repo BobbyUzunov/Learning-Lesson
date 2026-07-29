@@ -1,25 +1,21 @@
 import { BookOpenCheck, CheckCircle2, ExternalLink } from "lucide-react";
-import { localizeCurriculumText } from "@/lib/curriculum/helpers";
-import type { CurriculumModule, LocalizedText } from "@/lib/curriculum/types";
-import { t, type Language } from "@/lib/i18n";
+import type { CurriculumExplorerCopy, CurriculumExplorerModule } from "@/lib/curriculum/explorer";
 
 type CurriculumDetailsProps = {
-  commonModules: CurriculumModule[];
-  language: Language;
+  commonModules: CurriculumExplorerModule[];
+  copy: CurriculumExplorerCopy;
   professionCode: string;
-  specialtyModules: CurriculumModule[];
-  specialtyTitle: LocalizedText;
+  specialtyModules: CurriculumExplorerModule[];
+  specialtyTitle: string;
 };
 
 export function CurriculumDetails({
   commonModules,
-  language,
+  copy,
   professionCode,
   specialtyModules,
   specialtyTitle
 }: CurriculumDetailsProps) {
-  const copy = t(language).schoolCurriculum;
-
   return (
     <details className="group rounded-2xl border border-ink/10 bg-white">
       <summary className="focus-ring flex min-h-16 cursor-pointer list-none items-center gap-4 rounded-2xl px-5 py-4 [&::-webkit-details-marker]:hidden">
@@ -37,7 +33,7 @@ export function CurriculumDetails({
 
       <div className="space-y-6 border-t border-ink/10 p-5">
         <div>
-          <p className="text-sm font-bold text-ink/70">{localizeCurriculumText(specialtyTitle, language)}</p>
+          <p className="text-sm font-bold text-ink/70">{specialtyTitle}</p>
           <p className="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-ink/40">
             {copy.professionCode} · {professionCode}
           </p>
@@ -50,9 +46,9 @@ export function CurriculumDetails({
               <article className="rounded-xl border border-ink/10 p-4" key={module.id}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="max-w-2xl">
-                    <p className="font-bold">{localizeCurriculumText(module.title, language)}</p>
+                    <p className="font-bold">{module.title}</p>
                     <p className="mt-2 text-sm leading-6 text-ink/65">
-                      {localizeCurriculumText(module.description, language)}
+                      {module.description}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2 text-xs font-bold text-ink/55">
@@ -70,9 +66,9 @@ export function CurriculumDetails({
                 </div>
                 <ul className="mt-3 grid gap-2 sm:grid-cols-2">
                   {module.learningOutcomes.map((outcome) => (
-                    <li className="flex gap-2 text-sm leading-6 text-ink/70" key={outcome.en}>
+                    <li className="flex gap-2 text-sm leading-6 text-ink/70" key={outcome}>
                       <CheckCircle2 className="mt-1 size-4 shrink-0 text-mint" />
-                      {localizeCurriculumText(outcome, language)}
+                      {outcome}
                     </li>
                   ))}
                 </ul>
@@ -97,9 +93,9 @@ export function CurriculumDetails({
             <h3 className="font-bold">{copy.commonFoundation}</h3>
             {commonModules.map((module) => (
               <div className="mt-3" key={module.id}>
-                <p className="font-bold">{localizeCurriculumText(module.title, language)}</p>
+                <p className="font-bold">{module.title}</p>
                 <p className="mt-2 text-sm leading-6 text-ink/65">
-                  {localizeCurriculumText(module.description, language)}
+                  {module.description}
                 </p>
               </div>
             ))}

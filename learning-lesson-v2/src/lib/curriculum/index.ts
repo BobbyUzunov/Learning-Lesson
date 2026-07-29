@@ -1,16 +1,22 @@
+import { cache } from "react";
 import { unstable_noStore as noStore } from "next/cache";
 import { hasSupabaseEnv } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { fallbackSchoolCurriculum } from "./data";
 import { mapRowsToSchoolCurriculum } from "./helpers";
-import { buildSchoolCurriculumSeedPayload } from "./seed-payload";
 import type {
-  CurriculumCourseLinkRow,
   CurriculumMissionRow,
   CurriculumModuleRow,
   SchoolCurriculum,
   SpecialtyRow
 } from "./types";
+
+const specialtyColumns =
+  "id, profession_code, title, title_bg, description, description_bg, accent, icon, source_url, sort_order";
+const moduleColumns =
+  "id, specialty_id, grade_level, module_type, status, title, title_bg, description, description_bg, learning_outcomes, learning_outcomes_bg, theory_hours, practice_hours, source_url, sort_order";
+const missionColumns =
+  "id, module_id, title, title_bg, brief, brief_bg, deliverable, deliverable_bg, skills, skills_bg, estimated_minutes, sort_order";
 
 async function loadSchoolCurriculumFromDatabase(): Promise<SchoolCurriculum | null> {
   if (!hasSupabaseEnv()) {
@@ -19,89 +25,31 @@ async function loadSchoolCurriculumFromDatabase(): Promise<SchoolCurriculum | nu
 
   noStore();
   const supabase = await createClient();
-  const [specialtiesResult, modulesResult, missionsResult, linksResult] = await Promise.all([
-    supabase.from("specialties").select("*").order("sort_order"),
-    supabase.from("curriculum_modules").select("*").order("grade_level").order("sort_order"),
-    supabase.from("curriculum_missions").select("*").order("id"),
-    supabase.from("curriculum_course_links").select("*").order("sort_order")
+  const [specialtiesResult, modulesResult, missionsResult] = await Promise.all([
+    supabase.from("specialties").select(specialtyColumns).order("sort_order"),
+    supabase.from("curriculum_modules").select(moduleColumns).order("grade_level").order("sort_order"),
+    supabase.from("curriculum_missions").select(missionColumns).order("id")
   ]);
 
-  if (specialtiesResult.error || modulesResult.error || missionsResult.error || linksResult.error) {
+  if (specialtiesResult.error || modulesResult.error || missionsResult.error) {
     return null;
   }
 
   const specialties = (specialtiesResult.data ?? []) as SpecialtyRow[];
   const modules = (modulesResult.data ?? []) as CurriculumModuleRow[];
   const missions = (missionsResult.data ?? []) as CurriculumMissionRow[];
-  const links = (linksResult.data ?? []) as CurriculumCourseLinkRow[];
   if (specialties.length === 0 || modules.length === 0 || missions.length === 0) {
     return null;
   }
 
-  return mapRowsToSchoolCurriculum(specialties, modules, missions, links);
+  return mapRowsToSchoolCurriculum(specialties, modules, missions);
 }
 
-export async function getSchoolCurriculum() {
+async function loadSchoolCurriculum() {
   return (await loadSchoolCurriculumFromDatabase()) ?? fallbackSchoolCurriculum;
 }
 
-export async function seedSchoolCurriculumToDatabase() {
-  if (!hasSupabaseEnv()) {
-    throw new Error("Supabase env is not configured.");
-  }
-
-  const supabase = await createClient();
-  const { specialties, modules, missions, courseLinks } = buildSchoolCurriculumSeedPayload();
-  const now = new Date().toISOString();
-
-  const { error: specialtiesError } = await supabase
-    .from("specialties")
-    .upsert(specialties.map((row) => ({ ...row, updated_at: now })), { onConflict: "id" });
-  if (specialtiesError) {
-    throw new Error(specialtiesError.message);
-  }
-
-  const { error: modulesError } = await supabase
-    .from("curriculum_modules")
-    .upsert(modules.map((row) => ({ ...row, updated_at: now })), { onConflict: "id" });
-  if (modulesError) {
-    throw new Error(modulesError.message);
-  }
-
-  const { error: missionsError } = await supabase
-    .from("curriculum_missions")
-    .upsert(missions.map((row) => ({ ...row, updated_at: now })), { onConflict: "id" });
-  if (missionsError) {
-    throw new Error(missionsError.message);
-  }
-
-  const managedModuleIds = modules.map((row) => row.id);
-  if (managedModuleIds.length > 0) {
-    const { error: clearLinksError } = await supabase
-      .from("curriculum_course_links")
-      .delete()
-      .in("module_id", managedModuleIds);
-    if (clearLinksError) {
-      throw new Error(clearLinksError.message);
-    }
-  }
-
-  if (courseLinks.length > 0) {
-    const { error: linksError } = await supabase
-      .from("curriculum_course_links")
-      .upsert(courseLinks, { onConflict: "module_id,course_id" });
-    if (linksError) {
-      throw new Error(linksError.message);
-    }
-  }
-
-  return {
-    specialties: specialties.length,
-    curriculumModules: modules.length,
-    curriculumMissions: missions.length,
-    curriculumCourseLinks: courseLinks.length
-  };
-}
+export const getSchoolCurriculum = cache(loadSchoolCurriculum);
 
 export { fallbackSchoolCurriculum } from "./data";
 export {
@@ -113,7 +61,6 @@ export {
   localizeCurriculumText,
   mapRowsToSchoolCurriculum
 } from "./helpers";
-export { buildSchoolCurriculumSeedPayload } from "./seed-payload";
 export type {
   CurriculumMission,
   CurriculumModule,

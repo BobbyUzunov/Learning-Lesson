@@ -1,10 +1,13 @@
+import { cache } from "react";
 import { unstable_noStore as noStore } from "next/cache";
 import { createClient } from "../supabase/server";
 import { hasSupabaseEnv } from "../supabase/env";
 import { fallbackCourseProjects } from "./fallback-data";
 import { mapProjectRows } from "./helpers";
-import { buildProjectsSeedPayload } from "./seed-payload";
 import type { CourseProjectRow, CourseProjectsContent } from "./types";
+
+const projectColumns =
+  "id, course_id, after_lesson_id, type, title, title_bg, description, description_bg, brief_label, brief_label_bg, brief_placeholder, brief_placeholder_bg, brief_min_length, requires_repo, requires_deploy, required_for_certificate, checklist, sort_order";
 
 export function getFallbackProjects(): CourseProjectsContent {
   return {
@@ -20,7 +23,7 @@ async function loadProjectsFromDatabase(): Promise<CourseProjectsContent | null>
 
   noStore();
   const supabase = await createClient();
-  const { data, error } = await supabase.from("course_projects").select("*").order("sort_order");
+  const { data, error } = await supabase.from("course_projects").select(projectColumns).order("sort_order");
 
   if (error) {
     console.error("Failed to load course projects:", error.message);
@@ -38,26 +41,8 @@ async function loadProjectsFromDatabase(): Promise<CourseProjectsContent | null>
   };
 }
 
-export async function getCourseProjects(): Promise<CourseProjectsContent> {
+async function loadCourseProjects(): Promise<CourseProjectsContent> {
   return (await loadProjectsFromDatabase()) ?? getFallbackProjects();
 }
 
-export async function seedProjectsToDatabase() {
-  if (!hasSupabaseEnv()) {
-    throw new Error("Supabase env is not configured.");
-  }
-
-  const supabase = await createClient();
-  const { projects } = buildProjectsSeedPayload();
-  const now = new Date().toISOString();
-
-  const { error } = await supabase
-    .from("course_projects")
-    .upsert(projects.map((row) => ({ ...row, updated_at: now })), { onConflict: "id" });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return { projects: projects.length };
-}
+export const getCourseProjects = cache(loadCourseProjects);

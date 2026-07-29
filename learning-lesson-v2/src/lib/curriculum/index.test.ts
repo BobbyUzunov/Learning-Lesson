@@ -9,7 +9,8 @@ vi.mock("../supabase/server", () => ({
   createClient: vi.fn(async () => ({ from: fromMock }))
 }));
 
-import { getSchoolCurriculum, seedSchoolCurriculumToDatabase } from "./index";
+import { getSchoolCurriculum } from "./index";
+import { seedSchoolCurriculumToDatabase } from "./seed";
 
 function readableQuery(data: unknown[]) {
   const result = { data, error: null };
@@ -29,13 +30,12 @@ describe("school curriculum database loader", () => {
     fromMock.mockReset();
   });
 
-  it("keeps using the database when optional course links are empty", async () => {
+  it("loads the school curriculum from its canonical tables", async () => {
     const payload = buildSchoolCurriculumSeedPayload();
     const rowsByTable: Record<string, unknown[]> = {
       specialties: payload.specialties,
       curriculum_modules: payload.modules,
-      curriculum_missions: payload.missions,
-      curriculum_course_links: []
+      curriculum_missions: payload.missions
     };
     fromMock.mockImplementation((table: string) => readableQuery(rowsByTable[table] ?? []));
 
@@ -45,21 +45,12 @@ describe("school curriculum database loader", () => {
     expect(curriculum.specialties).toHaveLength(4);
     expect(curriculum.modules).toHaveLength(8);
     expect(curriculum.missions).toHaveLength(64);
-    expect(curriculum.courseLinks).toEqual([]);
   });
 
-  it("clears managed links without sending an empty upsert during a repeatable seed", async () => {
-    const payload = buildSchoolCurriculumSeedPayload();
+  it("seeds only the canonical curriculum tables", async () => {
     const upsertedTables: string[] = [];
-    const clearedLinks: Array<{ column: string; values: unknown[] }> = [];
 
     fromMock.mockImplementation((table: string) => ({
-      delete: vi.fn(() => ({
-        in: vi.fn((column: string, values: unknown[]) => {
-          clearedLinks.push({ column, values });
-          return Promise.resolve({ error: null });
-        })
-      })),
       upsert: vi.fn(() => {
         upsertedTables.push(table);
         return Promise.resolve({ error: null });
@@ -69,9 +60,6 @@ describe("school curriculum database loader", () => {
     const result = await seedSchoolCurriculumToDatabase();
 
     expect(upsertedTables).toEqual(["specialties", "curriculum_modules", "curriculum_missions"]);
-    expect(clearedLinks).toEqual([
-      { column: "module_id", values: payload.modules.map((curriculumModule) => curriculumModule.id) }
-    ]);
-    expect(result.curriculumCourseLinks).toBe(0);
+    expect(result.curriculumMissions).toBeGreaterThan(0);
   });
 });
