@@ -247,17 +247,66 @@
     a { color: inherit; }
 
     @media print {
-      .nav { display: none; }
+      .nav { display: none !important; }
+      html, body, .deck {
+        height: auto !important;
+        overflow: visible !important;
+        background: white !important;
+      }
       .slide {
         display: block !important;
         page-break-after: always;
-        height: auto;
+        break-after: page;
+        height: auto !important;
         min-height: 100vh;
-        overflow: visible;
+        overflow: visible !important;
         padding-bottom: 2rem;
       }
-      body { background: white; }
+      .slide:last-of-type { page-break-after: auto; break-after: auto; }
     }
+
+    /* Used by headless PDF export (?print=1) */
+    @page {
+      size: A4 landscape;
+      margin: 12mm;
+    }
+    body.print-export .nav { display: none !important; }
+    body.print-export,
+    body.print-export .deck {
+      height: auto !important;
+      overflow: visible !important;
+      background: #14201c !important;
+    }
+    body.print-export .slide {
+      display: flex !important;
+      flex-direction: column;
+      justify-content: center;
+      page-break-after: always;
+      break-after: page;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      width: auto;
+      height: 186mm; /* A4 landscape content box roughly */
+      max-height: 186mm;
+      overflow: hidden !important;
+      padding: 8mm 10mm;
+      box-sizing: border-box;
+    }
+    body.print-export .slide:last-of-type {
+      page-break-after: auto;
+      break-after: auto;
+    }
+    body.print-export .inner {
+      min-height: 0;
+      justify-content: center;
+      gap: 0.85rem;
+    }
+    body.print-export h1 { font-size: 2.4rem; }
+    body.print-export h2 { font-size: 1.85rem; }
+    body.print-export p,
+    body.print-export li { font-size: 0.95rem; line-height: 1.4; }
+    body.print-export .lead { font-size: 1.05rem; }
+    body.print-export .panel { padding: 0.75rem 0.85rem; }
   </style>
 </head>
 <body>
@@ -786,8 +835,17 @@
       }
     });
 
-    const fromHash = Number((location.hash || "").replace("#", ""));
-    show(Number.isFinite(fromHash) && fromHash >= 1 ? fromHash - 1 : 0);
+    const params = new URLSearchParams(location.search);
+    if (params.has("print")) {
+      document.body.classList.add("print-export");
+      slides.forEach((slide) => slide.classList.add("active"));
+      progress.textContent = slides.length + " / " + slides.length;
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+    } else {
+      const fromHash = Number((location.hash || "").replace("#", ""));
+      show(Number.isFinite(fromHash) && fromHash >= 1 ? fromHash - 1 : 0);
+    }
   </script>
 </body>
 </html>
