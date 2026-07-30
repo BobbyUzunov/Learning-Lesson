@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: __dirname,
+  // Keep sharp/libvips in the serverless trace when the npm override
+  // bumps sharp past the version Next 15.5 optionally depends on.
+  outputFileTracingIncludes: {
+    "/*": ["./node_modules/sharp/**/*", "./node_modules/@img/**/*"]
+  },
   poweredByHeader: false,
   reactStrictMode: true,
   async headers() {

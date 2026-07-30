@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Learning Lesson — представяне за учители | ПГКНМА VIII клас</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #14201c;
+      --paper: #f7f3ea;
+      --mint: #6fd6a8;
+      --coral: #e07a5f;
+      --slate: #3d4f48;
+      --line: rgba(20, 32, 28, 0.12);
+      --muted: rgba(20, 32, 28, 0.62);
+      --soft: rgba(20, 32, 28, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: "Source Sans 3", system-ui, sans-serif;
+    }
+
+    .deck {
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      height: 100%;
+      padding: clamp(1.25rem, 3vw, 2.5rem) clamp(1.25rem, 4vw, 3.5rem) 4.5rem;
+      position: relative;
+      overflow: auto;
+      background:
+        radial-gradient(ellipse 50% 40% at 0% 0%, rgba(111, 214, 168, 0.18), transparent 60%),
+        radial-gradient(ellipse 45% 35% at 100% 100%, rgba(224, 122, 95, 0.14), transparent 55%),
+        var(--ink);
+    }
+    .slide.active { display: block; }
+    .slide.light {
+      background:
+        radial-gradient(ellipse 50% 40% at 10% 0%, rgba(111, 214, 168, 0.22), transparent 55%),
+        var(--paper);
+      color: var(--ink);
+    }
+    .slide.light .muted { color: var(--muted); }
+    .slide.light .chip {
+      background: var(--soft);
+      color: var(--ink);
+    }
+    .slide.light .panel {
+      background: rgba(255, 255, 255, 0.72);
+      border-color: var(--line);
+    }
+    .slide.light .kicker { color: #1f6b4f; }
+
+    .inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      min-height: calc(100% - 0.5rem);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.25rem;
+    }
+
+    .kicker {
+      margin: 0;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--mint);
+    }
+    h1, h2 {
+      margin: 0;
+      font-family: Fraunces, Georgia, serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.08;
+    }
+    h1 { font-size: clamp(2.2rem, 5.5vw, 3.8rem); max-width: 16ch; }
+    h2 { font-size: clamp(1.7rem, 3.8vw, 2.6rem); max-width: 22ch; }
+    h3 {
+      margin: 0 0 0.35rem;
+      font-family: Fraunces, Georgia, serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+    p, li {
+      margin: 0;
+      font-size: clamp(1rem, 1.5vw, 1.15rem);
+      line-height: 1.55;
+    }
+    .lead {
+      max-width: 46rem;
+      font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+      line-height: 1.55;
+      color: rgba(247, 243, 234, 0.78);
+    }
+    .slide.light .lead { color: var(--muted); }
+    .muted { color: rgba(247, 243, 234, 0.62); }
+
+    .grid-2 {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .grid-3 {
+      display: grid;
+      gap: 0.9rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .grid-4 {
+      display: grid;
+      gap: 0.85rem;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    @media (max-width: 900px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      border: 1px solid rgba(247, 243, 234, 0.14);
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 1rem;
+      padding: 1rem 1.1rem;
+    }
+    .panel strong { display: block; margin-bottom: 0.35rem; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      background: rgba(111, 214, 168, 0.16);
+      color: var(--mint);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    ul.clean {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 0.65rem;
+    }
+    ul.clean li {
+      padding-left: 1.1rem;
+      position: relative;
+    }
+    ul.clean li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 999px;
+      background: var(--mint);
+    }
+    .slide.light ul.clean li::before { background: #1f6b4f; }
+
+    .steps {
+      counter-reset: step;
+      display: grid;
+      gap: 0.85rem;
+    }
+    .steps li {
+      list-style: none;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.85rem;
+      align-items: start;
+    }
+    .steps li::before {
+      counter-increment: step;
+      content: counter(step);
+      width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: var(--mint);
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 1.25rem;
+      background: rgba(20, 32, 28, 0.92);
+      border-top: 1px solid rgba(247, 243, 234, 0.1);
+      backdrop-filter: blur(8px);
+      z-index: 20;
+      color: var(--paper);
+    }
+    .nav button {
+      appearance: none;
+      border: 1px solid rgba(247, 243, 234, 0.2);
+      background: transparent;
+      color: var(--paper);
+      border-radius: 0.7rem;
+      padding: 0.55rem 0.9rem;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .nav button:hover { background: rgba(247, 243, 234, 0.08); }
+    .nav button:disabled { opacity: 0.35; cursor: default; }
+    .progress {
+      font-size: 0.9rem;
+      color: rgba(247, 243, 234, 0.7);
+      text-align: center;
+      min-width: 7rem;
+    }
+    .hint {
+      font-size: 0.78rem;
+      color: rgba(247, 243, 234, 0.45);
+    }
+
+    a { color: inherit; }
+
+    @media print {
+      .nav { display: none; }
+      .slide {
+        display: block !important;
+        page-break-after: always;
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+        padding-bottom: 2rem;
+      }
+      body { background: white; }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck" id="deck">
+
+    <!-- 1 -->
+    <section class="slide active">
+      <div class="inner">
+        <p class="kicker">Представяне за учители · юли 2026</p>
+        <h1>Learning Lesson</h1>
+        <p class="lead">
+          Учебна платформа за ученици от <strong>VIII клас</strong> в
+          <strong>ПГКНМА</strong> — практически мисии, класна работа и проверки
+          на знанията по четирите дигитални специалности.
+        </p>
+        <div class="meta">
+          <span class="chip">Пилот за реален клас</span>
+          <span class="chip">Прием 2026/2027</span>
+          <span class="chip">learning-lesson-v2.vercel.app</span>
+        </div>
+        <p class="muted" style="max-width:40rem">
+          Този документ описва <em>защо</em> съществува платформата, <em>какво</em>
+          вече работи и <em>как</em> може да се ползва в час. Целта е да получим
+          обратна връзка от учител преди по-широк пилот.
+        </p>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="slide light">
+      <div class="inner">
+        <p class="kicker">Защо го правим</p>
+        <h2>Проблемът, който решаваме</h2>
+        <div class="grid-2">
+          <div class="panel">
+            <h3>В училището</h3>
+            <ul class="clean">
+              <li>Учебните планове са пълни, но практическата работа често е разпръсната между файлове, чат и различни инструменти.</li>
+              <li>Учителят трудно вижда на едно място кой е предал, кой изостава и какво трябва да се върне за поправка.</li>
+              <li>Учениците от VIII клас имат нужда от ясен „следваща стъпка“, а не от претрупан портал.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Какво искаме да дадем</h3>
+            <ul class="clean">
+              <li>Едно място за направление, мисии, клас, задачи и проверки.</li>
+              <li>Интерфейс, ориентиран към учебна стойност — без излишни функции.</li>
+              <li>Работен процес, близък до реалния час: възлагане → работа → обратна връзка → оценка.</li>
+              <li>Съдържание, подравнено към специалностите на ПГКНМА за VIII клас.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="slide">
+      <div class="inner">
+        <p class="kicker">Цел на проекта</p>
+        <h2>Практична платформа за дигитални професии</h2>
+        <p class="lead">
+          Learning Lesson не е общ „курс по информатика“. Това е училищен инструмент
+          за първата година от професионалната подготовка — когато ученикът избира
+          посока и започва да работи по реални кратки задачи.
+        </p>
+        <div class="grid-3">
+          <div class="panel">
+            <strong>За ученика</strong>
+            <p class="muted">Да знае какво да прави днес: мисия, задача от класа или проверка.</p>
+          </div>
+          <div class="panel">
+            <strong>За учителя</strong>
+            <p class="muted">Да управлява клас с код, да възлага работа и да вижда напредъка без имейли в справките.</p>
+          </div>
+          <div class="panel">
+            <strong>За училището</strong>
+            <p class="muted">Да има цифрово пространство, съобразено с приема и четирите специалности.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section class="slide light">
+      <div class="inner">
+        <p class="kicker">Обхват</p>
+        <h2>Четири специалности · VIII клас</h2>
+        <div class="grid-2">
+          <div class="panel">
+            <h3>Разработка на софтуер</h3>
+            <p class="muted">Код 061303 · основи на софтуерната работа и дигитални технологии за специалността.</p>
+          </div>
+          <div class="panel">
+            <h3>Интелигентни системи</h3>
+            <p class="muted">Код 061301 · въведение в интелигентни системи и свързаните дигитални умения.</p>
+          </div>
+          <div class="panel">
+            <h3>Компютърна графика</h3>
+            <p class="muted">Код 021102 · композиция, цветознание и визуална практика.</p>
+          </div>
+          <div class="panel">
+            <h3>Киберсигурност</h3>
+            <p class="muted">Код 103202 · професионална комуникация, етика и отговорно поведение в дигитална среда.</p>
+          </div>
+        </div>
+        <p class="muted">Към тях има и общи модули: обща дигитална основа, предприемачество и информационни технологии.</p>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="slide">
+      <div class="inner">
+        <p class="kicker">Учебно съдържание</p>
+        <h2>Как е организирана програмата</h2>
+        <div class="grid-3">
+          <div class="panel"><strong>4</strong><p class="muted">специалности</p></div>
+          <div class="panel"><strong>8</strong><p class="muted">учебни модула</p></div>
+          <div class="panel"><strong>64</strong><p class="muted">практически мисии</p></div>
+        </div>
+        <div class="panel" style="margin-top:0.4rem">
+          <h3>Какво вижда ученикът</h3>
+          <ul class="clean">
+            <li>Избира направление в страницата „Пътеки“.</li>
+            <li>Получава модули и мисии с кратко условие, очакван резултат и план за работа.</li>
+            <li>Може да продължи към урок (научи → направи → провери), ако мисията е свързана с лабораторен урок.</li>
+          </ul>
+        </div>
+        <p class="muted">Съдържанието е приведено към VIII клас. Разширението към IX–XII клас е нарочно извън текущия пилот.</p>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="slide light">
+      <div class="inner">
+        <p class="kicker">Роли</p>
+        <h2>Кой какво може да прави</h2>
+        <div class="grid-3">
+          <div class="panel">
+            <h3>Ученик</h3>
+            <ul class="clean">
+              <li>Регистрация и вход</li>
+              <li>Присъединяване към клас с код</li>
+              <li>Работа по мисии и уроци</li>
+              <li>Предаване на задачи</li>
+              <li>Решаване на проверки</li>
+              <li>Преглед на прогрес и сертификати</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Учител</h3>
+            <ul class="clean">
+              <li>Създава клас и дава join код</li>
+              <li>Възлага мисии със срок и инструкции</li>
+              <li>Одобрява или връща предаденото</li>
+              <li>Създава входни / текущи / финални проверки</li>
+              <li>Преглежда справки за класа</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Администратор</h3>
+            <ul class="clean">
+              <li>Назначава роля „учител“</li>
+              <li>Редактира каталог (CMS)</li>
+              <li>Преглежда административни рецензии</li>
+              <li>Няма публичен начин ученик да стане админ</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="slide">
+      <div class="inner">
+        <p class="kicker">Фаза 1 · Класна стая</p>
+        <h2>Как работи класът</h2>
+        <ol class="steps">
+          <li>
+            <div>
+              <h3>Админът назначава учител</h3>
+              <p class="muted">Ролята teacher се дава през административния панел — не от самия формуляр за регистрация.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>Учителят създава клас</h3>
+              <p class="muted">Класът получава шестсимволен код за присъединяване. Кодът може да се ротира, изключва или класът да се архивира.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>Учениците влизат с кода</h3>
+              <p class="muted">Без нужда да споделят пароли помежду си. Има защита срещу твърде много грешни опити.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>Учителят вижда списъка и общия прогрес</h3>
+              <p class="muted">Справките са ориентирани към учебна работа; имейлите на учениците не се показват в учителските отчети.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="slide light">
+      <div class="inner">
+        <p class="kicker">Фаза 2 · Задачи по мисии</p>
+        <h2>Възлагане и обратна връзка</h2>
+        <div class="grid-2">
+          <div class="panel">
+            <h3>Учителят</h3>
+            <ul class="clean">
+              <li>Избира curriculum мисия за класа</li>
+              <li>Може да сложи срок и допълнителни инструкции</li>
+              <li>Вижда статус за всеки ученик</li>
+              <li>Одобрява или връща с бележка</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Ученикът</h3>
+            <ul class="clean">
+              <li>Вижда задачата в своя клас / dashboard</li>
+              <li>Предава текст и по желание линк</li>
+              <li>Получава одобрение или бележка за поправка</li>
+              <li>Може да предаде отново след връщане</li>
+            </ul>
+          </div>
+        </div>
+        <p class="muted">Това е основният „домашна / класна работа“ цикъл на платформата — близък до реалната училищна практика.</p>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section class="slide">
+      <div class="inner">
+        <p class="kicker">Фаза 3 · Проверки на знанията</p>
+        <h2>Входни, текущи и финални проверки</h2>
+        <div class="grid-2">
+          <div class="panel">
+            <h3>Какво може учителят</h3>
+            <ul class="clean">
+              <li>Създава проверка за конкретен клас</li>
+              <li>Добавя въпроси</li>
+              <li>Следи опитите на учениците</li>
+              <li>Затваря проверката</li>
+              <li>Преглежда справка по ученик и по въпрос</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Какво вижда ученикът</h3>
+            <ul class="clean">
+              <li>Списък с възложените проверки</li>
+              <li>Решаване в ясен работен екран</li>
+              <li>Резултат и обяснения след предаване</li>
+              <li>Един опит по дизайн (за честна проверка)</li>
+            </ul>
+          </div>
+        </div>
+        <p class="muted">Проверките са отделни от ежедневните мисии — подходящи за входна диагностика или за край на тема.</p>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="slide light">
+      <div class="inner">
+        <p class="kicker">Ученически опит</p>
+        <h2>Как изглежда денят на ученика</h2>
+        <div class="grid-2">
+          <div class="panel">
+            <h3>Dashboard „Продължи оттук“</h3>
+            <p class="muted">Приоритизира активна проверка, възложена задача или следващ урок — за да няма губене в менюта.</p>
+          </div>
+          <div class="panel">
+            <h3>Пътеки и мисии</h3>
+            <p class="muted">Избор на специалност, препоръчана следваща мисия и сгънат списък с останалите.</p>
+          </div>
+          <div class="panel">
+            <h3>Урок Learn / Do / Check</h3>
+            <p class="muted">Теория → практическа задача → кратка проверка. Подходящо за лабораторен час.</p>
+          </div>
+          <div class="panel">
+            <h3>Клас и профил</h3>
+            <p class="muted">Присъединяване с код, статус на задачите, прогрес, streak и сертификати при завършен път.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section class="slide">
+      <div class="inner">
+        <p class="kicker">AI наставник</p>
+        <h2>Помощ в урока — без готови решения</h2>
+        <div class="grid-2">
+          <div class="panel">
+            <h3>Какво е</h3>
+            <ul class="clean">
+              <li>Кратки насоки, когато ученикът е блокирал по задачата</li>
+              <li>Работи в контекста на конкретния урок</li>
+              <li>Предназначен да насочва, не да пише цялото решение</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Ограничения (нарочно)</h3>
+            <ul class="clean">
+              <li>Само за регистрирани ученици</li>
+              <li>Дневен лимит (по подразбиране 5 подсказки)</li>
+              <li>Кратки отговори</li>
+              <li>Гостите виждат покана да се регистрират</li>
+            </ul>
+          </div>
+        </div>
+        <p class="muted">AI е помощно средство в лабораторията, не заместител на учителя и не оценка на знанията.</p>
+      </div>
+    </section>
+
+    <!-- 12 -->
+    <section class="slide light">
+      <div class="inner">
+        <p class="kicker">Допълнително</p>
+        <h2>Лаборатории, проекти и сертификати</h2>
+        <p class="lead" style="color:var(--muted)">
+          Освен училищната програма за VIII клас, платформата има практически курсове
+          (теория → задача → quiz), мини-проекти и сертификати. Те са
+          <strong>допълнителни технологични лаборатории</strong>, не задължителната
+          част от програмата за VIII клас.
+        </p>
+        <div class="grid-3">
+          <div class="panel"><h3>Курсове</h3><p class="muted">По-дълги учебни пътеки с уроци и прогрес.</p></div>
+          <div class="panel"><h3>Проекти</h3><p class="muted">Предаване и одобрение — включително за сертификат.</p></div>
+          <div class="panel"><h3>Сертификат</h3><p class="muted">Отключва се при завършени изисквания по пътя.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13 -->
+    <section class="slide">
+      <div class="inner">
+        <p class="kicker">Сигурност и доверие</p>
+        <h2>Какво е важно за училищна употреба</h2>
+        <div class="grid-2">
+          <div class="panel">
+            <ul class="clean">
+              <li>Вход чрез акаунт (Supabase Auth)</li>
+              <li>Правата се проверяват на сървъра — ролята не се подава свободно от клиента</li>
+              <li>Класовете имат контролиран код за вход</li>
+              <li>Защита срещу прекалено много грешни опити за join код</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <ul class="clean">
+              <li>Учителските справки са без показване на ученически имейл</li>
+              <li>Клас може да се архивира или прехвърли към друг учител</li>
+              <li>Админската роля не се създава публично</li>
+              <li>Платформата е на Vercel с production адрес</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14 -->
+    <section class="slide light">
+      <div class="inner">
+        <p class="kicker">Статус днес</p>
+        <h2>Какво е готово за преглед</h2>
+        <div class="grid-2">
+          <div class="panel">
+            <h3>Работи в production</h3>
+            <ul class="clean">
+              <li>Публичен сайт и пътеки за VIII клас</li>
+              <li>Регистрация / вход</li>
+              <li>Класове, задачи и проверки</li>
+              <li>Учителски панел и рецензии</li>
+              <li>AI подсказки в урок</li>
+              <li>Админ CMS</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Следващ фокус (пилот)</h3>
+            <ul class="clean">
+              <li>По-лесен старт за учител (онбординг)</li>
+              <li>По-ясна справка „кой изостава“</li>
+              <li>Редакционна проверка на съдържанието с реален учител</li>
+              <li>По-кратък ученически dashboard за първата седмица</li>
+            </ul>
+          </div>
+        </div>
+        <p class="muted">Оценката ни: платформата е готова за <strong>контролиран пилот с един учител и един клас</strong>.</p>
+      </div>
+    </section>
+
+    <!-- 15 -->
+    <section class="slide">
+      <div class="inner">
+        <p class="kicker">Какво искаме от вас</p>
+        <h2>Обратна връзка от учител</h2>
+        <p class="lead">Моля прегледайте платформата с очите на преподавател по специалност / ИТ.</p>
+        <div class="grid-2">
+          <div class="panel">
+            <h3>Въпроси към съдържанието</h3>
+            <ul class="clean">
+              <li>Подходящи ли са мисиите за VIII клас?</li>
+              <li>Липсва ли ключова тема за вашата специалност?</li>
+              <li>Ясни ли са условието и очакваният резултат?</li>
+              <li>Реалистични ли са сроковете и обемът за един час / домашно?</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Въпроси към ползването</h3>
+            <ul class="clean">
+              <li>Удобен ли е процесът клас → задача → рецензия?</li>
+              <li>Достатъчни ли са справките за реален час?</li>
+              <li>Какво би ви спряло да ползвате това с клас догодина?</li>
+              <li>Какъв е минималният набор функции за първия пилотен месец?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16 -->
+    <section class="slide light">
+      <div class="inner">
+        <p class="kicker">Как да пробвате</p>
+        <h2>Практическа обиколка (15–20 мин)</h2>
+        <ol class="steps">
+          <li>
+            <div>
+              <h3>Отворете сайта</h3>
+              <p class="muted"><a href="https://learning-lesson-v2.vercel.app" target="_blank" rel="noopener">https://learning-lesson-v2.vercel.app</a> — разгледайте началната страница и „Пътеки“.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>Вижте страницата за учители</h3>
+              <p class="muted"><a href="https://learning-lesson-v2.vercel.app/for-teachers" target="_blank" rel="noopener">/for-teachers</a> — кратък обзор на учителския поток.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>Създайте акаунт / влезте</h3>
+              <p class="muted">За пълен учителски достъп е нужна роля teacher (дава се от администратор на платформата).</p>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>Изпратете бележки</h3>
+              <p class="muted">Достатъчни са кратки точки: „ясно / неясно / липсва / прекалено“. Това е най-ценното за следващата итерация.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 17 -->
+    <section class="slide">
+      <div class="inner">
+        <p class="kicker">Обобщение</p>
+        <h1>Готови сме за учителски преглед</h1>
+        <p class="lead">
+          Learning Lesson е практична платформа за VIII клас в ПГКНМА:
+          специалности, мисии, клас, задачи, проверки и внимателно ограничен AI помощник.
+        </p>
+        <div class="meta">
+          <span class="chip">Цел: пилот с реален клас</span>
+          <span class="chip">Принцип: учебна стойност преди функции</span>
+          <span class="chip">Следваща стъпка: вашата обратна връзка</span>
+        </div>
+        <p class="muted" style="margin-top:1rem">
+          Live: <a href="https://learning-lesson-v2.vercel.app" target="_blank" rel="noopener">learning-lesson-v2.vercel.app</a>
+          · За учители: <a href="https://learning-lesson-v2.vercel.app/for-teachers" target="_blank" rel="noopener">/for-teachers</a>
+        </p>
+        <p class="muted">Благодарим предварително за времето и бележките.</p>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="nav" role="navigation" aria-label="Навигация на презентацията">
+    <button type="button" id="prev" aria-label="Предишен слайд">← Назад</button>
+    <div>
+      <div class="progress" id="progress">1 / 17</div>
+      <div class="hint">Стрелки ← → · PageUp/PageDown · Space · P за печат</div>
+    </div>
+    <button type="button" id="next" aria-label="Следващ слайд">Напред →</button>
+  </div>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const progress = document.getElementById("progress");
+    const prevBtn = document.getElementById("prev");
+    const nextBtn = document.getElementById("next");
+    let index = 0;
+
+    function show(i) {
+      index = Math.max(0, Math.min(slides.length - 1, i));
+      slides.forEach((slide, n) => slide.classList.toggle("active", n === index));
+      progress.textContent = (index + 1) + " / " + slides.length;
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === slides.length - 1;
+      history.replaceState(null, "", "#" + (index + 1));
+    }
+
+    prevBtn.addEventListener("click", () => show(index - 1));
+    nextBtn.addEventListener("click", () => show(index + 1));
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") {
+        event.preventDefault();
+        show(index + 1);
+      } else if (event.key === "ArrowLeft" || event.key === "PageUp") {
+        event.preventDefault();
+        show(index - 1);
+      } else if (event.key === "Home") {
+        show(0);
+      } else if (event.key === "End") {
+        show(slides.length - 1);
+      } else if (event.key.toLowerCase() === "p" && (event.metaKey || event.ctrlKey) === false && !event.altKey) {
+        // plain P opens print dialog for PDF export
+        if (document.activeElement === document.body || document.activeElement === null) {
+          window.print();
+        }
+      }
+    });
+
+    const fromHash = Number((location.hash || "").replace("#", ""));
+    show(Number.isFinite(fromHash) && fromHash >= 1 ? fromHash - 1 : 0);
+  </script>
+</body>
+</html>
