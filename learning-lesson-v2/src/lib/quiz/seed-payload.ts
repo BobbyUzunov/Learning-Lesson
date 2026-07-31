@@ -1,8 +1,8 @@
-import { fallbackQuestionBank, fallbackLessonTopicMap } from "./fallback-data";
-import type { LessonQuizTopicRow, QuizQuestionRow } from "./types";
+import { fallbackKnowledgeCheckBank, fallbackLessonKnowledgeCheckMap } from "./fallback-data";
+import type { KnowledgeCheckQuestionRow, LessonKnowledgeCheckTopicRow } from "./types";
 
-export function buildQuizSeedPayload() {
-  const questions: QuizQuestionRow[] = fallbackQuestionBank.map((item) => ({
+export function buildKnowledgeCheckSeedPayload() {
+  const questions: KnowledgeCheckQuestionRow[] = fallbackKnowledgeCheckBank.map((item) => ({
     id: item.id,
     topic: item.topic,
     question: item.question,
@@ -14,10 +14,14 @@ export function buildQuizSeedPayload() {
     explanation_bg: item.explanationBg
   }));
 
-  const lessonTopics: LessonQuizTopicRow[] = Object.entries(fallbackLessonTopicMap).map(([lessonId, topic]) => ({
+  const lessonTopics: LessonKnowledgeCheckTopicRow[] = Object.entries(
+    fallbackLessonKnowledgeCheckMap
+  ).map(([lessonId, topic]) => ({
     lesson_id: lessonId,
     topic
   }));
 
   return { questions, lessonTopics };
 }
+
+export const buildQuizSeedPayload = buildKnowledgeCheckSeedPayload;

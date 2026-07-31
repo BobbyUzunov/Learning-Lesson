@@ -6,7 +6,7 @@ import { getCourseCatalog, getFirstLesson, getLessonFromCatalog, getQuestForLess
 import { formatMessage, localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { localizeLessonStructure } from "@/lib/lesson-structure";
-import { getQuizContent } from "@/lib/quiz";
+import { getKnowledgeCheckContent } from "@/lib/knowledge-check";
 import { getCurrentSession } from "@/lib/supabase/auth";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 
@@ -42,12 +42,12 @@ function withProgressiveHints(
 }
 
 export default async function LessonPage({ params }: LessonPageProps) {
-  const [language, session, { id }, catalog, quizContent] = await Promise.all([
+  const [language, session, { id }, catalog, knowledgeCheckContent] = await Promise.all([
     getLanguage(),
     getCurrentSession(),
     params,
     getCourseCatalog(),
-    getQuizContent()
+    getKnowledgeCheckContent()
   ]);
   const copy = t(language);
   const firstLesson = getFirstLesson(catalog);
@@ -86,9 +86,10 @@ export default async function LessonPage({ params }: LessonPageProps) {
         courses={catalog.courses}
         courseTitle={quest?.title ?? copy.paths.badge}
         isAuthenticated={Boolean(session.user)}
+        key={missionLesson.id}
         language={language}
         lesson={missionLesson}
-        quizContent={quizContent}
+        knowledgeCheckContent={knowledgeCheckContent}
         structure={structure}
       />
     </main>

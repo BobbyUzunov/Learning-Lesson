@@ -19,7 +19,7 @@
 
 Всяко направление свързва официални модули, учебни резултати и самостоятелни практически мисии. Общите предмети са отделени. Учителите работят с класове (код, архив, задания, справки без ученически имейл).
 
-Паралелно остават достъпни практическите курсове в платформата (теория → задача → quiz, проекти, сертификати) като **допълнителни технологични лаборатории**, а не като задължителна част от програмата за VIII клас. Налични са и **AI подсказки** в урок — насоки, не готови решения — и отделни учителски проверки с автоматично оценяване.
+Паралелно остават достъпни практическите курсове в платформата (теория → задача → самопроверка, проекти, сертификати) като **допълнителни технологични лаборатории**, а не като задължителна част от програмата за VIII клас. Налични са и **AI подсказки** в урок — насоки, не готови решения — и отделни учителски проверки с автоматично оценяване.
 
 Съдържанието е **DB-first** с fallback в кода: курсове, уроци, мисии и проекти се зареждат от Supabase, когато е конфигуриран.
 
@@ -71,7 +71,7 @@ Run this only through the Supabase SQL Editor or another trusted administrator c
 | `/` | Landing page with course preview |
 | `/paths` | Избор на направление и мисии от програмата за VIII клас |
 | `/missions/[id]` | Кратко условие, очакван резултат и план за работа по мисия |
-| `/lesson/[id]` | Lesson workspace (theory, example, mission, **AI hint**, quiz) |
+| `/lesson/[id]` | Lesson workspace (theory, example, mission, **AI hint**, knowledge check) |
 | `/projects/[id]` | Mini project or capstone submission |
 | `/dashboard` | Continue learning, XP, pending projects |
 | `/profile` | Stats, achievements, certificates |
@@ -81,7 +81,7 @@ Run this only through the Supabase SQL Editor or another trusted administrator c
 | `/admin` | CMS — edit courses and lessons |
 | `/admin/courses/[id]` | Course editor |
 | `/admin/missions/[id]` | Lesson + metadata editor |
-| `/admin/quiz`, `/admin/quiz/[id]` | Quiz question editor |
+| `/admin/knowledge-checks`, `/admin/knowledge-checks/[id]` | Knowledge-check question editor (`/admin/quiz/*` redirects for compatibility) |
 | `/admin/projects`, `/admin/projects/[id]` | Project brief editor |
 | `/admin/reviews` | Capstone submission review queue |
 | `/admin/reviews/[id]` | Approve or request changes |
@@ -130,7 +130,7 @@ For a controlled initial import, temporarily set `ENABLE_ADMIN_CONTENT_SEED=1`, 
 fetch('/api/admin/seed-catalog', { method: 'POST' }).then(r => r.json()).then(console.log)
 ```
 
-Expected seed result: 6 courses, 63 lessons, 38 lesson quiz questions, 3 projects (2 mini + 1 capstone), 4 specialties, 8 grade 8 curriculum modules, and 64 curriculum missions.
+Expected seed result: 6 courses, 63 lessons, 38 lesson knowledge-check questions, 3 projects (2 mini + 1 capstone), 4 specialties, 8 grade 8 curriculum modules, and 64 curriculum missions.
 
 Set `profiles.role = 'admin'` for your user to access `/admin` and the seed endpoint. Set `ENABLE_ADMIN_CONTENT_SEED=0` again immediately after the import; the endpoint and button are disabled by default so a production admin cannot accidentally overwrite edited content.
 
@@ -141,7 +141,7 @@ src/lib/
   game-data.ts       # Fallback/seed source for courses and lessons
   catalog/           # DB-first courses, lessons, lesson_metadata
   curriculum/        # DB-first school specialties, grade modules, and missions
-  quiz/              # DB-first quiz questions and lesson→topic mapping
+  quiz/              # Compatibility adapter for DB-first knowledge checks and lesson→topic mapping
   assessments/       # Classroom checks, reports, and editable curriculum templates
   projects/          # DB-first course projects (mini + capstone)
   mentor/            # AI hint prompts, OpenAI client, quota helpers
@@ -155,7 +155,7 @@ src/components/
 
 - All Data API tables have Row Level Security enabled.
 - Content is publicly readable where appropriate; learner and submission data is owner-scoped.
-- Progress, streak, quiz completion, and mentor quota changes are validated server-side.
+- Progress, streak, knowledge-check completion, and mentor quota changes are validated server-side.
 - Privileged RPC implementations and `mentor_settings` live in the unexposed `private` schema.
 - Public RPC wrappers preserve the client API while anonymous execution is revoked for protected operations.
 - Admin APIs verify the authenticated user's `profiles.role` before making changes.
@@ -164,12 +164,12 @@ Public tables include `profiles`, `user_progress`, `courses`, `lessons`, `lesson
 
 ## Content
 
-- **6 courses**, **63 lessons**, **38 lesson quiz questions**, and **3 projects** (bilingual EN/BG)
+- **6 courses**, **63 lessons**, **38 lesson knowledge-check questions**, and **3 projects** (bilingual EN/BG)
 - **4 vocational specialties**, **8 grade 8 curriculum modules**, and **64 curriculum missions**
 - Grade 8 missions are self-contained and do not redirect students into the optional advanced course catalog
 - **7 editable assessment templates** with **56 curriculum-aligned questions**: 3 shared checks and 1 specialty check per class
 - **100 XP** per completed lesson
-- **Quiz** on every lesson page; at least 2/3 correct answers are verified server-side before XP is awarded
+- **Knowledge check** on every lesson page; at least 2/3 correct answers are verified server-side before XP is awarded
 - **Projects** on AI Product Builder: product brief (mini), live deploy (mini), capstone with admin review
 - **Certificates** require all lessons + required project submissions; capstone must be **approved**
 
@@ -177,13 +177,13 @@ Guests can complete the first Frontend lesson without an account; progress syncs
 
 ## Features
 
-- Textbook-style lesson flow: theory → example → task → quiz
+- Textbook-style lesson flow: theory → example → task → knowledge check
 - **AI Learning Assistant** — lesson-scoped hints with daily quota and cost controls
 - Lesson metadata: objectives, prerequisites, key concepts, reading time
 - Progressive hints and solution reveal in mission panel
 - Guest-first onboarding, mobile nav, BG/EN language switcher
 - XP, levels, achievements, daily streak and challenge
-- Admin CMS for courses, lessons, quiz, projects, and metadata (writes to Supabase)
+- Admin CMS for courses, lessons, knowledge checks, projects, and metadata (writes to Supabase)
 - Admin review workflow for capstone submissions
 - Teacher classrooms, join codes, mission assignments, submissions, and feedback
 - Diagnostic, formative, and summative classroom checks with one attempt, automatic scoring, post-submission explanations, and per-question analysis
@@ -207,11 +207,11 @@ npm run check        # lint + typecheck + unit tests + production build
 ## Roadmap
 
 - [x] Course catalog in Supabase + admin CMS
-- [x] Quiz and projects in Supabase
+- [x] Knowledge checks and projects in Supabase
 - [x] Mini projects + capstone + review flow
 - [x] Mobile layout polish
 - [x] AI Learning Assistant (lesson-scoped hints, quota, Supabase persistence)
-- [x] Admin CMS for quiz and project content
+- [x] Admin CMS for knowledge-check and project content
 - [x] E2E coverage for auth, lesson completion, certificate, and mentor flows
 - [x] Draft autosave for mission and project submissions
 - [x] Certificate print/PDF and shareable link

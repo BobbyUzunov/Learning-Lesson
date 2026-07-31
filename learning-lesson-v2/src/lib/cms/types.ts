@@ -54,7 +54,7 @@ export type ProjectUpdateInput = {
   checklist?: Array<{ id: string; label: string; labelBg?: string }>;
 };
 
-export type QuizUpdateInput = {
+export type KnowledgeCheckUpdateInput = {
   topic?: string;
   question?: string;
   questionBg?: string;
@@ -64,3 +64,5 @@ export type QuizUpdateInput = {
   explanation?: string;
   explanationBg?: string;
 };
+
+export type QuizUpdateInput = KnowledgeCheckUpdateInput;

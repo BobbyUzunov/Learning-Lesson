@@ -1,14 +1,14 @@
 import { hasSupabaseEnv } from "../supabase/env";
 import { createClient } from "../supabase/server";
-import { buildQuizSeedPayload } from "./seed-payload";
+import { buildKnowledgeCheckSeedPayload } from "./seed-payload";
 
-export async function seedQuizToDatabase() {
+export async function seedKnowledgeChecksToDatabase() {
   if (!hasSupabaseEnv()) {
     throw new Error("Supabase env is not configured.");
   }
 
   const supabase = await createClient();
-  const { questions, lessonTopics } = buildQuizSeedPayload();
+  const { questions, lessonTopics } = buildKnowledgeCheckSeedPayload();
   const now = new Date().toISOString();
 
   const { error: questionsError } = await supabase
@@ -26,3 +26,5 @@ export async function seedQuizToDatabase() {
     lessonTopics: lessonTopics.length
   };
 }
+
+export const seedQuizToDatabase = seedKnowledgeChecksToDatabase;

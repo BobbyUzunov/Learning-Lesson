@@ -251,12 +251,12 @@ export const gameLessons: GameLesson[] = [
       "Full-stack apps connect user actions to persistent storage. Completing a lesson should update both UI state and database records.",
     explanationBg:
       "Full-stack приложенията свързват действията на потребителя с постоянно съхранение. Завършването на урок трябва да обнови UI state и записи в базата.",
-    codeExample: "await fetch('/api/progress', {\n  method: 'POST',\n  body: JSON.stringify({ lessonId: '1', quizAnswers })\n});",
+    codeExample: "await fetch('/api/progress', {\n  method: 'POST',\n  body: JSON.stringify({ lessonId: '1', knowledgeCheckAnswers })\n});",
     mission: "Describe what data should be saved when a learner completes a lesson.",
     missionBg: "Опиши какви данни трябва да се запазят, когато learner завърши урок.",
     hint: "Think about user id, lesson id, XP and completion time.",
     hintBg: "Помисли за user id, lesson id, XP и време на завършване.",
-    solution: "Send the lesson id and quiz answers. The protected database function derives user_id, validates unlock order and the quiz, then writes fixed XP and completion time.",
+    solution: "Send the lesson id and knowledge-check answers. The protected database function derives user_id, validates unlock order and the knowledge check, then writes fixed XP and completion time.",
     readingTimeMinutes: 11,
     learningObjectives: [
       "Map a user action to a POST request.",
@@ -280,12 +280,12 @@ export const gameLessons: GameLesson[] = [
     titleBg: "Мисия: AI помощник",
     explanation: "AI features work best when the app asks for structured, predictable output.",
     explanationBg: "AI функционалностите работят най-добре, когато app-ът иска структуриран и предвидим output.",
-    codeExample: "const prompt = 'Return a JSON lesson summary with title, goals and quiz.';",
-    mission: "Write a prompt that asks for a short lesson summary and three quiz questions.",
-    missionBg: "Напиши prompt, който иска кратко резюме на урок и три quiz въпроса.",
+    codeExample: "const prompt = 'Return a JSON lesson summary with title, goals and knowledgeCheck.';",
+    mission: "Write a prompt that asks for a short lesson summary and three knowledge-check questions.",
+    missionBg: "Напиши prompt, който иска кратко резюме на урок и три въпроса за самопроверка.",
     hint: "Ask for JSON fields so the app can render them safely.",
     hintBg: "Поискай JSON полета, за да може app-ът да ги render-не безопасно.",
-    solution: "Return JSON with title, summary, goals: string[] and quiz: {question, answer}[]"
+    solution: "Return JSON with title, summary, goals: string[] and knowledgeCheck: {question, answer}[]"
   },
   {
     id: "6",
@@ -382,8 +382,8 @@ export const gameLessons: GameLesson[] = [
     questId: "frontend",
     title: "Fetch Data Mission",
     titleBg: "Мисия: Fetch данни",
-    explanation: "Modern frontends load lesson progress, quests and quiz questions from APIs using fetch.",
-    explanationBg: "Модерните frontend apps зареждат прогрес, quests и quiz въпроси от API-та чрез fetch.",
+    explanation: "Modern frontends load lesson progress, quests and knowledge-check questions from APIs using fetch.",
+    explanationBg: "Модерните frontend приложения зареждат прогрес, мисии и въпроси за самопроверка от API чрез fetch.",
     codeExample: "const response = await fetch('/api/progress');\nconst data = await response.json();",
     mission: "Sketch an async function that loads progress from /api/progress and returns the JSON body.",
     missionBg: "Скицирай async функция, която зарежда progress от /api/progress и връща JSON body.",
@@ -408,18 +408,18 @@ export const gameLessons: GameLesson[] = [
   {
     id: "13",
     questId: "frontend",
-    title: "Quiz Generator Mission",
-    titleBg: "Мисия: Генератор за въпроси",
-    explanation: "A quiz generator picks a topic, filters a question bank and returns a small random practice set.",
-    explanationBg: "Генераторът за въпроси избира тема, филтрира банка от въпроси и връща малък случаен practice сет.",
-    codeExample: "function generateQuizQuestions(topic, count) {\n  const pool = questionBank.filter((q) => q.topic === topic);\n  return shuffle(pool).slice(0, count);\n}",
-    mission: "Write a generateQuizQuestions(topic, count) function that filters by topic and returns count random questions.",
-    missionBg: "Напиши generateQuizQuestions(topic, count), която филтрира по тема и връща count случайни въпроса.",
+    title: "Knowledge Check Builder Mission",
+    titleBg: "Мисия: Създател на самопроверка",
+    explanation: "A knowledge-check builder picks a topic, filters a question bank and returns a short random practice set.",
+    explanationBg: "Създателят на самопроверка избира тема, филтрира банка от въпроси и връща кратък случаен набор за упражнение.",
+    codeExample: "function generateKnowledgeCheckQuestions(topic, count) {\n  const pool = questionBank.filter((q) => q.topic === topic);\n  return shuffle(pool).slice(0, count);\n}",
+    mission: "Write a generateKnowledgeCheckQuestions(topic, count) function that filters by topic and returns count random questions.",
+    missionBg: "Напиши generateKnowledgeCheckQuestions(topic, count), която филтрира по тема и връща желания брой случайни въпроси.",
     hint1: "Filter first, shuffle second, then slice to the requested count.",
     hint1Bg: "Първо филтрирай, после shuffle, после slice до желания брой.",
     hint2: "Each question should include options and one correct answer index.",
     hint2Bg: "Всеки въпрос трябва да има options и един correct answer index.",
-    solution: "function generateQuizQuestions(topic, count, bank) {\n  const pool = bank.filter((question) => question.topic === topic);\n  return shuffle(pool).slice(0, count);\n}"
+    solution: "function generateKnowledgeCheckQuestions(topic, count, bank) {\n  const pool = bank.filter((question) => question.topic === topic);\n  return shuffle(pool).slice(0, count);\n}"
   },
   {
     id: "14",
@@ -498,12 +498,12 @@ export const gameLessons: GameLesson[] = [
     titleBg: "Мисия: Client-server поток",
     explanation: "A full-stack feature starts in the UI, calls an API route, and persists the result in the database.",
     explanationBg: "Full-stack функция започва в UI, вика API route и записва резултата в базата.",
-    codeExample: "await fetch('/api/progress', {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify({ lessonId: '4', quizAnswers })\n});",
+    codeExample: "await fetch('/api/progress', {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify({ lessonId: '4', knowledgeCheckAnswers })\n});",
     mission: "Describe the three steps that happen when a learner completes a mission in this app.",
     missionBg: "Опиши трите стъпки, когато learner завърши мисия в това app.",
     hint1: "Think: UI action → API route → Supabase row.",
     hint1Bg: "Помисли: UI action → API route → Supabase row.",
-    solution: "1) Mission panel sends the lesson id and quiz answers to POST /api/progress. 2) The API validates the session and payload. 3) A protected Supabase RPC validates unlock and quiz state, then atomically updates progress and XP."
+    solution: "1) The mission panel sends the lesson id and knowledge-check answers to POST /api/progress. 2) The API validates the session and payload. 3) A protected Supabase RPC validates unlock order and knowledge-check state, then atomically updates progress and XP."
   },
   {
     id: "20",
@@ -559,7 +559,7 @@ export const gameLessons: GameLesson[] = [
     missionBg: "Скицирай client код, който обработва неуспешен progress save и показва API error съобщението.",
     hint1: "Check response.ok before assuming the mission was saved.",
     hint1Bg: "Провери response.ok, преди да приемеш, че мисията е записана.",
-    solution: "const response = await fetch('/api/progress', { method: 'POST', body: JSON.stringify({ lessonId, quizAnswers }) });\nif (!response.ok) {\n  const body = await response.json();\n  throw new Error(body.error ?? 'Save failed');\n}"
+    solution: "const response = await fetch('/api/progress', { method: 'POST', body: JSON.stringify({ lessonId, knowledgeCheckAnswers }) });\nif (!response.ok) {\n  const body = await response.json();\n  throw new Error(body.error ?? 'Save failed');\n}"
   },
   {
     id: "24",
@@ -606,13 +606,13 @@ export const gameLessons: GameLesson[] = [
   {
     id: "27",
     questId: "ai",
-    title: "Quiz Prompt Mission",
-    titleBg: "Мисия: Quiz prompt",
-    explanation: "Quiz generators need prompts that return options, one correct index, and a short explanation.",
-    explanationBg: "Quiz generators имат нужда от prompts, които връщат options, един correct index и кратко explanation.",
+    title: "Knowledge Check Prompt Mission",
+    titleBg: "Мисия: Prompt за самопроверка",
+    explanation: "Knowledge-check builders need prompts that return options, one correct index, and a short explanation.",
+    explanationBg: "Създателите на самопроверки имат нужда от prompts, които връщат отговори, един верен индекс и кратко обяснение.",
     codeExample: "Generate 3 multiple-choice questions about CSS layout. Return JSON array with question, options, correctIndex, explanation.",
-    mission: "Write a prompt that generates three quiz questions for the CSS topic.",
-    missionBg: "Напиши prompt, който генерира три quiz въпроса за CSS тема.",
+    mission: "Write a prompt that generates three knowledge-check questions for the CSS topic.",
+    missionBg: "Напиши prompt, който генерира три въпроса за самопроверка по темата CSS.",
     hint1: "Each item should include options as an array and correctIndex as a number.",
     hint1Bg: "Всеки item трябва да има options като array и correctIndex като number.",
     solution: "Return [{ question, options: string[], correctIndex: number, explanation }] length 3 for topic 'css'."
@@ -639,11 +639,11 @@ export const gameLessons: GameLesson[] = [
     explanation: "If you call an AI model from the backend, keep the API key server-side and return only sanitized JSON.",
     explanationBg: "Ако викаш AI model от backend, дръж API key server-side и връщай само sanitized JSON.",
     codeExample: "export async function POST(request: Request) {\n  const { topic } = await request.json();\n  return Response.json({ questions: [] });\n}",
-    mission: "Sketch a protected API route that accepts a topic and returns generated quiz questions.",
-    missionBg: "Скицирай защитен API route, който приема topic и връща generated quiz questions.",
+    mission: "Sketch a protected API route that accepts a topic and returns generated knowledge-check questions.",
+    missionBg: "Скицирай защитен API route, който приема тема и връща генерирани въпроси за самопроверка.",
     hint1: "Authenticate first, then call the model, then validate the response shape.",
     hint1Bg: "Първо authenticate, после викни model-а, после валидирай response shape.",
-    solution: "POST /api/quiz/generate → require user → call model with topic → validate JSON → return questions array."
+    solution: "POST /api/knowledge-checks/generate → require user → call model with topic → validate JSON → return questions array."
   },
   {
     id: "30",
@@ -653,8 +653,8 @@ export const gameLessons: GameLesson[] = [
     explanation: "Human review or automated checks should catch wrong answers, missing fields, or unsafe content before publish.",
     explanationBg: "Human review или automated checks трябва да хванат грешни отговори, липсващи полета или unsafe content преди publish.",
     codeExample: "if (question.correctIndex >= question.options.length) reject(question);",
-    mission: "Write three validation rules for AI-generated quiz questions before they appear to learners.",
-    missionBg: "Напиши три validation правила за AI-generated quiz въпроси, преди да се покажат на learners.",
+    mission: "Write three validation rules for AI-generated knowledge-check questions before they appear to learners.",
+    missionBg: "Напиши три правила за валидиране на генерирани от AI въпроси за самопроверка, преди да се покажат на учениците.",
     hint1: "Check options length, index bounds, and non-empty text.",
     hint1Bg: "Провери options length, index bounds и non-empty text.",
     solution: "Reject if options.length < 2, correctIndex out of range, or question/explanation strings are empty."
@@ -753,9 +753,9 @@ export const gameLessons: GameLesson[] = [
     codeExample: "Fix registration flow: create profiles row on sign-up, idempotent, no duplicate rows.",
     mission: "Write one high-quality Cursor task prompt for adding a new mission to game-data.ts.",
     missionBg: "Напиши един качествен Cursor task prompt за добавяне на нова мисия в game-data.ts.",
-    hint1: "Include quest id, bilingual fields, unlock order, and quiz topic.",
-    hint1Bg: "Включи quest id, bilingual fields, unlock order и quiz topic.",
-    solution: "Add Backend mission 19 about POST routes to game-data.ts with EN/BG text, append to backend.lessonIds, map quiz topic api."
+    hint1: "Include quest id, bilingual fields, unlock order, and knowledge-check topic.",
+    hint1Bg: "Включи ID на мисията, двуезични полета, ред на отключване и тема за самопроверка.",
+    solution: "Add Backend mission 19 about POST routes to game-data.ts with EN/BG text, append it to backend.lessonIds, and map the knowledge-check topic to api."
   },
   {
     id: "38",

@@ -1,11 +1,20 @@
 import type { Language } from "../i18n";
-import type { QuizContent, QuizQuestion, QuizTopic } from "./types";
+import type {
+  KnowledgeCheckAnswer,
+  KnowledgeCheckContent,
+  KnowledgeCheckQuestion,
+  KnowledgeCheckTopic,
+  ShuffledKnowledgeCheckQuestion
+} from "./types";
 
-export function getQuizTopicForLesson(content: QuizContent, lessonId: string): QuizTopic {
-  return content.lessonTopics[lessonId] ?? "html";
+export function getKnowledgeCheckTopicForLesson(
+  content: KnowledgeCheckContent,
+  lessonId: string
+): KnowledgeCheckTopic | null {
+  return content.lessonTopics[lessonId] ?? null;
 }
 
-export function localizeQuizQuestion(question: QuizQuestion, language: Language) {
+export function localizeKnowledgeCheckQuestion(question: KnowledgeCheckQuestion, language: Language) {
   if (language === "en") {
     return {
       id: question.id,
@@ -32,7 +41,10 @@ function shuffle<T>(items: T[], random: () => number) {
   return copy;
 }
 
-function shuffleQuestionOptions(question: QuizQuestion, random: () => number): QuizQuestion {
+function shuffleQuestionOptions(
+  question: KnowledgeCheckQuestion,
+  random: () => number
+): ShuffledKnowledgeCheckQuestion {
   const optionOrder = shuffle(
     question.options.map((_, index) => index),
     random
@@ -42,7 +54,18 @@ function shuffleQuestionOptions(question: QuizQuestion, random: () => number): Q
     ...question,
     options: optionOrder.map((index) => question.options[index]),
     optionsBg: optionOrder.map((index) => question.optionsBg[index]),
-    correctIndex: optionOrder.indexOf(question.correctIndex)
+    correctIndex: optionOrder.indexOf(question.correctIndex),
+    originalOptionIndexes: optionOrder
+  };
+}
+
+export function createKnowledgeCheckAnswer(
+  question: ShuffledKnowledgeCheckQuestion,
+  displayedOptionIndex: number
+): KnowledgeCheckAnswer {
+  return {
+    questionId: question.id,
+    selectedIndex: question.originalOptionIndexes[displayedOptionIndex]
   };
 }
 
@@ -62,29 +85,63 @@ export function createSeededRandom(seed: string) {
   };
 }
 
-export function generateQuizQuestions(
-  content: QuizContent,
-  topic: QuizTopic,
+export function generateKnowledgeCheckQuestions(
+  content: KnowledgeCheckContent,
+  topic: KnowledgeCheckTopic,
   count = 3,
   random: () => number = Math.random
 ) {
-  const pool = content.questions.filter((item) => item.topic === topic);
+  const topicPool = content.questions.filter((item) => item.topic === topic);
+  const fallbackPool =
+    topic !== "html" && topicPool.length < count
+      ? content.questions.filter((item) => item.topic === "html")
+      : [];
+  const pool = [...topicPool, ...fallbackPool];
+
   return shuffle(pool, random)
     .slice(0, Math.min(count, pool.length))
     .map((question) => shuffleQuestionOptions(question, random));
 }
 
-export function getQuestionBankSize(content: QuizContent, topic: QuizTopic) {
+export function getQuestionBankSize(content: KnowledgeCheckContent, topic: KnowledgeCheckTopic) {
   return content.questions.filter((item) => item.topic === topic).length;
 }
 
-export function mapQuizRowsToContent(
-  questionRows: QuizContent["questions"],
+const topicLabels: Record<KnowledgeCheckTopic, { bg: string; en: string }> = {
+  html: { bg: "HTML", en: "HTML" },
+  css: { bg: "CSS", en: "CSS" },
+  javascript: { bg: "JavaScript", en: "JavaScript" },
+  dom: { bg: "DOM", en: "DOM" },
+  fetch: { bg: "Fetch API", en: "Fetch API" },
+  react: { bg: "React", en: "React" },
+  api: { bg: "API и сървър", en: "APIs and servers" },
+  "quiz-generator": { bg: "Дизайн на самопроверка", en: "Knowledge-check design" },
+  fullstack: { bg: "Full-stack", en: "Full-stack" },
+  ai: { bg: "Изкуствен интелект", en: "Artificial intelligence" },
+  mobile: { bg: "Мобилни приложения", en: "Mobile applications" },
+  product: { bg: "Дигитален продукт", en: "Digital product" }
+};
+
+export function getKnowledgeCheckTopicLabel(topic: KnowledgeCheckTopic, language: Language) {
+  return topicLabels[topic][language];
+}
+
+export function mapKnowledgeCheckRowsToContent(
+  questionRows: KnowledgeCheckContent["questions"],
   topicRows: Array<{ lesson_id: string; topic: string }>
-): QuizContent {
+): KnowledgeCheckContent {
   return {
     questions: questionRows,
-    lessonTopics: Object.fromEntries(topicRows.map((row) => [row.lesson_id, row.topic as QuizTopic])),
+    lessonTopics: Object.fromEntries(
+      topicRows.map((row) => [row.lesson_id, row.topic as KnowledgeCheckTopic])
+    ),
     source: "db"
   };
 }
+
+// Legacy aliases keep cached builds and old internal imports compatible during the rename.
+export const getQuizTopicForLesson = getKnowledgeCheckTopicForLesson;
+export const localizeQuizQuestion = localizeKnowledgeCheckQuestion;
+export const createQuizAnswer = createKnowledgeCheckAnswer;
+export const generateQuizQuestions = generateKnowledgeCheckQuestions;
+export const mapQuizRowsToContent = mapKnowledgeCheckRowsToContent;

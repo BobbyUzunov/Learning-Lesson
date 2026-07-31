@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getKnownErrorCode, readJsonObject } from "@/lib/http";
-import type { QuizAnswer } from "@/lib/quiz/types";
+import type { KnowledgeCheckAnswer } from "@/lib/knowledge-check/types";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,12 +11,12 @@ const completionErrors = [
   "quiz_not_passed"
 ] as const;
 
-function parseQuizAnswers(value: unknown): QuizAnswer[] | null {
+function parseKnowledgeCheckAnswers(value: unknown): KnowledgeCheckAnswer[] | null {
   if (!Array.isArray(value) || value.length < 1 || value.length > 3) {
     return null;
   }
 
-  const answers: QuizAnswer[] = [];
+  const answers: KnowledgeCheckAnswer[] = [];
   for (const item of value) {
     if (!item || typeof item !== "object" || Array.isArray(item)) {
       return null;
@@ -47,9 +47,11 @@ export async function POST(request: Request) {
 
   const body = await readJsonObject(request);
   const lessonId = typeof body?.lessonId === "string" ? body.lessonId.trim() : "";
-  const quizAnswers = parseQuizAnswers(body?.quizAnswers);
+  const knowledgeCheckAnswers = parseKnowledgeCheckAnswers(
+    body?.knowledgeCheckAnswers ?? body?.quizAnswers
+  );
 
-  if (!lessonId || lessonId.length > 100 || !quizAnswers) {
+  if (!lessonId || lessonId.length > 100 || !knowledgeCheckAnswers) {
     return NextResponse.json({ error: "invalid_completion_payload" }, { status: 400 });
   }
 
@@ -60,12 +62,21 @@ export async function POST(request: Request) {
   }
 
   const { data, error } = await supabase
-    .rpc("complete_lesson", { p_lesson_id: lessonId, p_answers: quizAnswers })
+    .rpc("complete_lesson", { p_lesson_id: lessonId, p_answers: knowledgeCheckAnswers })
     .single<{ ok: boolean; xp: number; level: number }>();
 
   if (error) {
     const code = getKnownErrorCode(error.message, completionErrors) ?? "completion_failed";
-    const status = code === "unknown_lesson" ? 404 : code === "completion_failed" ? 500 : 403;
+    const status =
+      code === "unknown_lesson"
+        ? 404
+        : code === "quiz_unavailable"
+          ? 503
+          : code === "completion_failed"
+            ? 500
+            : 403;
+    // Keep the historic error codes for cached clients; the UI translates them
+    // to the current “Knowledge check” terminology.
     return NextResponse.json({ error: code }, { status });
   }
 

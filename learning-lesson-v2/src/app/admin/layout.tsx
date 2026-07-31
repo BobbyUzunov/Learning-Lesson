@@ -20,8 +20,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink" href="/admin/projects">
             {copy.admin.projectsNav}
           </Link>
-          <Link className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink" href="/admin/quiz">
-            {copy.admin.quizNav}
+          <Link
+            className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink"
+            href="/admin/knowledge-checks"
+          >
+            {copy.admin.knowledgeCheckNav}
           </Link>
           <Link className="rounded-md px-3 py-2 text-ink/70 hover:bg-ink/5 hover:text-ink" href="/admin/reviews">
             {copy.admin.reviewsNav}

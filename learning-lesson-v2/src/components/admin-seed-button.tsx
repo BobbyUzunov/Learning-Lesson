@@ -28,8 +28,8 @@ export function AdminSeedButton({ language }: { language: Language }) {
       courses?: number;
       lessons?: number;
       metadata?: number;
-      quizQuestions?: number;
-      lessonQuizTopics?: number;
+      knowledgeCheckQuestions?: number;
+      lessonKnowledgeCheckTopics?: number;
       projects?: number;
       specialties?: number;
       curriculumModules?: number;
@@ -40,7 +40,7 @@ export function AdminSeedButton({ language }: { language: Language }) {
       copy.admin.seedSuccess
         .replace("{courses}", String(result.courses ?? 0))
         .replace("{lessons}", String(result.lessons ?? 0))
-        .replace("{quiz}", String(result.quizQuestions ?? 0))
+        .replace("{checks}", String(result.knowledgeCheckQuestions ?? 0))
         .replace("{projects}", String(result.projects ?? 0))
     );
     router.refresh();

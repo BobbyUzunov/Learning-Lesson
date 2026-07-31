@@ -9,18 +9,18 @@ import {
 } from "@/lib/catalog";
 import { xpPerLesson } from "@/lib/game-data";
 import { getCourseProjects } from "@/lib/projects/store";
-import { getQuizContent } from "@/lib/quiz";
+import { getKnowledgeCheckContent } from "@/lib/knowledge-check";
 import { localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const [language, catalog, { projects }, quiz] = await Promise.all([
+  const [language, catalog, { projects }, knowledgeChecks] = await Promise.all([
     getLanguage(),
     getCourseCatalog(),
     getCourseProjects(),
-    getQuizContent()
+    getKnowledgeCheckContent()
   ]);
   const copy = t(language);
   const contentSeedEnabled = process.env.ENABLE_ADMIN_CONTENT_SEED === "1";
@@ -51,8 +51,8 @@ export default async function AdminPage() {
           <p className="mt-2 text-3xl font-black">{lessons.length}</p>
         </div>
         <div className="rounded-lg bg-white/80 p-4">
-          <p className="text-sm text-ink/60">{copy.admin.quizQuestionsCount}</p>
-          <p className="mt-2 text-3xl font-black">{quiz.questions.length}</p>
+          <p className="text-sm text-ink/60">{copy.admin.knowledgeCheckQuestionsCount}</p>
+          <p className="mt-2 text-3xl font-black">{knowledgeChecks.questions.length}</p>
         </div>
         <div className="rounded-lg bg-white/80 p-4">
           <p className="text-sm text-ink/60">{copy.admin.projectsNav}</p>
@@ -70,8 +70,11 @@ export default async function AdminPage() {
           <Link className="rounded-md bg-ink px-4 py-2 text-sm font-bold text-paper" href="/admin/projects">
             {copy.admin.projectsNav}
           </Link>
-          <Link className="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold text-ink" href="/admin/quiz">
-            {copy.admin.quizNav}
+          <Link
+            className="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold text-ink"
+            href="/admin/knowledge-checks"
+          >
+            {copy.admin.knowledgeCheckNav}
           </Link>
           <Link className="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold text-ink" href="/admin/reviews">
             {copy.admin.reviewsNav}

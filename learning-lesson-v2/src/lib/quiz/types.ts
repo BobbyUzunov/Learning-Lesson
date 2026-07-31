@@ -1,4 +1,4 @@
-export type QuizTopic =
+export type KnowledgeCheckTopic =
   | "html"
   | "css"
   | "javascript"
@@ -12,9 +12,9 @@ export type QuizTopic =
   | "mobile"
   | "product";
 
-export type QuizQuestion = {
+export type KnowledgeCheckQuestion = {
   id: string;
-  topic: QuizTopic;
+  topic: KnowledgeCheckTopic;
   question: string;
   questionBg: string;
   options: string[];
@@ -24,27 +24,31 @@ export type QuizQuestion = {
   explanationBg: string;
 };
 
-export type QuizAnswer = {
+export type ShuffledKnowledgeCheckQuestion = KnowledgeCheckQuestion & {
+  originalOptionIndexes: number[];
+};
+
+export type KnowledgeCheckAnswer = {
   questionId: string;
   selectedIndex: number;
 };
 
-export type QuizAttempt = {
-  answers: QuizAnswer[];
+export type KnowledgeCheckAttempt = {
+  answers: KnowledgeCheckAnswer[];
   correct: number;
   total: number;
   passed: boolean;
 };
 
-export type QuizContentSource = "db" | "fallback";
+export type KnowledgeCheckContentSource = "db" | "fallback" | "unavailable";
 
-export type QuizContent = {
-  questions: QuizQuestion[];
-  lessonTopics: Record<string, QuizTopic>;
-  source: QuizContentSource;
+export type KnowledgeCheckContent = {
+  questions: KnowledgeCheckQuestion[];
+  lessonTopics: Record<string, KnowledgeCheckTopic>;
+  source: KnowledgeCheckContentSource;
 };
 
-export type QuizQuestionRow = {
+export type KnowledgeCheckQuestionRow = {
   id: string;
   topic: string;
   question: string;
@@ -56,7 +60,19 @@ export type QuizQuestionRow = {
   explanation_bg: string;
 };
 
-export type LessonQuizTopicRow = {
+export type LessonKnowledgeCheckTopicRow = {
   lesson_id: string;
   topic: string;
 };
+
+// Compatibility aliases for the existing Supabase schema and cached app builds.
+// The public product term is “Knowledge check”; the database still uses quiz_* names.
+export type QuizTopic = KnowledgeCheckTopic;
+export type QuizQuestion = KnowledgeCheckQuestion;
+export type ShuffledQuizQuestion = ShuffledKnowledgeCheckQuestion;
+export type QuizAnswer = KnowledgeCheckAnswer;
+export type QuizAttempt = KnowledgeCheckAttempt;
+export type QuizContentSource = KnowledgeCheckContentSource;
+export type QuizContent = KnowledgeCheckContent;
+export type QuizQuestionRow = KnowledgeCheckQuestionRow;
+export type LessonQuizTopicRow = LessonKnowledgeCheckTopicRow;

@@ -1,23 +1,37 @@
 import { cache } from "react";
 import { unstable_noStore as noStore } from "next/cache";
+import { isE2eAuthEnabled } from "../supabase/e2e-auth";
 import { createClient } from "../supabase/server";
 import { hasSupabaseEnv } from "../supabase/env";
-import { fallbackQuestionBank, fallbackLessonTopicMap } from "./fallback-data";
-import { mapQuizRowsToContent } from "./helpers";
-import type { QuizContent, QuizQuestion, QuizQuestionRow, QuizTopic } from "./types";
+import { fallbackKnowledgeCheckBank, fallbackLessonKnowledgeCheckMap } from "./fallback-data";
+import { mapKnowledgeCheckRowsToContent } from "./helpers";
+import type {
+  KnowledgeCheckContent,
+  KnowledgeCheckQuestion,
+  KnowledgeCheckQuestionRow,
+  KnowledgeCheckTopic
+} from "./types";
 
 const questionColumns =
   "id, topic, question, question_bg, options, options_bg, correct_index, explanation, explanation_bg";
 
-export function getFallbackQuizContent(): QuizContent {
+export function getFallbackKnowledgeCheckContent(): KnowledgeCheckContent {
   return {
-    questions: fallbackQuestionBank,
-    lessonTopics: fallbackLessonTopicMap,
+    questions: fallbackKnowledgeCheckBank,
+    lessonTopics: fallbackLessonKnowledgeCheckMap,
     source: "fallback"
   };
 }
 
-async function loadQuizFromDatabase(): Promise<QuizContent | null> {
+export function getUnavailableKnowledgeCheckContent(): KnowledgeCheckContent {
+  return {
+    questions: [],
+    lessonTopics: {},
+    source: "unavailable"
+  };
+}
+
+async function loadKnowledgeCheckFromDatabase(): Promise<KnowledgeCheckContent | null> {
   if (!hasSupabaseEnv()) {
     return null;
   }
@@ -30,23 +44,23 @@ async function loadQuizFromDatabase(): Promise<QuizContent | null> {
   ]);
 
   if (questionsResult.error) {
-    console.error("Failed to load quiz questions:", questionsResult.error.message);
+    console.error("Failed to load knowledge-check questions:", questionsResult.error.message);
     return null;
   }
 
   if (topicsResult.error) {
-    console.error("Failed to load lesson quiz topics:", topicsResult.error.message);
+    console.error("Failed to load lesson knowledge-check topics:", topicsResult.error.message);
     return null;
   }
 
-  const questionRows = (questionsResult.data ?? []) as QuizQuestionRow[];
+  const questionRows = (questionsResult.data ?? []) as KnowledgeCheckQuestionRow[];
   if (questionRows.length === 0) {
     return null;
   }
 
-  const questions: QuizQuestion[] = questionRows.map((row) => ({
+  const questions: KnowledgeCheckQuestion[] = questionRows.map((row) => ({
     id: row.id,
-    topic: row.topic as QuizTopic,
+    topic: row.topic as KnowledgeCheckTopic,
     question: row.question,
     questionBg: row.question_bg,
     options: row.options,
@@ -56,23 +70,44 @@ async function loadQuizFromDatabase(): Promise<QuizContent | null> {
     explanationBg: row.explanation_bg
   }));
 
-  return mapQuizRowsToContent(
+  return mapKnowledgeCheckRowsToContent(
     questions,
     (topicsResult.data ?? []).map((row) => ({ lesson_id: row.lesson_id as string, topic: row.topic as string }))
   );
 }
 
-async function loadQuizContent(): Promise<QuizContent> {
-  return (await loadQuizFromDatabase()) ?? getFallbackQuizContent();
+async function loadKnowledgeCheckContent(): Promise<KnowledgeCheckContent> {
+  if (!hasSupabaseEnv() || isE2eAuthEnabled()) {
+    return getFallbackKnowledgeCheckContent();
+  }
+
+  return (await loadKnowledgeCheckFromDatabase()) ?? getUnavailableKnowledgeCheckContent();
 }
 
-export const getQuizContent = cache(loadQuizContent);
+export const getKnowledgeCheckContent = cache(loadKnowledgeCheckContent);
 
-export type { QuizContent, QuizQuestion, QuizTopic } from "./types";
+// Compatibility aliases for cached builds and internal modules using the previous name.
+export const getFallbackQuizContent = getFallbackKnowledgeCheckContent;
+export const getUnavailableQuizContent = getUnavailableKnowledgeCheckContent;
+export const getQuizContent = getKnowledgeCheckContent;
+
+export type {
+  KnowledgeCheckContent,
+  KnowledgeCheckQuestion,
+  KnowledgeCheckTopic,
+  QuizContent,
+  QuizQuestion,
+  QuizTopic
+} from "./types";
 export {
+  createQuizAnswer,
+  createKnowledgeCheckAnswer,
   createSeededRandom,
   generateQuizQuestions,
+  generateKnowledgeCheckQuestions,
   getQuestionBankSize,
   getQuizTopicForLesson,
-  localizeQuizQuestion
+  getKnowledgeCheckTopicForLesson,
+  localizeQuizQuestion,
+  localizeKnowledgeCheckQuestion
 } from "./helpers";

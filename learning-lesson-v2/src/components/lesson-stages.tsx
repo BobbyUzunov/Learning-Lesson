@@ -5,16 +5,16 @@ import dynamic from "next/dynamic";
 import { ArrowRight, CheckCircle2, Lightbulb, Lock, ScrollText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { LessonKeyConcepts } from "@/components/lesson-key-concepts";
-import { QuizGenerator } from "@/components/quiz-generator";
+import { KnowledgeCheck } from "@/components/knowledge-check";
 import { getGlobalNextLessonFromCourses } from "@/lib/catalog/helpers";
 import { lessonDraftKey, type LessonMissionDraft } from "@/lib/draft-storage";
 import type { GameLesson, GameQuest } from "@/lib/game-data";
 import { getGameProgressStats } from "@/lib/game-progress";
-import { completeStoredLesson, getStoredProgress, guestContinueKey } from "@/lib/game-progress-storage";
+import { completeStoredLesson, guestContinueKey } from "@/lib/game-progress-storage";
 import { useDraftAutosave } from "@/hooks/use-draft-autosave";
 import { formatMessage, t, type Language } from "@/lib/i18n";
 import type { LocalizedLessonStructure } from "@/lib/lesson-structure";
-import type { QuizAttempt, QuizContent } from "@/lib/quiz/types";
+import type { KnowledgeCheckAttempt, KnowledgeCheckContent } from "@/lib/knowledge-check/types";
 
 const MIN_EFFORT_CHARS = 12;
 
@@ -24,13 +24,19 @@ const LessonAiHint = dynamic(() =>
 
 type LessonStage = 1 | 2 | 3;
 
+const unavailableKnowledgeCheckContent: KnowledgeCheckContent = {
+  questions: [],
+  lessonTopics: {},
+  source: "unavailable"
+};
+
 export function LessonStages({
   completedLessonIds,
   courses,
   isAuthenticated,
   language,
   lesson,
-  quizContent,
+  knowledgeCheckContent,
   structure,
   courseTitle
 }: {
@@ -39,14 +45,16 @@ export function LessonStages({
   isAuthenticated: boolean;
   language: Language;
   lesson: GameLesson;
-  quizContent: QuizContent;
+  knowledgeCheckContent: KnowledgeCheckContent;
   structure: LocalizedLessonStructure;
   courseTitle: string;
 }) {
   const copy = t(language);
   const router = useRouter();
   const [stage, setStage] = useState<LessonStage>(1);
-  const [quizAttempt, setQuizAttempt] = useState<QuizAttempt | null>(null);
+  const [knowledgeCheckAttempt, setKnowledgeCheckAttempt] = useState<KnowledgeCheckAttempt | null>(null);
+  const [knowledgeCheckVersion, setKnowledgeCheckVersion] = useState(0);
+  const [knowledgeCheckRejectedAsUnavailable, setKnowledgeCheckRejectedAsUnavailable] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
   const [showAi, setShowAi] = useState(false);
   const [showGuestModal, setShowGuestModal] = useState(false);
@@ -98,20 +106,43 @@ export function LessonStages({
     }
   }
 
+  function changeStage(nextStage: LessonStage) {
+    if (nextStage === stage) {
+      return;
+    }
+
+    setKnowledgeCheckAttempt(null);
+    setKnowledgeCheckVersion((value) => value + 1);
+    setMessage(null);
+    setNextLessonId(null);
+    setJustCompleted(false);
+    setStage(nextStage);
+  }
+
+  function handleKnowledgeCheckResult(attempt: KnowledgeCheckAttempt | null) {
+    setKnowledgeCheckAttempt(attempt);
+    if (!justCompleted) {
+      setMessage(null);
+      setNextLessonId(null);
+    }
+  }
+
   async function completeMission() {
     if (!hasEffort && !allHintsUsed) {
       setMessage(copy.lesson.completeBeforeFinish);
       return;
     }
 
-    if (!quizAttempt?.passed) {
-      setMessage(copy.lesson.quizRequired);
+    if (!knowledgeCheckAttempt?.passed) {
+      setMessage(copy.lesson.knowledgeCheckRequired);
       setStage(3);
       return;
     }
 
     setLoading(true);
     setMessage(null);
+    setNextLessonId(null);
+    setJustCompleted(false);
 
     if (!isAuthenticated) {
       const progress = completeStoredLesson(lesson.id);
@@ -123,31 +154,54 @@ export function LessonStages({
       return;
     }
 
-    const response = await fetch("/api/progress", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lessonId: lesson.id, quizAnswers: quizAttempt.answers })
-    });
+    let response: Response;
+    try {
+      response = await fetch("/api/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lessonId: lesson.id,
+          knowledgeCheckAnswers: knowledgeCheckAttempt.answers
+        })
+      });
+    } catch {
+      setLoading(false);
+      setMessage(copy.lesson.saveError);
+      return;
+    }
 
     setLoading(false);
 
     if (!response.ok) {
       let errorMessage: string = copy.lesson.saveError;
+      let knowledgeCheckRejected = false;
+      let knowledgeCheckUnavailable = false;
       try {
         const body = (await response.json()) as { error?: string };
-        if (body.error === "quiz_not_passed") {
-          errorMessage = copy.lesson.quizRequired;
+        if (body.error === "knowledge_check_not_passed" || body.error === "quiz_not_passed") {
+          errorMessage = copy.lesson.knowledgeCheckVerificationFailed;
+          knowledgeCheckRejected = true;
+        } else if (body.error === "knowledge_check_unavailable" || body.error === "quiz_unavailable") {
+          errorMessage = copy.knowledgeCheck.unavailable;
+          knowledgeCheckRejected = true;
+          knowledgeCheckUnavailable = true;
         } else if (body.error === "lesson_locked") {
           errorMessage = copy.paths.lessonLockMessage;
         }
       } catch {
         // Keep fallback.
       }
+      if (knowledgeCheckRejected) {
+        setKnowledgeCheckAttempt(null);
+        setKnowledgeCheckVersion((value) => value + 1);
+        setKnowledgeCheckRejectedAsUnavailable(knowledgeCheckUnavailable);
+        router.refresh();
+      }
       setMessage(errorMessage);
       return;
     }
 
-    const result = (await response.json()) as { level?: number };
+    const result = (await response.json().catch(() => ({}))) as { level?: number };
     const updatedCompletedIds = [...new Set([...completedLessonIds, lesson.id])];
     finishMissionSuccess(result.level ?? 1, updatedCompletedIds);
   }
@@ -169,42 +223,40 @@ export function LessonStages({
       setMessage(copy.lesson.completeBeforeFinish);
       return;
     }
+    setKnowledgeCheckAttempt(null);
+    setKnowledgeCheckVersion((value) => value + 1);
     setMessage(null);
+    setNextLessonId(null);
+    setJustCompleted(false);
     setShowAi(true);
     setStage(3);
   }
-
-  const previewNextLesson =
-    nextLessonId ??
-    resolveNextLesson(
-      isAuthenticated
-        ? [...new Set([...completedLessonIds, lesson.id])]
-        : getStoredProgress().completedLessonIds
-    );
 
   return (
     <article className="mt-6 space-y-6">
       <header className="rounded-2xl border border-ink/10 bg-white p-5 shadow-soft">
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-ink/45">{courseTitle}</p>
         <h1 className="mt-3 break-words font-display text-2xl font-bold sm:text-3xl">{lesson.title}</h1>
-        <div className="mt-5 flex gap-2" role="tablist" aria-label={copy.lesson.stagesLabel}>
-          {([1, 2, 3] as const).map((value) => (
-            <button
-              className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-                stage === value ? "bg-ink text-paper" : "bg-ink/5 text-ink/50"
-              }`}
-              key={value}
-              onClick={() => {
-                if (value < stage || (value === 2 && stage >= 1) || (value === 3 && stage >= 2)) {
-                  setStage(value);
-                }
-              }}
-              type="button"
-            >
-              {value}. {value === 1 ? copy.lesson.stageLearn : value === 2 ? copy.lesson.stageDo : copy.lesson.stageCheck}
-            </button>
-          ))}
-        </div>
+        <nav aria-label={copy.lesson.stagesLabel} className="mt-5 flex gap-2">
+          {([1, 2, 3] as const).map((value) => {
+            const isAvailable = value <= stage + 1;
+
+            return (
+              <button
+                aria-current={stage === value ? "step" : undefined}
+                className={`focus-ring rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                  stage === value ? "bg-ink text-paper" : "bg-ink/5 text-ink/50"
+                } disabled:cursor-not-allowed disabled:opacity-45`}
+                disabled={!isAvailable}
+                key={value}
+                onClick={() => changeStage(value)}
+                type="button"
+              >
+                {value}. {value === 1 ? copy.lesson.stageLearn : value === 2 ? copy.lesson.stageDo : copy.lesson.stageCheck}
+              </button>
+            );
+          })}
+        </nav>
       </header>
 
       {stage === 1 ? (
@@ -334,24 +386,25 @@ export function LessonStages({
         <section className="space-y-6 rounded-2xl border border-ink/10 bg-white p-5 shadow-soft sm:p-6">
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-violet">{copy.lesson.stageCheck}</p>
 
-          <QuizGenerator
+          <KnowledgeCheck
+            content={
+              knowledgeCheckRejectedAsUnavailable
+                ? unavailableKnowledgeCheckContent
+                : knowledgeCheckContent
+            }
+            key={`${lesson.id}:${knowledgeCheckVersion}`}
             language={language}
             lessonId={lesson.id}
-            onResult={setQuizAttempt}
-            quizContent={quizContent}
+            onResult={handleKnowledgeCheckResult}
           />
 
-          {quizAttempt ? (
-            <div className="rounded-xl bg-ink/5 px-4 py-3 text-sm font-bold text-ink/80">
-              {quizAttempt.passed ? copy.lesson.quizPassed : copy.lesson.quizFailed}
-            </div>
+          {knowledgeCheckAttempt?.passed ? (
+            <LessonKeyConcepts language={language} structure={structure} />
           ) : null}
-
-          {quizAttempt?.passed ? <LessonKeyConcepts language={language} structure={structure} /> : null}
 
           <button
             className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-mint px-5 py-3 font-bold text-ink disabled:opacity-60 sm:w-auto"
-            disabled={loading}
+            disabled={loading || !knowledgeCheckAttempt?.passed}
             id="complete-mission-button"
             onClick={completeMission}
             type="button"
@@ -367,10 +420,10 @@ export function LessonStages({
               {justCompleted && !nextLessonId ? (
                 <p className="text-sm text-ink/70">{copy.lesson.allMissionsComplete}</p>
               ) : null}
-              {previewNextLesson ? (
+              {justCompleted && nextLessonId ? (
                 <button
                   className="focus-ring inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2 text-sm font-bold text-paper"
-                  onClick={() => router.push(`/lesson/${previewNextLesson}`)}
+                  onClick={() => router.push(`/lesson/${nextLessonId}`)}
                   type="button"
                 >
                   {copy.lesson.continueNextMission}

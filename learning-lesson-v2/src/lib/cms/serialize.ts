@@ -1,4 +1,9 @@
-import type { CourseUpdateInput, LessonUpdateInput, ProjectUpdateInput, QuizUpdateInput } from "./types";
+import type {
+  CourseUpdateInput,
+  KnowledgeCheckUpdateInput,
+  LessonUpdateInput,
+  ProjectUpdateInput
+} from "./types";
 
 export function linesToArray(value: string) {
   return value
@@ -96,7 +101,7 @@ export function toProjectRow(input: ProjectUpdateInput) {
   };
 }
 
-export function toQuizQuestionRow(input: QuizUpdateInput) {
+export function toKnowledgeCheckQuestionRow(input: KnowledgeCheckUpdateInput) {
   return {
     ...(input.topic !== undefined ? { topic: input.topic } : {}),
     ...(input.question !== undefined ? { question: input.question } : {}),
@@ -109,6 +114,8 @@ export function toQuizQuestionRow(input: QuizUpdateInput) {
     updated_at: new Date().toISOString()
   };
 }
+
+export const toQuizQuestionRow = toKnowledgeCheckQuestionRow;
 
 export function parseChecklistJson(value: string) {
   const parsed = JSON.parse(value) as Array<{ id?: string; label?: string; labelBg?: string }>;

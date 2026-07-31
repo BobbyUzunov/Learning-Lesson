@@ -1,6 +1,6 @@
-import type { QuizQuestion, QuizTopic } from "./types";
+import type { KnowledgeCheckQuestion, KnowledgeCheckTopic } from "./types";
 
-export const fallbackQuestionBank: QuizQuestion[] = [
+export const fallbackKnowledgeCheckBank: KnowledgeCheckQuestion[] = [
   {
     id: "html-1",
     topic: "html",
@@ -257,8 +257,8 @@ export const fallbackQuestionBank: QuizQuestion[] = [
   {
     id: "quiz-gen-1",
     topic: "quiz-generator",
-    question: "What input does a quiz generator need at minimum?",
-    questionBg: "Какво трябва да има генераторът за въпроси като минимум?",
+    question: "What input does a knowledge-check builder need at minimum?",
+    questionBg: "Какво трябва да има създателят на самопроверка като минимум?",
     options: ["A learning objective and a reviewed question bank", "Only a timer and a title", "Only the correct answers", "A list of student passwords"],
     optionsBg: ["Учебна цел и проверена банка от въпроси", "Само таймер и заглавие", "Само верните отговори", "Списък с пароли на ученици"],
     correctIndex: 0,
@@ -268,8 +268,8 @@ export const fallbackQuestionBank: QuizQuestion[] = [
   {
     id: "quiz-gen-2",
     topic: "quiz-generator",
-    question: "Why should a quiz store an explanation with the correct answer?",
-    questionBg: "Защо тестът трябва да пази обяснение към верния отговор?",
+    question: "Why should a knowledge check store an explanation with the correct answer?",
+    questionBg: "Защо самопроверката трябва да пази обяснение към верния отговор?",
     options: ["To give useful feedback after an attempt", "To make every answer look correct", "To replace the question", "To reveal student passwords"],
     optionsBg: ["За да даде полезна обратна връзка след опита", "За да изглежда всеки отговор верен", "За да замени въпроса", "За да разкрива пароли на ученици"],
     correctIndex: 0,
@@ -280,7 +280,7 @@ export const fallbackQuestionBank: QuizQuestion[] = [
     id: "quiz-gen-3",
     topic: "quiz-generator",
     question: "Which question is the fairest knowledge check?",
-    questionBg: "Кой въпрос е най-подходящ за справедлива проверка на знанията?",
+    questionBg: "Кой въпрос е най-подходящ за справедлива самопроверка?",
     options: ["A clear question linked to a taught objective with one defensible answer", "A trick question on an untaught detail", "A question with two equally correct answers", "A question whose wording reveals the answer"],
     optionsBg: ["Ясен въпрос по изучавана цел с един защитим верен отговор", "Подвеждащ въпрос за непреподаван детайл", "Въпрос с два еднакво верни отговора", "Въпрос, чиято формулировка подсказва отговора"],
     correctIndex: 0,
@@ -421,7 +421,7 @@ export const fallbackQuestionBank: QuizQuestion[] = [
   }
 ];
 
-export const fallbackLessonTopicMap: Record<string, QuizTopic> = {
+export const fallbackLessonKnowledgeCheckMap: Record<string, KnowledgeCheckTopic> = {
   "1": "html",
   "2": "css",
   "8": "javascript",
@@ -486,3 +486,7 @@ export const fallbackLessonTopicMap: Record<string, QuizTopic> = {
   "62": "product",
   "63": "product"
 };
+
+// Compatibility aliases for existing imports while the public terminology changes.
+export const fallbackQuestionBank = fallbackKnowledgeCheckBank;
+export const fallbackLessonTopicMap = fallbackLessonKnowledgeCheckMap;

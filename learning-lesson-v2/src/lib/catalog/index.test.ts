@@ -4,6 +4,7 @@ import { getFallbackCatalog } from "./fallback";
 import {
   getFirstLesson,
   getGlobalNextLesson,
+  getGlobalNextLessonFromCourses,
   getLessonFromCatalog,
   getQuestForLesson,
   isLessonUnlocked,
@@ -48,6 +49,13 @@ describe("catalog", () => {
     expect(isLessonUnlocked(catalog, "2", ["1"])).toBe(true);
     expect(getGlobalNextLesson(catalog, [])).toBe("1");
     expect(getGlobalNextLesson(catalog, ["1"])).toBe("2");
+    expect(getGlobalNextLessonFromCourses(catalog.courses, ["1"])).toBe("2");
     expect(getLessonFromCatalog(catalog, "999")).toBeUndefined();
+  });
+
+  it("does not skip a locked gap when resolving the next lesson from course order", () => {
+    const catalog = getFallbackCatalog();
+
+    expect(getGlobalNextLessonFromCourses(catalog.courses, ["1", "8"])).toBe("2");
   });
 });

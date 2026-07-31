@@ -162,7 +162,25 @@ export function getGlobalNextLesson(catalog: CourseCatalog, completedLessonIds: 
 }
 
 export function getGlobalNextLessonFromCourses(courses: GameQuest[], completedLessonIds: Iterable<string>) {
-  return getGlobalNextLesson({ courses, lessons: [], source: "db" }, completedLessonIds);
+  const completed = new Set(completedLessonIds);
+
+  for (const quest of courses) {
+    for (let index = 0; index < quest.lessonIds.length; index += 1) {
+      const lessonId = quest.lessonIds[index];
+      if (completed.has(lessonId)) {
+        continue;
+      }
+
+      const prerequisite = index > 0 ? quest.lessonIds[index - 1] : null;
+      if (!prerequisite || completed.has(prerequisite)) {
+        return lessonId;
+      }
+
+      break;
+    }
+  }
+
+  return null;
 }
 
 export function getQuestLessons(catalog: CourseCatalog, questId: string) {

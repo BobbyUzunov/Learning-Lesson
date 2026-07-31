@@ -1,6 +1,6 @@
 import { seedSchoolCurriculumToDatabase } from "../curriculum/seed";
 import { seedProjectsToDatabase } from "../projects/seed";
-import { seedQuizToDatabase } from "../quiz/seed";
+import { seedKnowledgeChecksToDatabase } from "../knowledge-check/seed";
 import { hasSupabaseEnv } from "../supabase/env";
 import { createClient } from "../supabase/server";
 import { buildCatalogSeedPayload } from "./seed-payload";
@@ -44,16 +44,19 @@ export async function seedCatalogToDatabase() {
 
 export async function seedAllContentToDatabase() {
   const catalog = await seedCatalogToDatabase();
-  const [quiz, projects, curriculum] = await Promise.all([
-    seedQuizToDatabase(),
+  const [knowledgeChecks, projects, curriculum] = await Promise.all([
+    seedKnowledgeChecksToDatabase(),
     seedProjectsToDatabase(),
     seedSchoolCurriculumToDatabase()
   ]);
 
   return {
     ...catalog,
-    quizQuestions: quiz.questions,
-    lessonQuizTopics: quiz.lessonTopics,
+    knowledgeCheckQuestions: knowledgeChecks.questions,
+    lessonKnowledgeCheckTopics: knowledgeChecks.lessonTopics,
+    // Compatibility fields for cached admin clients during the terminology rollout.
+    quizQuestions: knowledgeChecks.questions,
+    lessonQuizTopics: knowledgeChecks.lessonTopics,
     projects: projects.projects,
     ...curriculum
   };

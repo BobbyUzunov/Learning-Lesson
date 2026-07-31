@@ -153,7 +153,7 @@ export const phase2Lessons: Phase2Lesson[] = [
     titleBg: "Мисия: Prompt library",
     explanation: "Reusable prompts keep AI output consistent across features.",
     explanationBg: "Reusable prompts държат AI output консистентен между features.",
-    codeExample: "const lessonSummaryPrompt = 'Return JSON with title, goals, quiz.';",
+    codeExample: "const lessonSummaryPrompt = 'Return JSON with title, goals, knowledgeCheck.';",
     mission: "Draft one reusable prompt for generating a mission summary in this app.",
     missionBg: "Напиши един reusable prompt за генериране на mission summary в това app.",
     hint1: "Ask for JSON fields the UI can render directly.",

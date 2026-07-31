@@ -1,4 +1,9 @@
-import type { CourseUpdateInput, LessonUpdateInput, ProjectUpdateInput, QuizUpdateInput } from "./types";
+import type {
+  CourseUpdateInput,
+  KnowledgeCheckUpdateInput,
+  LessonUpdateInput,
+  ProjectUpdateInput
+} from "./types";
 
 type Validation<T> = { ok: true; value: T } | { ok: false; error: string };
 type Rule = (value: unknown) => boolean;
@@ -111,7 +116,7 @@ export function validateProjectUpdate(value: unknown): Validation<ProjectUpdateI
   });
 }
 
-export function validateQuizUpdate(value: unknown): Validation<QuizUpdateInput> {
+export function validateKnowledgeCheckUpdate(value: unknown): Validation<KnowledgeCheckUpdateInput> {
   return validatePartial(value, {
     topic: shortText,
     question: longText,
@@ -123,3 +128,5 @@ export function validateQuizUpdate(value: unknown): Validation<QuizUpdateInput> 
     explanationBg: longText
   });
 }
+
+export const validateQuizUpdate = validateKnowledgeCheckUpdate;

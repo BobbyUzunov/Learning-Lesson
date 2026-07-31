@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { arrayToLines, linesToArray, parseChecklistJson, toCourseRow, toLessonRow, toMetadataRow, toProjectRow, toQuizQuestionRow } from "./serialize";
+import {
+  arrayToLines,
+  linesToArray,
+  parseChecklistJson,
+  toCourseRow,
+  toKnowledgeCheckQuestionRow,
+  toLessonRow,
+  toMetadataRow,
+  toProjectRow
+} from "./serialize";
 
 describe("cms serialize", () => {
   it("converts multiline text to arrays", () => {
@@ -33,13 +42,13 @@ describe("cms serialize", () => {
     });
   });
 
-  it("maps project and quiz input to database columns", () => {
+  it("maps project and knowledge-check input to database columns", () => {
     expect(toProjectRow({ briefMinLength: 120, requiresRepo: true })).toMatchObject({
       brief_min_length: 120,
       requires_repo: true
     });
 
-    expect(toQuizQuestionRow({ correctIndex: 2, topic: "html" })).toMatchObject({
+    expect(toKnowledgeCheckQuestionRow({ correctIndex: 2, topic: "html" })).toMatchObject({
       correct_index: 2,
       topic: "html"
     });
