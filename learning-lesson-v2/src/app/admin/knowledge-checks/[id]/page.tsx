@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { AdminKnowledgeCheckEditor } from "@/components/admin-knowledge-check-editor";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
-import { getKnowledgeCheckContent } from "@/lib/knowledge-check";
+import { getAdminKnowledgeCheckContent } from "@/lib/knowledge-check";
 import { getKnowledgeCheckTopicLabel } from "@/lib/knowledge-check/helpers";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +18,7 @@ export default async function AdminKnowledgeCheckQuestionPage({
   const language = await getLanguage();
   const copy = t(language);
   const { id } = await params;
-  const content = await getKnowledgeCheckContent();
+  const content = await getAdminKnowledgeCheckContent();
   const question = content.questions.find((item) => item.id === id);
 
   if (!question) {

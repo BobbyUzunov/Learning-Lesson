@@ -20,7 +20,7 @@ export function localizeKnowledgeCheckQuestion(question: KnowledgeCheckQuestion,
       id: question.id,
       question: question.question,
       options: question.options,
-      explanation: question.explanation
+      explanation: question.explanation ?? ""
     };
   }
 
@@ -28,7 +28,7 @@ export function localizeKnowledgeCheckQuestion(question: KnowledgeCheckQuestion,
     id: question.id,
     question: question.questionBg,
     options: question.optionsBg,
-    explanation: question.explanationBg
+    explanation: question.explanationBg ?? question.explanation ?? ""
   };
 }
 
@@ -54,7 +54,8 @@ function shuffleQuestionOptions(
     ...question,
     options: optionOrder.map((index) => question.options[index]),
     optionsBg: optionOrder.map((index) => question.optionsBg[index]),
-    correctIndex: optionOrder.indexOf(question.correctIndex),
+    correctIndex:
+      question.correctIndex === undefined ? undefined : optionOrder.indexOf(question.correctIndex),
     originalOptionIndexes: optionOrder
   };
 }
@@ -136,6 +137,22 @@ export function mapKnowledgeCheckRowsToContent(
       topicRows.map((row) => [row.lesson_id, row.topic as KnowledgeCheckTopic])
     ),
     source: "db"
+  };
+}
+
+/** Strip answer keys and explanations before sending question banks to learners. */
+export function toPublicKnowledgeCheckContent(content: KnowledgeCheckContent): KnowledgeCheckContent {
+  return {
+    source: content.source,
+    lessonTopics: content.lessonTopics,
+    questions: content.questions.map((question) => ({
+      id: question.id,
+      topic: question.topic,
+      question: question.question,
+      questionBg: question.questionBg,
+      options: question.options,
+      optionsBg: question.optionsBg
+    }))
   };
 }
 

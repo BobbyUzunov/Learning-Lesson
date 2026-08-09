@@ -19,6 +19,15 @@ export type KnowledgeCheckQuestion = {
   questionBg: string;
   options: string[];
   optionsBg: string[];
+  /** Server/admin only — never serialize to learner clients. */
+  correctIndex?: number;
+  /** Returned after server grading — omit from learner question bank payloads. */
+  explanation?: string;
+  explanationBg?: string;
+};
+
+/** Full question row used by fallback banks, seeds, and admin editors. */
+export type SecretKnowledgeCheckQuestion = KnowledgeCheckQuestion & {
   correctIndex: number;
   explanation: string;
   explanationBg: string;

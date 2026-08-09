@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import type { CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isE2eAuthEnabled } from "./e2e-auth";
 
 type CookieToSet = {
   name: string;
@@ -13,7 +14,7 @@ export async function updateSession(request: NextRequest) {
     request
   });
 
-  if (process.env.E2E_FAKE_AUTH === "1" && request.cookies.get("e2e-auth")?.value === "1") {
+  if (isE2eAuthEnabled() && request.cookies.get("e2e-auth")?.value === "1") {
     return supabaseResponse;
   }
 

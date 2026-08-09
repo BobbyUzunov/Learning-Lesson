@@ -113,6 +113,7 @@ export function LessonStages({
 
     setKnowledgeCheckAttempt(null);
     setKnowledgeCheckVersion((value) => value + 1);
+    setKnowledgeCheckRejectedAsUnavailable(false);
     setMessage(null);
     setNextLessonId(null);
     setJustCompleted(false);
@@ -225,6 +226,7 @@ export function LessonStages({
     }
     setKnowledgeCheckAttempt(null);
     setKnowledgeCheckVersion((value) => value + 1);
+    setKnowledgeCheckRejectedAsUnavailable(false);
     setMessage(null);
     setNextLessonId(null);
     setJustCompleted(false);

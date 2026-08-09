@@ -6,5 +6,13 @@ export {
   getKnowledgeCheckTopicLabel,
   getQuestionBankSize,
   localizeKnowledgeCheckQuestion,
-  mapKnowledgeCheckRowsToContent
+  mapKnowledgeCheckRowsToContent,
+  toPublicKnowledgeCheckContent
 } from "@/lib/quiz/helpers";
+
+export {
+  gradeKnowledgeCheckAnswers,
+  parseKnowledgeCheckAnswers,
+  type KnowledgeCheckGradeResult,
+  type KnowledgeCheckGradeResultItem
+} from "@/lib/quiz/grade";

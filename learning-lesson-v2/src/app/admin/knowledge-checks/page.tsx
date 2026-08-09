@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
-import { getKnowledgeCheckContent } from "@/lib/knowledge-check";
+import { getAdminKnowledgeCheckContent } from "@/lib/knowledge-check";
 import { getKnowledgeCheckTopicLabel } from "@/lib/knowledge-check/helpers";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminKnowledgeChecksPage() {
   const language = await getLanguage();
   const copy = t(language);
-  const content = await getKnowledgeCheckContent();
+  const content = await getAdminKnowledgeCheckContent();
   const questions = content.questions.slice().sort((left, right) => {
     if (left.topic === right.topic) {
       return left.id.localeCompare(right.id);

@@ -87,9 +87,9 @@ describe("knowledge-check content", () => {
       createSeededRandom("answer-order")
     );
 
-    expect(shuffled.options[shuffled.correctIndex]).toBe(original!.options[original!.correctIndex]);
-    expect(shuffled.optionsBg[shuffled.correctIndex]).toBe(original!.optionsBg[original!.correctIndex]);
-    expect(createKnowledgeCheckAnswer(shuffled, shuffled.correctIndex)).toEqual({
+    expect(shuffled.options[shuffled.correctIndex!]).toBe(original!.options[original!.correctIndex!]);
+    expect(shuffled.optionsBg[shuffled.correctIndex!]).toBe(original!.optionsBg[original!.correctIndex!]);
+    expect(createKnowledgeCheckAnswer(shuffled, shuffled.correctIndex!)).toEqual({
       questionId: original!.id,
       selectedIndex: original!.correctIndex
     });
@@ -121,7 +121,7 @@ describe("knowledge-check content", () => {
             });
           }
 
-          expect(createKnowledgeCheckAnswer(question, question.correctIndex).selectedIndex).toBe(
+          expect(createKnowledgeCheckAnswer(question, question.correctIndex!).selectedIndex).toBe(
             original!.correctIndex
           );
         }
@@ -132,7 +132,7 @@ describe("knowledge-check content", () => {
   it("submits the original database indexes for the deterministic lesson 2 knowledge check", () => {
     const questions = generateKnowledgeCheckQuestions(content, "css", 3, createSeededRandom("2:0"));
     const submittedAnswers = questions.map((question) =>
-      createKnowledgeCheckAnswer(question, question.correctIndex)
+      createKnowledgeCheckAnswer(question, question.correctIndex!)
     );
 
     expect(submittedAnswers).toEqual([

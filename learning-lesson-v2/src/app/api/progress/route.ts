@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getKnownErrorCode, readJsonObject } from "@/lib/http";
-import type { KnowledgeCheckAnswer } from "@/lib/knowledge-check/types";
+import { parseKnowledgeCheckAnswers } from "@/lib/knowledge-check";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -10,35 +10,6 @@ const completionErrors = [
   "quiz_unavailable",
   "quiz_not_passed"
 ] as const;
-
-function parseKnowledgeCheckAnswers(value: unknown): KnowledgeCheckAnswer[] | null {
-  if (!Array.isArray(value) || value.length < 1 || value.length > 3) {
-    return null;
-  }
-
-  const answers: KnowledgeCheckAnswer[] = [];
-  for (const item of value) {
-    if (!item || typeof item !== "object" || Array.isArray(item)) {
-      return null;
-    }
-
-    const { questionId, selectedIndex } = item as Record<string, unknown>;
-    if (
-      typeof questionId !== "string" ||
-      questionId.length < 1 ||
-      questionId.length > 100 ||
-      !Number.isInteger(selectedIndex) ||
-      (selectedIndex as number) < 0 ||
-      (selectedIndex as number) > 20
-    ) {
-      return null;
-    }
-
-    answers.push({ questionId, selectedIndex: selectedIndex as number });
-  }
-
-  return new Set(answers.map((answer) => answer.questionId)).size === answers.length ? answers : null;
-}
 
 export async function POST(request: Request) {
   if (!hasSupabaseEnv()) {

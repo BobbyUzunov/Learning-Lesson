@@ -47,7 +47,7 @@ async function completePassingKnowledgeCheck(page: Page, lessonId = "1") {
   await expect(questionCards).toHaveCount(questions.length);
 
   for (const [index, question] of questions.entries()) {
-    await questionCards.nth(index).getByRole("radio").nth(question.correctIndex).click();
+    await questionCards.nth(index).getByRole("radio").nth(question.correctIndex!).click();
   }
 
   await page.getByRole("button", { name: /check answers|провери отговорите/i }).click();

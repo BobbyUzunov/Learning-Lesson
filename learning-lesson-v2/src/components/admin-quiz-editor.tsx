@@ -37,9 +37,9 @@ export function AdminKnowledgeCheckEditor({
     questionBg: question.questionBg,
     options: arrayToLines(question.options),
     optionsBg: arrayToLines(question.optionsBg),
-    correctIndex: String(question.correctIndex),
-    explanation: question.explanation,
-    explanationBg: question.explanationBg
+    correctIndex: String(question.correctIndex ?? 0),
+    explanation: question.explanation ?? "",
+    explanationBg: question.explanationBg ?? ""
   });
   const [message, setMessage] = useState<{ kind: "error" | "success"; text: string } | null>(null);
   const [loading, setLoading] = useState(false);

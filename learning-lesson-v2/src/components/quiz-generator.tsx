@@ -12,8 +12,10 @@ import {
 import type {
   KnowledgeCheckAttempt,
   KnowledgeCheckContent,
-  KnowledgeCheckQuestion
-} from "@/lib/knowledge-check/types";
+  KnowledgeCheckGradeResult,
+  KnowledgeCheckGradeResultItem,
+  ShuffledKnowledgeCheckQuestion
+} from "@/lib/knowledge-check";
 import { t, type Language } from "@/lib/i18n";
 
 export function KnowledgeCheck({
@@ -32,6 +34,9 @@ export function KnowledgeCheck({
   const [seed, setSeed] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [grading, setGrading] = useState(false);
+  const [gradeError, setGradeError] = useState<string | null>(null);
+  const [gradeResult, setGradeResult] = useState<KnowledgeCheckGradeResult | null>(null);
 
   const questions = useMemo(() => {
     return topic
@@ -40,20 +45,28 @@ export function KnowledgeCheck({
   }, [content, lessonId, seed, topic]);
   const knowledgeCheckUnavailable = questions.length === 0;
 
-  const correctCount = submitted
-    ? questions.reduce((total, question) => total + (answers[question.id] === question.correctIndex ? 1 : 0), 0)
-    : 0;
-  const passed = submitted && correctCount * 3 >= questions.length * 2;
+  const correctCount = gradeResult?.correct ?? 0;
+  const passed = Boolean(gradeResult?.passed);
+  const resultById = useMemo(() => {
+    const map = new Map<string, KnowledgeCheckGradeResultItem>();
+    for (const item of gradeResult?.results ?? []) {
+      map.set(item.questionId, item);
+    }
+    return map;
+  }, [gradeResult]);
 
   function regenerate() {
     setAnswers({});
     setSubmitted(false);
+    setGrading(false);
+    setGradeError(null);
+    setGradeResult(null);
     setSeed((value) => value + 1);
     onResult?.(null);
   }
 
-  function checkAnswers() {
-    if (knowledgeCheckUnavailable) {
+  async function checkAnswers() {
+    if (knowledgeCheckUnavailable || grading) {
       onResult?.(null);
       return;
     }
@@ -61,17 +74,56 @@ export function KnowledgeCheck({
     const answerList = questions.map((question) =>
       createKnowledgeCheckAnswer(question, answers[question.id])
     );
-    const correct = questions.reduce(
-      (total, question) => total + (answers[question.id] === question.correctIndex ? 1 : 0),
-      0
-    );
 
+    setGrading(true);
+    setGradeError(null);
+
+    let response: Response;
+    try {
+      response = await fetch("/api/knowledge-check/grade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lessonId,
+          knowledgeCheckAnswers: answerList
+        })
+      });
+    } catch {
+      setGrading(false);
+      setGradeError(copy.lesson.saveError);
+      onResult?.(null);
+      return;
+    }
+
+    setGrading(false);
+
+    if (!response.ok) {
+      let message: string = copy.lesson.saveError;
+      try {
+        const body = (await response.json()) as { error?: string };
+        if (body.error === "quiz_unavailable" || body.error === "knowledge_check_unavailable") {
+          message = copy.knowledgeCheck.unavailable;
+        } else if (body.error === "quiz_not_passed" || body.error === "knowledge_check_not_passed") {
+          message = copy.lesson.knowledgeCheckVerificationFailed;
+        }
+      } catch {
+        // Keep fallback.
+      }
+      setGradeError(message);
+      setSubmitted(false);
+      setGradeResult(null);
+      onResult?.(null);
+      return;
+    }
+
+    const graded = (await response.json()) as KnowledgeCheckGradeResult;
+    setGradeResult(graded);
     setSubmitted(true);
     onResult?.({
-      answers: answerList,
-      correct,
-      total: questions.length,
-      passed: questions.length > 0 && correct * 3 >= questions.length * 2
+      answers: graded.answers,
+      correct: graded.correct,
+      total: graded.total,
+      passed: graded.passed
     });
   }
 
@@ -87,7 +139,7 @@ export function KnowledgeCheck({
         </div>
         <button
           className="focus-ring inline-flex items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-bold text-ink transition hover:bg-ink/5 disabled:opacity-60"
-          disabled={knowledgeCheckUnavailable}
+          disabled={knowledgeCheckUnavailable || grading}
           onClick={regenerate}
           type="button"
         >
@@ -106,6 +158,7 @@ export function KnowledgeCheck({
         {questions.map((question, index) => (
           <KnowledgeCheckQuestionCard
             answers={answers}
+            grade={resultById.get(question.id) ?? null}
             index={index}
             key={question.id}
             language={language}
@@ -118,7 +171,11 @@ export function KnowledgeCheck({
 
       {!knowledgeCheckUnavailable ? (
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          {submitted ? (
+          {gradeError ? (
+            <p className="text-sm font-bold text-coral" role="alert">
+              {gradeError}
+            </p>
+          ) : submitted && gradeResult ? (
             <p
               aria-live="polite"
               className={`inline-flex items-center gap-2 text-sm font-bold ${passed ? "text-ink" : "text-coral"}`}
@@ -129,18 +186,25 @@ export function KnowledgeCheck({
               ) : (
                 <CircleX aria-hidden="true" className="size-4 text-coral" />
               )}
-              {copy.knowledgeCheck.score}: {correctCount} / {questions.length}. {passed ? copy.knowledgeCheck.passed : copy.knowledgeCheck.tryAgain}
+              {copy.knowledgeCheck.score}: {correctCount} / {questions.length}.{" "}
+              {passed ? copy.knowledgeCheck.passed : copy.knowledgeCheck.tryAgain}
             </p>
           ) : (
             <p className="text-sm text-ink/60">{copy.knowledgeCheck.answerAll}</p>
           )}
           <button
             className="focus-ring rounded-md bg-ink px-4 py-3 text-sm font-bold text-paper transition hover:bg-ink/90 disabled:opacity-60"
-            disabled={submitted || questions.some((question) => answers[question.id] === undefined)}
-            onClick={checkAnswers}
+            disabled={
+              submitted ||
+              grading ||
+              questions.some((question) => answers[question.id] === undefined)
+            }
+            onClick={() => {
+              void checkAnswers();
+            }}
             type="button"
           >
-            {copy.knowledgeCheck.checkAnswers}
+            {grading ? copy.login.working : copy.knowledgeCheck.checkAnswers}
           </button>
         </div>
       ) : null}
@@ -150,6 +214,7 @@ export function KnowledgeCheck({
 
 function KnowledgeCheckQuestionCard({
   answers,
+  grade,
   index,
   language,
   onSelect,
@@ -157,16 +222,19 @@ function KnowledgeCheckQuestionCard({
   submitted
 }: {
   answers: Record<string, number>;
+  grade: KnowledgeCheckGradeResultItem | null;
   index: number;
   language: Language;
   onSelect: (optionIndex: number) => void;
-  question: KnowledgeCheckQuestion;
+  question: ShuffledKnowledgeCheckQuestion;
   submitted: boolean;
 }) {
   const copy = t(language);
   const localized = localizeKnowledgeCheckQuestion(question, language);
   const selected = answers[question.id];
   const questionHeadingId = `knowledge-check-question-${question.id}`;
+  const explanation =
+    language === "bg" ? grade?.explanationBg || grade?.explanation : grade?.explanation;
 
   return (
     <article className="rounded-lg border border-ink/10 bg-paper/60 p-4">
@@ -176,15 +244,12 @@ function KnowledgeCheckQuestionCard({
       <h3 className="mt-2 font-black text-ink" id={questionHeadingId}>
         {localized.question}
       </h3>
-      <div
-        aria-labelledby={questionHeadingId}
-        className="mt-3 grid gap-2"
-        role="radiogroup"
-      >
+      <div aria-labelledby={questionHeadingId} className="mt-3 grid gap-2" role="radiogroup">
         {localized.options.map((option, optionIndex) => {
           const isSelected = selected === optionIndex;
-          const isCorrect = submitted && question.correctIndex === optionIndex;
-          const isWrong = submitted && isSelected && question.correctIndex !== optionIndex;
+          const originalIndex = question.originalOptionIndexes[optionIndex];
+          const isCorrect = submitted && grade !== null && grade.correctIndex === originalIndex;
+          const isWrong = submitted && isSelected && grade !== null && !grade.isCorrect && !isCorrect;
 
           return (
             <button
@@ -218,8 +283,8 @@ function KnowledgeCheckQuestionCard({
           );
         })}
       </div>
-      {submitted ? (
-        <p className="mt-3 rounded-md bg-ink/5 px-3 py-2 text-sm leading-6 text-ink/75">{localized.explanation}</p>
+      {submitted && explanation ? (
+        <p className="mt-3 rounded-md bg-ink/5 px-3 py-2 text-sm leading-6 text-ink/75">{explanation}</p>
       ) : null}
     </article>
   );

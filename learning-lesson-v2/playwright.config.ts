@@ -25,7 +25,8 @@ export default defineConfig({
     env: {
       NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "example-anon-key",
-      E2E_FAKE_AUTH: "1"
+      E2E_FAKE_AUTH: "1",
+      ALLOW_E2E_FAKE_AUTH: "1"
     }
   }
 });

@@ -47,7 +47,7 @@ test("guest completes the first lesson and sees signup prompt", async ({ page })
   );
   await expect(knowledgeCheckQuestions).toHaveCount(expectedQuestions.length);
   for (const [index, question] of expectedQuestions.entries()) {
-    await knowledgeCheckQuestions.nth(index).getByRole("radio").nth(question.correctIndex).click();
+    await knowledgeCheckQuestions.nth(index).getByRole("radio").nth(question.correctIndex!).click();
   }
   await page.getByRole("button", { name: /check answers|провери отговорите/i }).click();
   await expect(page.getByText(/passed|успешно/i)).toBeVisible();

@@ -9,7 +9,7 @@ import {
 } from "@/lib/catalog";
 import { xpPerLesson } from "@/lib/game-data";
 import { getCourseProjects } from "@/lib/projects/store";
-import { getKnowledgeCheckContent } from "@/lib/knowledge-check";
+import { getAdminKnowledgeCheckContent } from "@/lib/knowledge-check";
 import { localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 
@@ -20,7 +20,7 @@ export default async function AdminPage() {
     getLanguage(),
     getCourseCatalog(),
     getCourseProjects(),
-    getKnowledgeCheckContent()
+    getAdminKnowledgeCheckContent()
   ]);
   const copy = t(language);
   const contentSeedEnabled = process.env.ENABLE_ADMIN_CONTENT_SEED === "1";

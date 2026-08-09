@@ -2,8 +2,27 @@ import type { User } from "@supabase/supabase-js";
 
 export const E2E_USER_ID = "00000000-0000-4000-8000-000000000001";
 
+/**
+ * E2E fake auth is allowed only for local/CI test runs.
+ * It is always disabled on Vercel production, and on other Vercel
+ * deployments unless ALLOW_E2E_FAKE_AUTH=1 is set explicitly.
+ */
 export function isE2eAuthEnabled() {
-  return process.env.E2E_FAKE_AUTH === "1";
+  if (process.env.E2E_FAKE_AUTH !== "1") {
+    return false;
+  }
+
+  if (process.env.VERCEL_ENV === "production") {
+    return false;
+  }
+
+  // Local machine (not deployed on Vercel): Playwright `next start` is fine.
+  if (!process.env.VERCEL_ENV) {
+    return true;
+  }
+
+  // Vercel preview/development: require an explicit second switch.
+  return process.env.CI === "true" || process.env.ALLOW_E2E_FAKE_AUTH === "1";
 }
 
 export async function hasE2eAuthCookie() {

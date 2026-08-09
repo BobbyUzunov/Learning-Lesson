@@ -1,6 +1,6 @@
-import type { KnowledgeCheckQuestion, KnowledgeCheckTopic } from "./types";
+import type { SecretKnowledgeCheckQuestion, KnowledgeCheckTopic } from "./types";
 
-export const fallbackKnowledgeCheckBank: KnowledgeCheckQuestion[] = [
+export const fallbackKnowledgeCheckBank: SecretKnowledgeCheckQuestion[] = [
   {
     id: "html-1",
     topic: "html",
