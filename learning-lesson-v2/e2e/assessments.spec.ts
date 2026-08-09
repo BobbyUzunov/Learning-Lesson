@@ -32,12 +32,13 @@ test("teacher close-assessment API returns a stable public error without a real 
   await page.goto("/teacher");
 
   const response = await page.request.post("/api/teacher/assessments/missing-id/close");
-  // Without Supabase the route is 503; with fake URL + teacher auth it may be 400/404/500,
-  // but it must never leak a raw Postgres exception blob as the only contract.
+  // With E2E teacher auth + fake Supabase URL the RPC fails after the gate; without
+  // Supabase config the route is 503. Never leak a raw Postgres exception blob.
   expect([400, 403, 404, 500, 503]).toContain(response.status());
   const body = (await response.json()) as { error?: string };
   expect(typeof body.error).toBe("string");
   expect(body.error).toMatch(/^[a-z0-9_]+$/i);
+  expect(body.error).not.toMatch(/\s/);
 });
 
 test("student assessment submit API rejects unauthenticated callers", async ({ request }) => {
