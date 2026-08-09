@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { readJsonObject } from "@/lib/http";
+import { readJsonObject, resolvePublicErrorCode } from "@/lib/http";
 import { requireTeacherUser } from "@/lib/supabase/teacher-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -17,9 +17,18 @@ type CreateAssignmentRow = {
   created_at: string;
 };
 
+const createAssignmentErrors = [
+  "not_authorized",
+  "teacher_required",
+  "assignment_exists",
+  "mission_not_found",
+  "classroom_not_found",
+  "invalid_mission"
+] as const;
+
 export async function POST(request: Request, context: RouteContext) {
   if (!hasSupabaseEnv()) {
-    return NextResponse.json({ error: "Supabase env is not configured." }, { status: 503 });
+    return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
   }
 
   const auth = await requireTeacherUser();
@@ -56,13 +65,16 @@ export async function POST(request: Request, context: RouteContext) {
     .single<CreateAssignmentRow>();
 
   if (error) {
+    const code = resolvePublicErrorCode(error.message, createAssignmentErrors, "assignment_failed");
     const status =
-      error.message.includes("not_authorized") || error.message.includes("teacher_required")
+      code === "not_authorized" || code === "teacher_required"
         ? 403
-        : error.message.includes("assignment_exists")
+        : code === "assignment_exists"
           ? 409
-          : 400;
-    return NextResponse.json({ error: error.message }, { status });
+          : code === "assignment_failed"
+            ? 500
+            : 400;
+    return NextResponse.json({ error: code }, { status });
   }
 
   revalidatePath(`/teacher/classes/${classroomId}`);

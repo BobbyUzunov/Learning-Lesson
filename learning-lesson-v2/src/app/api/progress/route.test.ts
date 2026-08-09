@@ -100,4 +100,18 @@ describe("/api/progress", () => {
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "quiz_unavailable" });
   });
+
+  it("maps renamed knowledge-check rejection codes without collapsing to 500", async () => {
+    mockSingle.mockResolvedValue({ data: null, error: { message: "knowledge_check_not_passed" } });
+    const response = await POST(request({ lessonId: "1", knowledgeCheckAnswers }));
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ error: "knowledge_check_not_passed" });
+  });
+
+  it("maps renamed knowledge-check unavailable codes as retryable service errors", async () => {
+    mockSingle.mockResolvedValue({ data: null, error: { message: "knowledge_check_unavailable" } });
+    const response = await POST(request({ lessonId: "1", knowledgeCheckAnswers }));
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "knowledge_check_unavailable" });
+  });
 });

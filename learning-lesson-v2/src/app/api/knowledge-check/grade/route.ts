@@ -9,6 +9,7 @@ import {
 import { isE2eAuthEnabled } from "@/lib/supabase/e2e-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import { logServerError } from "@/lib/observability";
 
 type RpcGradeRow = {
   question_id: string;
@@ -96,5 +97,6 @@ export async function POST(request: Request) {
   }
 
   console.error("grade_knowledge_check failed:", message);
+  logServerError("grade_knowledge_check_failed", { lessonId, detail: message.slice(0, 200) });
   return NextResponse.json({ error: "grade_failed" }, { status: 500 });
 }

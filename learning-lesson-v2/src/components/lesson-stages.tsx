@@ -10,6 +10,7 @@ import { getGlobalNextLessonFromCourses } from "@/lib/catalog/helpers";
 import { lessonDraftKey, type LessonMissionDraft } from "@/lib/draft-storage";
 import type { GameLesson, GameQuest } from "@/lib/game-data";
 import { getGameProgressStats } from "@/lib/game-progress";
+import { canCompleteLessonMission } from "@/lib/lesson-completion";
 import { completeStoredLesson, guestContinueKey } from "@/lib/game-progress-storage";
 import { useDraftAutosave } from "@/hooks/use-draft-autosave";
 import { formatMessage, t, type Language } from "@/lib/i18n";
@@ -129,12 +130,26 @@ export function LessonStages({
   }
 
   async function completeMission() {
-    if (!hasEffort && !allHintsUsed) {
-      setMessage(copy.lesson.completeBeforeFinish);
+    const gate = canCompleteLessonMission({
+      effortChars,
+      minEffortChars: MIN_EFFORT_CHARS,
+      hintsUsed,
+      hintCount: lessonHints.length,
+      knowledgeCheckPassed: Boolean(knowledgeCheckAttempt?.passed)
+    });
+
+    if (!gate.ok) {
+      if (gate.reason === "effort") {
+        setMessage(copy.lesson.completeBeforeFinish);
+      } else {
+        setMessage(copy.lesson.knowledgeCheckRequired);
+        setStage(3);
+      }
       return;
     }
 
-    if (!knowledgeCheckAttempt?.passed) {
+    const knowledgeCheckAnswers = knowledgeCheckAttempt?.answers;
+    if (!knowledgeCheckAnswers) {
       setMessage(copy.lesson.knowledgeCheckRequired);
       setStage(3);
       return;
@@ -162,7 +177,7 @@ export function LessonStages({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           lessonId: lesson.id,
-          knowledgeCheckAnswers: knowledgeCheckAttempt.answers
+          knowledgeCheckAnswers
         })
       });
     } catch {

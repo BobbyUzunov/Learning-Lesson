@@ -4,9 +4,25 @@ import type {
   LessonUpdateInput,
   ProjectUpdateInput
 } from "./types";
+import type { KnowledgeCheckTopic } from "@/lib/quiz/types";
 
 type Validation<T> = { ok: true; value: T } | { ok: false; error: string };
 type Rule = (value: unknown) => boolean;
+
+const KNOWLEDGE_CHECK_TOPICS = new Set<KnowledgeCheckTopic>([
+  "html",
+  "css",
+  "javascript",
+  "dom",
+  "fetch",
+  "react",
+  "api",
+  "quiz-generator",
+  "fullstack",
+  "ai",
+  "mobile",
+  "product"
+]);
 
 const shortText: Rule = (value) => typeof value === "string" && value.length <= 500;
 const longText: Rule = (value) => typeof value === "string" && value.length <= 20000;
@@ -17,6 +33,8 @@ const stringList: Rule = (value) =>
   Array.isArray(value) &&
   value.length <= 100 &&
   value.every((item) => typeof item === "string" && item.length <= 2000);
+const knowledgeCheckOptions: Rule = (value) =>
+  stringList(value) && (value as string[]).length >= 2 && (value as string[]).length <= 10;
 
 function validatePartial<T>(value: unknown, rules: Record<string, Rule>): Validation<T> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -117,16 +135,32 @@ export function validateProjectUpdate(value: unknown): Validation<ProjectUpdateI
 }
 
 export function validateKnowledgeCheckUpdate(value: unknown): Validation<KnowledgeCheckUpdateInput> {
-  return validatePartial(value, {
-    topic: shortText,
+  const base = validatePartial<KnowledgeCheckUpdateInput>(value, {
+    topic: (item) => typeof item === "string" && KNOWLEDGE_CHECK_TOPICS.has(item as KnowledgeCheckTopic),
     question: longText,
     questionBg: longText,
-    options: (item) => stringList(item) && (item as string[]).length >= 2 && (item as string[]).length <= 10,
-    optionsBg: (item) => stringList(item) && (item as string[]).length >= 2 && (item as string[]).length <= 10,
+    options: knowledgeCheckOptions,
+    optionsBg: knowledgeCheckOptions,
     correctIndex: (item) => Number.isInteger(item) && (item as number) >= 0 && (item as number) <= 9,
     explanation: longText,
     explanationBg: longText
   });
+
+  if (!base.ok) {
+    return base;
+  }
+
+  const { options, optionsBg, correctIndex } = base.value;
+  if (options && optionsBg && options.length !== optionsBg.length) {
+    return { ok: false, error: "invalid_options_mismatch" };
+  }
+
+  const optionCount = options?.length ?? optionsBg?.length;
+  if (correctIndex !== undefined && optionCount !== undefined && correctIndex >= optionCount) {
+    return { ok: false, error: "invalid_correctIndex" };
+  }
+
+  return base;
 }
 
 export const validateQuizUpdate = validateKnowledgeCheckUpdate;

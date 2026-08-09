@@ -47,3 +47,13 @@ describe("isE2eAuthEnabled", () => {
     expect(isE2eAuthEnabled()).toBe(true);
   });
 });
+
+describe("parseE2eRole", () => {
+  it("defaults to user and accepts teacher/admin", async () => {
+    const { parseE2eRole } = await import("./e2e-auth");
+    expect(parseE2eRole(undefined)).toBe("user");
+    expect(parseE2eRole("teacher")).toBe("teacher");
+    expect(parseE2eRole("admin")).toBe("admin");
+    expect(parseE2eRole("nope")).toBe("user");
+  });
+});

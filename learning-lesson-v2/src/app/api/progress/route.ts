@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getKnownErrorCode, readJsonObject } from "@/lib/http";
 import { parseKnowledgeCheckAnswers } from "@/lib/knowledge-check";
+import { logServerError } from "@/lib/observability";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,7 +9,9 @@ const completionErrors = [
   "unknown_lesson",
   "lesson_locked",
   "quiz_unavailable",
-  "quiz_not_passed"
+  "quiz_not_passed",
+  "knowledge_check_unavailable",
+  "knowledge_check_not_passed"
 ] as const;
 
 export async function POST(request: Request) {
@@ -41,13 +44,16 @@ export async function POST(request: Request) {
     const status =
       code === "unknown_lesson"
         ? 404
-        : code === "quiz_unavailable"
+        : code === "quiz_unavailable" || code === "knowledge_check_unavailable"
           ? 503
           : code === "completion_failed"
             ? 500
             : 403;
-    // Keep the historic error codes for cached clients; the UI translates them
-    // to the current “Knowledge check” terminology.
+    if (code === "completion_failed") {
+      logServerError("complete_lesson_failed", { lessonId, detail: error.message.slice(0, 200) });
+    }
+    // Keep the historic quiz_* codes for cached clients; also accept future
+    // knowledge_check_* names from the RPC without collapsing to 500.
     return NextResponse.json({ error: code }, { status });
   }
 

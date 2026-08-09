@@ -18,6 +18,8 @@ function formatDate(value: string | null, language: Language, fallback: string) 
   });
 }
 
+const HARD_QUESTION_THRESHOLD = 60;
+
 export function AssessmentReport({
   analysis,
   language,
@@ -30,6 +32,13 @@ export function AssessmentReport({
   summary: AssessmentReportSummary;
 }) {
   const copy = t(language).assessment;
+  const missingRows = rows.filter((row) => row.status === "missing");
+  const submittedRows = rows.filter((row) => row.status === "submitted");
+  const hardQuestions = analysis
+    .filter((question) => question.answeredCount > 0 && question.correctPercentage < HARD_QUESTION_THRESHOLD)
+    .slice()
+    .sort((left, right) => left.correctPercentage - right.correctPercentage)
+    .slice(0, 3);
 
   return (
     <div className="space-y-6">
@@ -63,7 +72,7 @@ export function AssessmentReport({
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {[...missingRows, ...submittedRows].map((row) => (
                 <tr className="border-t border-ink/10" key={row.studentId}>
                   <td className="px-4 py-3">
                     <p className="font-bold">{row.displayName || copy.colStudent}</p>
@@ -81,6 +90,43 @@ export function AssessmentReport({
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section className="rounded-xl border border-ink/10 bg-white/80 p-5 shadow-soft">
+        <h2 className="text-xl font-black">{copy.missingStudentsTitle}</h2>
+        <p className="mt-2 text-sm text-ink/65">{copy.missingStudentsSubtitle}</p>
+        {missingRows.length === 0 ? (
+          <p className="mt-4 text-sm font-semibold text-ink/60">{copy.allSubmitted}</p>
+        ) : (
+          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+            {missingRows.map((row) => (
+              <li className="rounded-lg border border-coral/20 bg-coral/5 px-4 py-3 text-sm font-bold" key={row.studentId}>
+                {row.displayName || shortStudentId(row.studentId)}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="rounded-xl border border-ink/10 bg-white/80 p-5 shadow-soft">
+        <h2 className="text-xl font-black">{copy.hardestQuestionsTitle}</h2>
+        <p className="mt-2 text-sm text-ink/65">{copy.hardestQuestionsSubtitle}</p>
+        {hardQuestions.length === 0 ? (
+          <p className="mt-4 text-sm font-semibold text-ink/60">{copy.noHardQuestions}</p>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {hardQuestions.map((question) => (
+              <div className="rounded-lg border border-violet/20 bg-violet/5 p-4" key={question.questionId}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <p className="max-w-2xl font-bold">
+                    {question.position + 1}. {question.prompt}
+                  </p>
+                  <p className="shrink-0 text-sm font-black text-coral">{question.correctPercentage}%</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="rounded-xl border border-ink/10 bg-white/80 p-5 shadow-soft">

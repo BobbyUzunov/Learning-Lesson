@@ -14,3 +14,12 @@ export async function readJsonObject(request: Request): Promise<JsonObject | nul
 export function getKnownErrorCode(message: string, codes: readonly string[]) {
   return codes.find((code) => message.includes(code));
 }
+
+/** Map a Postgres/RPC error message to a stable public `{ error }` code. */
+export function resolvePublicErrorCode(
+  message: string,
+  codes: readonly string[],
+  fallback: string
+) {
+  return getKnownErrorCode(message, codes) ?? fallback;
+}

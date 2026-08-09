@@ -5,6 +5,7 @@ import { localizeGameLesson } from "@/lib/i18n";
 import { hasOpenAIEnv } from "@/lib/mentor/env";
 import { streamMentorHint } from "@/lib/mentor/openai";
 import { buildMentorMessages, isMentorHintLevel, isMentorMode } from "@/lib/mentor/prompt";
+import { logServerError } from "@/lib/observability";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { fetchMentorUsage, reserveMentorHint } from "@/lib/supabase/mentor-usage";
@@ -150,6 +151,7 @@ export async function POST(request: Request) {
       onError: () => "mentor_failed"
     });
   } catch {
+    logServerError("mentor_failed", { lessonId });
     return NextResponse.json({ error: "mentor_failed" }, { status: 502 });
   }
 }

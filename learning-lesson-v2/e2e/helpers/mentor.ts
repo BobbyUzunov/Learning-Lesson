@@ -1,13 +1,23 @@
 import type { Page } from "@playwright/test";
 
-export async function enableE2eAuth(page: Page) {
-  await page.context().addCookies([
+export async function enableE2eAuth(page: Page, options: { role?: "user" | "teacher" | "admin" } = {}) {
+  const cookies = [
     {
       name: "e2e-auth",
       value: "1",
       url: "http://127.0.0.1:3100"
     }
-  ]);
+  ];
+
+  if (options.role && options.role !== "user") {
+    cookies.push({
+      name: "e2e-role",
+      value: options.role,
+      url: "http://127.0.0.1:3100"
+    });
+  }
+
+  await page.context().addCookies(cookies);
 }
 
 export async function mockMentorApi(

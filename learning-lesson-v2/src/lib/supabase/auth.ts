@@ -1,15 +1,17 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "./server";
-import { createE2eUser, hasE2eAuthCookie } from "./e2e-auth";
+import { createE2eUser, getE2eAuthState } from "./e2e-auth";
 import { hasSupabaseEnv } from "./env";
 import { ensureUserProfile, type ProfileRow } from "./profile";
 
 export type UserProfile = ProfileRow;
 
 async function loadCurrentSession() {
-  if (await hasE2eAuthCookie()) {
-    const user = createE2eUser();
+  const e2e = await getE2eAuthState();
+  if (e2e) {
+    const user = createE2eUser(e2e.role);
+    const role = e2e.role === "admin" ? "admin" : e2e.role === "teacher" ? "teacher" : "user";
     return {
       configured: true,
       user,
@@ -17,14 +19,14 @@ async function loadCurrentSession() {
         id: user.id,
         auth_user_id: user.id,
         email: user.email ?? null,
-        display_name: "E2E Learner",
-        role: "user",
+        display_name: role === "teacher" ? "E2E Teacher" : role === "admin" ? "E2E Admin" : "E2E Learner",
+        role,
         xp: 0,
         level: 1,
         streak_count: 0
       } satisfies UserProfile,
-      isAdmin: false,
-      isTeacher: false
+      isAdmin: role === "admin",
+      isTeacher: role === "teacher" || role === "admin"
     };
   }
 

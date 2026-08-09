@@ -2,7 +2,9 @@ import Link from "next/link";
 import { ArrowRight, GraduationCap, Users } from "lucide-react";
 import { CreateClassroomForm } from "@/components/teacher/create-classroom-form";
 import { CopyCodeButton } from "@/components/teacher/copy-code-button";
+import { TeacherOnboardingChecklist } from "@/components/teacher/onboarding-checklist";
 import { getSchoolCurriculum, localizeCurriculumText } from "@/lib/curriculum";
+import { getTeacherAssessments } from "@/lib/supabase/assessments";
 import { getTeacherClassrooms } from "@/lib/supabase/classrooms";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
@@ -12,11 +14,18 @@ export const dynamic = "force-dynamic";
 export default async function TeacherPage() {
   const language = await getLanguage();
   const copy = t(language);
-  const [classrooms, curriculum] = await Promise.all([getTeacherClassrooms(), getSchoolCurriculum()]);
+  const [classrooms, curriculum, assessments] = await Promise.all([
+    getTeacherClassrooms(),
+    getSchoolCurriculum(),
+    getTeacherAssessments()
+  ]);
   const specialties = curriculum.specialties.map((specialty) => ({
     id: specialty.id,
     title: localizeCurriculumText(specialty.title, language)
   }));
+  const hasClassroom = classrooms.length > 0;
+  const hasStudents = classrooms.some((classroom) => (classroom.memberCount ?? 0) > 0);
+  const hasAssessment = assessments.length > 0;
 
   return (
     <div>
@@ -24,6 +33,15 @@ export default async function TeacherPage() {
         <p className="text-sm font-bold uppercase text-violet">{copy.nav.teacher}</p>
         <h1 className="mt-2 break-words text-3xl font-black sm:text-4xl">{copy.teacher.panelTitle}</h1>
         <p className="mt-3 max-w-2xl text-ink/70">{copy.teacher.panelSubtitle}</p>
+      </div>
+
+      <div className="mt-6">
+        <TeacherOnboardingChecklist
+          hasAssessment={hasAssessment}
+          hasClassroom={hasClassroom}
+          hasStudents={hasStudents}
+          language={language}
+        />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.1fr]">

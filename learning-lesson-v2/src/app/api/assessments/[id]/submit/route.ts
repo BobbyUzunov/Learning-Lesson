@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
-import { readJsonObject } from "@/lib/http";
+import { readJsonObject, resolvePublicErrorCode } from "@/lib/http";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -16,6 +16,14 @@ type SubmitAssessmentRow = {
   percentage: number | string;
   submitted_at: string;
 };
+
+const submitAssessmentErrors = [
+  "not_authorized",
+  "assessment_not_found",
+  "attempt_exists",
+  "assessment_closed",
+  "invalid_answers"
+] as const;
 
 export async function POST(request: Request, context: RouteContext) {
   if (!hasSupabaseEnv()) {
@@ -56,14 +64,18 @@ export async function POST(request: Request, context: RouteContext) {
     .single<SubmitAssessmentRow>();
 
   if (error) {
-    const status = error.message.includes("not_authorized")
-      ? 403
-      : error.message.includes("assessment_not_found")
-        ? 404
-        : error.message.includes("attempt_exists")
-          ? 409
-          : 400;
-    return NextResponse.json({ error: error.message }, { status });
+    const code = resolvePublicErrorCode(error.message, submitAssessmentErrors, "submit_failed");
+    const status =
+      code === "not_authorized"
+        ? 403
+        : code === "assessment_not_found"
+          ? 404
+          : code === "attempt_exists"
+            ? 409
+            : code === "submit_failed"
+              ? 500
+              : 400;
+    return NextResponse.json({ error: code }, { status });
   }
 
   revalidatePath(`/assessments/${assessmentId}`);

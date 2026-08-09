@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { readJsonObject } from "@/lib/http";
+import { readJsonObject, resolvePublicErrorCode } from "@/lib/http";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -10,22 +10,34 @@ type JoinClassroomRow = {
   error_code: string | null;
 };
 
-function joinErrorStatus(message: string) {
-  if (message.includes("join_rate_limited")) {
+const joinClassroomErrors = [
+  "join_rate_limited",
+  "classroom_not_found",
+  "classroom_unavailable",
+  "teacher_cannot_join",
+  "invalid_join_code",
+  "already_member"
+] as const;
+
+function joinErrorStatus(code: string) {
+  if (code === "join_rate_limited") {
     return 429;
   }
-  if (message.includes("classroom_not_found")) {
+  if (code === "classroom_not_found") {
     return 404;
   }
-  if (message.includes("classroom_unavailable") || message.includes("teacher_cannot_join")) {
+  if (code === "classroom_unavailable" || code === "teacher_cannot_join") {
     return 403;
+  }
+  if (code === "join_failed") {
+    return 500;
   }
   return 400;
 }
 
 export async function POST(request: Request) {
   if (!hasSupabaseEnv()) {
-    return NextResponse.json({ error: "Supabase env is not configured." }, { status: 503 });
+    return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
   }
 
   const body = await readJsonObject(request);
@@ -48,14 +60,13 @@ export async function POST(request: Request) {
     .single<JoinClassroomRow>();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: joinErrorStatus(error.message) });
+    const code = resolvePublicErrorCode(error.message, joinClassroomErrors, "join_failed");
+    return NextResponse.json({ error: code }, { status: joinErrorStatus(code) });
   }
 
   if (data.error_code) {
-    return NextResponse.json(
-      { error: data.error_code },
-      { status: joinErrorStatus(data.error_code) }
-    );
+    const code = resolvePublicErrorCode(data.error_code, joinClassroomErrors, "join_failed");
+    return NextResponse.json({ error: code }, { status: joinErrorStatus(code) });
   }
 
   if (!data.classroom_id || !data.name) {
