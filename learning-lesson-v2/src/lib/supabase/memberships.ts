@@ -1,10 +1,11 @@
 import { cache } from "react";
 import { getCurrentSession } from "./auth";
 import { createClient } from "./server";
+import { hasSupabaseEnv } from "./env";
 
 async function loadMyClassroomIds(): Promise<string[]> {
   const session = await getCurrentSession();
-  if (!session.user) {
+  if (!session.user || !hasSupabaseEnv()) {
     return [];
   }
 

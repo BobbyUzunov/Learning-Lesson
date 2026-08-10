@@ -1,5 +1,7 @@
 import { fallbackSchoolCurriculum } from "./data";
+import { fallbackCurriculumMissionLabs } from "./labs-data";
 import type {
+  CurriculumMissionLabRow,
   CurriculumMissionRow,
   CurriculumModuleRow,
   SpecialtyRow
@@ -52,5 +54,11 @@ export function buildSchoolCurriculumSeedPayload() {
     sort_order: mission.sortOrder
   }));
 
-  return { specialties, modules, missions };
+  const missionLabs: CurriculumMissionLabRow[] = fallbackCurriculumMissionLabs.map((link) => ({
+    mission_id: link.missionId,
+    lesson_id: link.lessonId,
+    sort_order: link.sortOrder
+  }));
+
+  return { specialties, modules, missions, missionLabs };
 }

@@ -51,6 +51,7 @@ export default async function RootLayout({
     navItems = [
       { href: "/dashboard", label: copy.nav.today },
       { href: "/paths", label: copy.nav.myLearning },
+      { href: "/courses", label: copy.nav.labs },
       { href: "/assessments", label: copy.nav.assessments },
       { href: "/classes", label: copy.nav.classes },
       { href: "/profile", label: copy.nav.profile }

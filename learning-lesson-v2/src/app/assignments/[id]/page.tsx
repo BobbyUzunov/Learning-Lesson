@@ -83,6 +83,12 @@ export default async function AssignmentPage({ params }: { params: Promise<{ id:
             {assignment.instructions}
           </p>
         ) : null}
+        <Link
+          className="mt-4 inline-flex items-center gap-2 text-sm font-black text-violet hover:underline"
+          href={`/missions/${assignment.missionId}`}
+        >
+          {copy.openMissionGuide}
+        </Link>
       </div>
 
       <div className="mt-6">

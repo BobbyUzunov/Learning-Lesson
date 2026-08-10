@@ -1,5 +1,6 @@
 import { createClient } from "./server";
 import { getCurrentSession } from "./auth";
+import { hasSupabaseEnv } from "./env";
 import {
   mapClassroomReportRow,
   mapClassroomRow,
@@ -22,7 +23,7 @@ const classroomColumns =
 
 export async function getTeacherClassrooms(): Promise<Classroom[]> {
   const session = await getCurrentSession();
-  if (!session.user) {
+  if (!session.user || !hasSupabaseEnv()) {
     return [];
   }
 

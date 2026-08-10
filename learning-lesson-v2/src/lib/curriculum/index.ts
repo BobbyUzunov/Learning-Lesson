@@ -53,6 +53,13 @@ export const getSchoolCurriculum = cache(loadSchoolCurriculum);
 
 export { fallbackSchoolCurriculum } from "./data";
 export {
+  fallbackCurriculumMissionLabs,
+  getCurriculumMissionLabs,
+  getMissionLabLinks,
+  mapCurriculumMissionLabRows,
+  resolveCurriculumMissionLabs
+} from "./labs";
+export {
   getCommonModules,
   getMissionForModule,
   getMissionsForModule,
@@ -61,8 +68,10 @@ export {
   localizeCurriculumText,
   mapRowsToSchoolCurriculum
 } from "./helpers";
+export { resolveMissionAssignmentState } from "./mission-state";
 export type {
   CurriculumMission,
+  CurriculumMissionLab,
   CurriculumModule,
   GradeLevel,
   SchoolCurriculum,

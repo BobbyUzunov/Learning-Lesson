@@ -1,4 +1,5 @@
 import type { Language } from "../language";
+import type { AssignmentStatus } from "../assignments/types";
 import { getActiveGradeLevel, localizeCurriculumText } from "./helpers";
 import type {
   CurriculumAccent,
@@ -15,7 +16,20 @@ export type CurriculumExplorerMission = {
   brief: string;
   deliverable: string;
   estimatedMinutes: number;
+  assignmentId: string | null;
+  assignmentStatus: AssignmentStatus | null;
+  lab: {
+    courseTitle: string;
+    completedCount: number;
+    totalCount: number;
+    lessonIds: string[];
+  } | null;
 };
+
+export type CurriculumExplorerMissionState = Pick<
+  CurriculumExplorerMission,
+  "assignmentId" | "assignmentStatus" | "lab"
+>;
 
 export type CurriculumExplorerModule = {
   id: string;
@@ -49,6 +63,10 @@ export type CurriculumExplorerData = {
 export type CurriculumExplorerCopy = {
   allMissions: string;
   allMissionsHint: string;
+  assignmentApproved: string;
+  assignmentAssigned: string;
+  assignmentNeedsChanges: string;
+  assignmentSubmitted: string;
   browseAllMissions: string;
   changeDirection: string;
   chooseSpecialty: string;
@@ -57,6 +75,8 @@ export type CurriculumExplorerCopy = {
   commonSubjectsHint: string;
   currentDirection: string;
   minutes: string;
+  labAvailable: string;
+  labCompleted: string;
   missionsLabel: string;
   officialDetails: string;
   officialDetailsHint: string;
@@ -78,14 +98,21 @@ export type CurriculumExplorerCopy = {
   whatYouWillSubmit: string;
 };
 
-function mapMission(mission: CurriculumMission, language: Language): CurriculumExplorerMission {
+function mapMission(
+  mission: CurriculumMission,
+  language: Language,
+  state?: CurriculumExplorerMissionState
+): CurriculumExplorerMission {
   return {
     id: mission.id,
     moduleId: mission.moduleId,
     title: localizeCurriculumText(mission.title, language),
     brief: localizeCurriculumText(mission.brief, language),
     deliverable: localizeCurriculumText(mission.deliverable, language),
-    estimatedMinutes: mission.estimatedMinutes
+    estimatedMinutes: mission.estimatedMinutes,
+    assignmentId: state?.assignmentId ?? null,
+    assignmentStatus: state?.assignmentStatus ?? null,
+    lab: state?.lab ?? null
   };
 }
 
@@ -103,14 +130,15 @@ function mapModule(module: CurriculumModule, language: Language): CurriculumExpl
 
 export function buildCurriculumExplorerData(
   curriculum: SchoolCurriculum,
-  language: Language
+  language: Language,
+  missionStates: Record<string, CurriculumExplorerMissionState> = {}
 ): CurriculumExplorerData {
   const activeGrade = getActiveGradeLevel(curriculum);
   const missionsByModule = new Map<string, CurriculumExplorerMission[]>();
 
   for (const mission of curriculum.missions) {
     const list = missionsByModule.get(mission.moduleId) ?? [];
-    list.push(mapMission(mission, language));
+    list.push(mapMission(mission, language, missionStates[mission.id]));
     missionsByModule.set(mission.moduleId, list);
   }
 
@@ -138,10 +166,58 @@ export function buildCurriculumExplorerData(
   };
 }
 
+function applyGuestProgressToMission(
+  mission: CurriculumExplorerMission,
+  completedLessonIds: Set<string>
+): CurriculumExplorerMission {
+  if (!mission.lab || mission.lab.lessonIds.length === 0) {
+    return mission;
+  }
+
+  const completedCount = mission.lab.lessonIds.reduce(
+    (count, lessonId) => count + Number(completedLessonIds.has(lessonId)),
+    0
+  );
+  const totalCount = mission.lab.lessonIds.length;
+
+  if (completedCount === mission.lab.completedCount && totalCount === mission.lab.totalCount) {
+    return mission;
+  }
+
+  return {
+    ...mission,
+    lab: { ...mission.lab, completedCount, totalCount }
+  };
+}
+
+export function applyGuestLessonProgress(
+  data: CurriculumExplorerData,
+  completedLessonIds: Iterable<string>
+): CurriculumExplorerData {
+  const completed = new Set(completedLessonIds);
+  const mapGroups = (groups: CurriculumExplorerGroup[]) =>
+    groups.map((group) => ({
+      ...group,
+      missions: group.missions.map((mission) => applyGuestProgressToMission(mission, completed))
+    }));
+
+  return {
+    specialties: data.specialties.map((specialty) => ({
+      ...specialty,
+      groups: mapGroups(specialty.groups)
+    })),
+    commonGroups: mapGroups(data.commonGroups)
+  };
+}
+
 export function pickCurriculumExplorerCopy(source: CurriculumExplorerCopy): CurriculumExplorerCopy {
   return {
     allMissions: source.allMissions,
     allMissionsHint: source.allMissionsHint,
+    assignmentApproved: source.assignmentApproved,
+    assignmentAssigned: source.assignmentAssigned,
+    assignmentNeedsChanges: source.assignmentNeedsChanges,
+    assignmentSubmitted: source.assignmentSubmitted,
     browseAllMissions: source.browseAllMissions,
     changeDirection: source.changeDirection,
     chooseSpecialty: source.chooseSpecialty,
@@ -150,6 +226,8 @@ export function pickCurriculumExplorerCopy(source: CurriculumExplorerCopy): Curr
     commonSubjectsHint: source.commonSubjectsHint,
     currentDirection: source.currentDirection,
     minutes: source.minutes,
+    labAvailable: source.labAvailable,
+    labCompleted: source.labCompleted,
     missionsLabel: source.missionsLabel,
     officialDetails: source.officialDetails,
     officialDetailsHint: source.officialDetailsHint,
