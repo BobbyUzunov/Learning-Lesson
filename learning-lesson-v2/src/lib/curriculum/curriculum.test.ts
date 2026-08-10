@@ -103,5 +103,8 @@ describe("school curriculum", () => {
     expect(mapped.modules).toHaveLength(8);
     expect(mapped.missions).toHaveLength(64);
     expect(mapped.missions[0]?.sortOrder).toBe(0);
+    expect(payload.missionLabs).toEqual([
+      { mission_id: "mission-first-class-page", lesson_id: "1", sort_order: 0 }
+    ]);
   });
 });

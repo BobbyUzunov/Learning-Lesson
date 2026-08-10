@@ -4,23 +4,56 @@ export type GameProgress = {
   lastCompletedAt: string | null;
 };
 
-const storageKey = "learning-lesson-v2-game-progress";
+export const gameProgressStorageKey = "learning-lesson-v2-game-progress";
 export const guestContinueKey = "learning-lesson-v2-guest-continue";
+
+function emptyProgress(): GameProgress {
+  return { completedLessonIds: [], currentStreak: 0, lastCompletedAt: null };
+}
+
+function normalizeProgress(value: unknown): GameProgress {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return emptyProgress();
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const completedLessonIds = Array.isArray(candidate.completedLessonIds)
+    ? [
+        ...new Set(
+          candidate.completedLessonIds
+            .filter((id): id is string => typeof id === "string")
+            .map((id) => id.trim())
+            .filter((id) => id.length > 0 && id.length <= 100)
+        )
+      ].slice(0, 100)
+    : [];
+  const currentStreak =
+    Number.isSafeInteger(candidate.currentStreak) && (candidate.currentStreak as number) >= 0
+      ? (candidate.currentStreak as number)
+      : 0;
+  const lastCompletedAt =
+    typeof candidate.lastCompletedAt === "string" &&
+    Number.isFinite(Date.parse(candidate.lastCompletedAt))
+      ? candidate.lastCompletedAt
+      : null;
+
+  return { completedLessonIds, currentStreak, lastCompletedAt };
+}
 
 export function getStoredProgress(): GameProgress {
   if (typeof window === "undefined") {
-    return { completedLessonIds: [], currentStreak: 0, lastCompletedAt: null };
+    return emptyProgress();
   }
 
-  const raw = window.localStorage.getItem(storageKey);
+  const raw = window.localStorage.getItem(gameProgressStorageKey);
   if (!raw) {
-    return { completedLessonIds: [], currentStreak: 0, lastCompletedAt: null };
+    return emptyProgress();
   }
 
   try {
-    return JSON.parse(raw) as GameProgress;
+    return normalizeProgress(JSON.parse(raw) as unknown);
   } catch {
-    return { completedLessonIds: [], currentStreak: 0, lastCompletedAt: null };
+    return emptyProgress();
   }
 }
 
@@ -29,7 +62,7 @@ function saveStoredProgress(progress: GameProgress) {
     return;
   }
 
-  window.localStorage.setItem(storageKey, JSON.stringify(progress));
+  window.localStorage.setItem(gameProgressStorageKey, JSON.stringify(progress));
 }
 
 export function completeStoredLesson(lessonId: string) {
@@ -53,5 +86,5 @@ export function clearStoredProgress() {
     return;
   }
 
-  window.localStorage.removeItem(storageKey);
+  window.localStorage.removeItem(gameProgressStorageKey);
 }

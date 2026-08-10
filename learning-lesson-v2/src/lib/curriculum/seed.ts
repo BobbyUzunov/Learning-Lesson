@@ -8,7 +8,7 @@ export async function seedSchoolCurriculumToDatabase() {
   }
 
   const supabase = await createClient();
-  const { specialties, modules, missions } = buildSchoolCurriculumSeedPayload();
+  const { specialties, modules, missions, missionLabs } = buildSchoolCurriculumSeedPayload();
   const now = new Date().toISOString();
 
   const { error: specialtiesError } = await supabase
@@ -26,9 +26,15 @@ export async function seedSchoolCurriculumToDatabase() {
     .upsert(missions.map((row) => ({ ...row, updated_at: now })), { onConflict: "id" });
   if (missionsError) throw new Error(missionsError.message);
 
+  const { error: missionLabsError } = await supabase
+    .from("curriculum_mission_labs")
+    .upsert(missionLabs, { onConflict: "mission_id,lesson_id" });
+  if (missionLabsError) throw new Error(missionLabsError.message);
+
   return {
     specialties: specialties.length,
     curriculumModules: modules.length,
-    curriculumMissions: missions.length
+    curriculumMissions: missions.length,
+    curriculumMissionLabs: missionLabs.length
   };
 }

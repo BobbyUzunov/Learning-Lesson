@@ -9,11 +9,11 @@ vi.mock("../supabase/server", () => ({
   createClient: vi.fn(async () => ({ from: fromMock }))
 }));
 
-import { getSchoolCurriculum } from "./index";
+import { getCurriculumMissionLabs, getSchoolCurriculum } from "./index";
 import { seedSchoolCurriculumToDatabase } from "./seed";
 
-function readableQuery(data: unknown[]) {
-  const result = { data, error: null };
+function readableQuery(data: unknown[], error: { message: string } | null = null) {
+  const result = { data, error };
   const query = {
     order: vi.fn(() => query),
     select: vi.fn(() => query),
@@ -47,7 +47,29 @@ describe("school curriculum database loader", () => {
     expect(curriculum.missions).toHaveLength(64);
   });
 
-  it("seeds only the canonical curriculum tables", async () => {
+  it("loads mission-to-lab links from the bridge table", async () => {
+    fromMock.mockImplementation((table: string) =>
+      readableQuery(
+        table === "curriculum_mission_labs"
+          ? [{ mission_id: "mission-db", lesson_id: "42", sort_order: 3 }]
+          : []
+      )
+    );
+
+    await expect(getCurriculumMissionLabs()).resolves.toEqual([
+      { missionId: "mission-db", lessonId: "42", sortOrder: 3 }
+    ]);
+  });
+
+  it("uses the checked-in bridge fallback when the database table is unavailable", async () => {
+    fromMock.mockImplementation(() => readableQuery([], { message: "relation unavailable" }));
+
+    await expect(getCurriculumMissionLabs()).resolves.toEqual([
+      { missionId: "mission-first-class-page", lessonId: "1", sortOrder: 0 }
+    ]);
+  });
+
+  it("seeds the canonical curriculum tables and mission lab bridge", async () => {
     const upsertedTables: string[] = [];
 
     fromMock.mockImplementation((table: string) => ({
@@ -59,7 +81,13 @@ describe("school curriculum database loader", () => {
 
     const result = await seedSchoolCurriculumToDatabase();
 
-    expect(upsertedTables).toEqual(["specialties", "curriculum_modules", "curriculum_missions"]);
+    expect(upsertedTables).toEqual([
+      "specialties",
+      "curriculum_modules",
+      "curriculum_missions",
+      "curriculum_mission_labs"
+    ]);
     expect(result.curriculumMissions).toBeGreaterThan(0);
+    expect(result.curriculumMissionLabs).toBe(1);
   });
 });

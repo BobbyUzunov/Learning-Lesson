@@ -30,7 +30,7 @@ test("guest cannot open locked lessons", async ({ page }) => {
   await expect(page).toHaveURL(/\/courses\?guestLocked=1/, { timeout: 15_000 });
 });
 
-test("guest completes the first lesson and sees signup prompt", async ({ page }) => {
+test("guest completion hydrates the linked curriculum mission and lab", async ({ page }) => {
   await page.goto("/lesson/1");
 
   await openLessonTask(page);
@@ -55,4 +55,24 @@ test("guest completes the first lesson and sees signup prompt", async ({ page })
 
   await expect(page.getByRole("heading", { name: /great job|браво/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /save your progress|запази прогреса си/i })).toBeVisible();
+
+  await page.getByRole("button", { name: /continue as guest|продължи като гост/i }).click();
+  await expect(page).toHaveURL(/\/paths/);
+
+  await page
+    .getByRole("button", { name: /first page for your class|първата страница на класа/i })
+    .click();
+  const recommendedMission = page.locator("#recommended-mission");
+  await expect(recommendedMission).toContainText(/lab completed|лабораторията е завършена/i);
+  await expect(recommendedMission).toContainText("1/1");
+
+  await recommendedMission.getByRole("link", { name: /view mission|виж мисията/i }).click();
+  await expect(page).toHaveURL(/\/missions\/mission-first-class-page/);
+
+  const missionLab = page.locator("section").filter({
+    hasText: /connected technology lab|свързана техно лаборатория/i
+  });
+  await expect(missionLab).toContainText(/lab completed|лабораторията е завършена/i);
+  await expect(missionLab).toContainText("1/1");
+  await expect(missionLab).toContainText(/100 XP earned|спечелени 100 XP/i);
 });

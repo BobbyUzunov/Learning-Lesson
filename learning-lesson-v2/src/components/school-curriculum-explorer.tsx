@@ -1,24 +1,30 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { CurriculumDetails } from "@/components/curriculum/curriculum-details";
 import { MissionList } from "@/components/curriculum/mission-list";
 import { SpecialtySelector } from "@/components/curriculum/specialty-selector";
 import { StudentMissionCard } from "@/components/curriculum/student-mission-card";
-import type {
-  CurriculumExplorerCopy,
-  CurriculumExplorerData
+import {
+  applyGuestLessonProgress,
+  type CurriculumExplorerCopy,
+  type CurriculumExplorerData
 } from "@/lib/curriculum/explorer";
+import { getStoredProgress } from "@/lib/game-progress-storage";
 
-const SPECIALTY_STORAGE_KEY = "ll-selected-specialty";
-
+/*
+ * `data` is the trusted server snapshot. Guests layer their normalized local
+ * lesson IDs over it after hydration; authenticated learners never do.
+ */
 type SchoolCurriculumExplorerProps = {
   copy: CurriculumExplorerCopy;
   data: CurriculumExplorerData;
   isAuthenticated: boolean;
   pathsTitle: string;
 };
+
+const SPECIALTY_STORAGE_KEY = "ll-selected-specialty";
 
 function firstSpecialtyMissionId(data: CurriculumExplorerData, specialtyId: string) {
   return data.specialties.find((specialty) => specialty.id === specialtyId)?.groups[0]?.missions[0]?.id ?? "";
@@ -31,47 +37,82 @@ export function SchoolCurriculumExplorer({
   pathsTitle
 }: SchoolCurriculumExplorerProps) {
   const fallbackSpecialtyId = data.specialties[0]?.id ?? "software-development";
-  const [selectedSpecialtyId, setSelectedSpecialtyId] = useState(fallbackSpecialtyId);
-  const [selectedMissionId, setSelectedMissionId] = useState(() =>
-    firstSpecialtyMissionId(data, fallbackSpecialtyId)
-  );
-  const [hasSavedSpecialty, setHasSavedSpecialty] = useState(false);
+  const [selection, setSelection] = useState(() => ({
+    specialtyId: fallbackSpecialtyId,
+    missionId: firstSpecialtyMissionId(data, fallbackSpecialtyId)
+  }));
+  const [savedSpecialtyId, setSavedSpecialtyId] = useState<string | null>(null);
+  const [guestCompletedLessonIds, setGuestCompletedLessonIds] = useState<string[] | null>(null);
   const [changingDirection, setChangingDirection] = useState(false);
   const allMissionsRef = useRef<HTMLDivElement>(null);
+  const firstMissionBySpecialty = useMemo(
+    () =>
+      new Map(
+        data.specialties.map((specialty) => [
+          specialty.id,
+          specialty.groups[0]?.missions[0]?.id ?? ""
+        ])
+      ),
+    [data.specialties]
+  );
 
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(SPECIALTY_STORAGE_KEY);
-      if (stored && data.specialties.some((specialty) => specialty.id === stored)) {
-        setSelectedSpecialtyId(stored);
-        setSelectedMissionId(firstSpecialtyMissionId(data, stored));
-        setHasSavedSpecialty(true);
+      const missionId = stored ? firstMissionBySpecialty.get(stored) : undefined;
+      if (stored && missionId !== undefined) {
+        setSelection({ specialtyId: stored, missionId });
+        setSavedSpecialtyId(stored);
       }
     } catch {
       // Ignore storage failures.
     }
-  }, [data]);
+  }, [firstMissionBySpecialty]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      return;
+    }
+
+    try {
+      setGuestCompletedLessonIds(getStoredProgress().completedLessonIds);
+    } catch {
+      setGuestCompletedLessonIds([]);
+    }
+  }, [isAuthenticated]);
+
+  const displayData = useMemo(
+    () =>
+      !isAuthenticated && guestCompletedLessonIds
+        ? applyGuestLessonProgress(data, guestCompletedLessonIds)
+        : data,
+    [data, guestCompletedLessonIds, isAuthenticated]
+  );
 
   const selectedSpecialty =
-    data.specialties.find((specialty) => specialty.id === selectedSpecialtyId) ?? data.specialties[0];
+    displayData.specialties.find((specialty) => specialty.id === selection.specialtyId) ??
+    displayData.specialties[0];
 
   if (!selectedSpecialty) {
     return null;
   }
 
   const specialtyGroups = selectedSpecialty.groups;
-  const commonGroups = data.commonGroups;
+  const commonGroups = displayData.commonGroups;
   const specialtyMissions = specialtyGroups.flatMap((group) => group.missions);
   const allMissions = [...specialtyMissions, ...commonGroups.flatMap((group) => group.missions)];
   const recommendedMission =
-    allMissions.find((mission) => mission.id === selectedMissionId) ?? specialtyMissions[0] ?? null;
+    allMissions.find((mission) => mission.id === selection.missionId) ?? specialtyMissions[0] ?? null;
+  const hasSavedSpecialty = savedSpecialtyId === selectedSpecialty.id;
   const showSpecialtyPicker = !isAuthenticated || !hasSavedSpecialty || changingDirection;
 
   function selectSpecialty(specialtyId: string) {
-    setSelectedSpecialtyId(specialtyId);
-    setSelectedMissionId(firstSpecialtyMissionId(data, specialtyId));
+    setSelection({
+      specialtyId,
+      missionId: firstMissionBySpecialty.get(specialtyId) ?? ""
+    });
     setChangingDirection(false);
-    setHasSavedSpecialty(true);
+    setSavedSpecialtyId(specialtyId);
     try {
       window.localStorage.setItem(SPECIALTY_STORAGE_KEY, specialtyId);
     } catch {
@@ -91,7 +132,7 @@ export function SchoolCurriculumExplorer({
           copy={copy}
           onSelect={selectSpecialty}
           selectedId={selectedSpecialty.id}
-          specialties={data.specialties}
+          specialties={displayData.specialties}
         />
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ink/10 bg-white px-4 py-3">
@@ -122,7 +163,7 @@ export function SchoolCurriculumExplorer({
           accent={selectedSpecialty.accent}
           commonGroups={commonGroups}
           copy={copy}
-          onSelect={setSelectedMissionId}
+          onSelect={(missionId) => setSelection((current) => ({ ...current, missionId }))}
           selectedMission={recommendedMission}
           selectedMissionId={recommendedMission?.id ?? ""}
           specialtyGroups={specialtyGroups}

@@ -1,22 +1,40 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowDown, ArrowLeft, Clock3, GraduationCap, Layers3, UsersRound } from "lucide-react";
-import { getSchoolCurriculum, localizeCurriculumText } from "@/lib/curriculum";
+import { MissionLabCard } from "@/components/curriculum/mission-lab-card";
+import { getCourseCatalog } from "@/lib/catalog";
+import { getQuestCertificates } from "@/lib/certificates";
+import {
+  getCurriculumMissionLabs,
+  getSchoolCurriculum,
+  localizeCurriculumText,
+  resolveCurriculumMissionLabs,
+  resolveMissionAssignmentState
+} from "@/lib/curriculum";
 import { curriculumAccentStyles } from "@/lib/curriculum/ui";
+import { toGameProgress } from "@/lib/game-progress";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
+import { getCourseProjects } from "@/lib/projects/store";
+import { getMyAssignments } from "@/lib/supabase/assignments";
 import { getCurrentSession } from "@/lib/supabase/auth";
+import { getCurrentUserProgress } from "@/lib/supabase/progress";
+import { getCurrentUserProjectSubmissions } from "@/lib/supabase/project-submissions";
 
 export const dynamic = "force-dynamic";
 
 export default async function MissionPage({ params }: { params: Promise<{ id: string }> }) {
-  const [{ id }, language, curriculum, session] = await Promise.all([
+  const [{ id }, language, curriculum, session, catalog, missionLabLinks, { projects }] = await Promise.all([
     params,
     getLanguage(),
     getSchoolCurriculum(),
-    getCurrentSession()
+    getCurrentSession(),
+    getCourseCatalog(),
+    getCurriculumMissionLabs(),
+    getCourseProjects()
   ]);
-  const copy = t(language).schoolCurriculum;
+  const dictionary = t(language);
+  const copy = dictionary.schoolCurriculum;
   const mission = curriculum.missions.find((entry) => entry.id === id);
 
   if (!mission) {
@@ -32,6 +50,37 @@ export default async function MissionPage({ params }: { params: Promise<{ id: st
     ? curriculum.specialties.find((entry) => entry.id === curriculumModule.specialtyId)
     : null;
   const style = curriculumAccentStyles[specialty?.accent ?? "ink"];
+  const [progressData, assignments, submissions] = session.user
+    ? await Promise.all([
+        getCurrentUserProgress(),
+        getMyAssignments(),
+        getCurrentUserProjectSubmissions()
+      ])
+    : [null, [], []];
+  const progress = progressData?.progress ?? [];
+  const completedLessonIds = progress.filter((item) => item.completed).map((item) => item.lesson_id);
+  const missionAssignment = resolveMissionAssignmentState(assignments, mission.id);
+  const missionLabs = resolveCurriculumMissionLabs(missionLabLinks, catalog, mission.id, completedLessonIds);
+  const certificates = getQuestCertificates(
+    toGameProgress(progress),
+    language,
+    progress,
+    submissions,
+    catalog.courses,
+    projects
+  );
+  const certificateByCourseId = new Map(certificates.map((certificate) => [certificate.questId, certificate]));
+  const assignmentStatusLabel = missionAssignment
+    ? missionAssignment.status === "approved"
+      ? dictionary.classroom.statusApproved
+      : missionAssignment.status === "submitted"
+        ? dictionary.classroom.statusSubmitted
+        : missionAssignment.status === "needs_changes"
+          ? dictionary.classroom.statusNeedsChanges
+          : missionAssignment.status === "draft"
+            ? dictionary.classroom.statusDraft
+            : dictionary.classroom.statusMissing
+    : null;
   const steps = [
     { title: copy.planUnderstand, detail: copy.planUnderstandHint },
     { title: copy.planBuild, detail: copy.planBuildHint },
@@ -115,6 +164,16 @@ export default async function MissionPage({ params }: { params: Promise<{ id: st
               ))}
             </ol>
           </section>
+
+          {missionLabs.map((lab) => (
+            <MissionLabCard
+              certificate={certificateByCourseId.get(lab.course.id) ?? null}
+              isAuthenticated={Boolean(session.user)}
+              key={`${lab.missionId}-${lab.lessonId}`}
+              lab={lab}
+              language={language}
+            />
+          ))}
         </div>
 
         <aside className="space-y-6">
@@ -131,12 +190,33 @@ export default async function MissionPage({ params }: { params: Promise<{ id: st
 
           <section className="rounded-3xl border border-ink/10 bg-white p-5">
             <h2 className="font-bold">{copy.classroomMissionTitle}</h2>
-            <p className="mt-2 text-sm leading-6 text-ink/65">{copy.classroomMissionHint}</p>
+            {assignmentStatusLabel ? (
+              <p
+                className={`mt-3 inline-flex rounded-full px-3 py-1.5 text-xs font-bold ${
+                  missionAssignment?.verified ? "bg-mint/20 text-ink" : "bg-violet/10 text-violet"
+                }`}
+              >
+                {assignmentStatusLabel}
+              </p>
+            ) : null}
+            <p className="mt-2 text-sm leading-6 text-ink/65">
+              {missionAssignment ? copy.assignmentStatusHint : copy.classroomMissionHint}
+            </p>
             <Link
               className="focus-ring mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-ink px-4 py-2.5 text-sm font-bold text-paper transition hover:bg-ink/90"
-              href={session.user ? "/classes" : `/login?redirect=${encodeURIComponent("/classes")}`}
+              href={
+                missionAssignment
+                  ? `/assignments/${missionAssignment.assignmentId}`
+                  : session.user
+                    ? "/classes"
+                    : `/login?redirect=${encodeURIComponent("/classes")}`
+              }
             >
-              {session.user ? copy.openMyClasses : copy.signInForClasswork}
+              {missionAssignment
+                ? dictionary.classroom.openAssignment
+                : session.user
+                  ? copy.openMyClasses
+                  : copy.signInForClasswork}
             </Link>
           </section>
         </aside>

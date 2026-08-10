@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Clock3 } from "lucide-react";
+import { ArrowRight, BadgeCheck, Clock3, FlaskConical } from "lucide-react";
 import type {
   CurriculumExplorerCopy,
   CurriculumExplorerMission,
@@ -21,6 +21,16 @@ export function StudentMissionCard({
   onBrowseAll
 }: StudentMissionCardProps) {
   const style = curriculumAccentStyles[specialty.accent];
+  const assignmentLabel =
+    mission.assignmentStatus === "approved"
+      ? copy.assignmentApproved
+      : mission.assignmentStatus === "submitted"
+        ? copy.assignmentSubmitted
+        : mission.assignmentStatus === "needs_changes"
+          ? copy.assignmentNeedsChanges
+          : mission.assignmentStatus
+            ? copy.assignmentAssigned
+            : null;
 
   return (
     <section
@@ -46,6 +56,27 @@ export function StudentMissionCard({
           <Clock3 className="size-4" />
           {mission.estimatedMinutes} {copy.minutes}
         </p>
+        {assignmentLabel || mission.lab ? (
+          <div className="flex flex-wrap gap-2">
+            {assignmentLabel ? (
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${
+                  mission.assignmentStatus === "approved" ? "bg-mint/20 text-ink" : "bg-violet/10 text-violet"
+                }`}
+              >
+                <BadgeCheck className="size-3.5" />
+                {assignmentLabel}
+              </span>
+            ) : null}
+            {mission.lab ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-coral/10 px-3 py-1.5 text-xs font-bold text-ink/75">
+                <FlaskConical className="size-3.5 text-coral" />
+                {mission.lab.completedCount === mission.lab.totalCount ? copy.labCompleted : copy.labAvailable}: {mission.lab.courseTitle} ·{" "}
+                {mission.lab.completedCount}/{mission.lab.totalCount}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <div className="mt-7 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6">

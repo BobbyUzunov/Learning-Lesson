@@ -161,10 +161,59 @@ export function LessonStages({
     setJustCompleted(false);
 
     if (!isAuthenticated) {
+      let guestResponse: Response;
+      try {
+        guestResponse = await fetch("/api/progress/guest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lessonId: lesson.id,
+            knowledgeCheckAnswers
+          })
+        });
+      } catch {
+        setLoading(false);
+        setMessage(copy.lesson.saveError);
+        return;
+      }
+
+      if (!guestResponse.ok) {
+        let errorMessage: string = copy.lesson.saveError;
+        let knowledgeCheckRejected = false;
+        let knowledgeCheckUnavailable = false;
+        try {
+          const body = (await guestResponse.json()) as { error?: string };
+          if (body.error === "knowledge_check_not_passed" || body.error === "quiz_not_passed") {
+            errorMessage = copy.lesson.knowledgeCheckVerificationFailed;
+            knowledgeCheckRejected = true;
+          } else if (
+            body.error === "knowledge_check_unavailable" ||
+            body.error === "quiz_unavailable"
+          ) {
+            errorMessage = copy.knowledgeCheck.unavailable;
+            knowledgeCheckRejected = true;
+            knowledgeCheckUnavailable = true;
+          }
+        } catch {
+          // Keep fallback.
+        }
+
+        if (knowledgeCheckRejected) {
+          setKnowledgeCheckAttempt(null);
+          setKnowledgeCheckVersion((value) => value + 1);
+          setKnowledgeCheckRejectedAsUnavailable(knowledgeCheckUnavailable);
+          router.refresh();
+        }
+
+        setLoading(false);
+        setMessage(errorMessage);
+        return;
+      }
+
       const progress = completeStoredLesson(lesson.id);
       const stats = getGameProgressStats(progress);
       finishMissionSuccess(stats.level, progress.completedLessonIds, {
-        showGuestModal: lesson.id === "1"
+        showGuestModal: true
       });
       setLoading(false);
       return;

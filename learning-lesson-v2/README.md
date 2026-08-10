@@ -71,6 +71,7 @@ Run this only through the Supabase SQL Editor or another trusted administrator c
 | `/` | Landing page with course preview |
 | `/paths` | Избор на направление и мисии от програмата за VIII клас |
 | `/missions/[id]` | Кратко условие, очакван резултат и план за работа по мисия |
+| `/courses` | Технологични лаборатории с проверен прогрес, XP и сертификати |
 | `/lesson/[id]` | Lesson workspace (theory, example, mission, **AI hint**, knowledge check) |
 | `/projects/[id]` | Mini project or capstone submission |
 | `/dashboard` | Continue learning, XP, pending projects |
@@ -109,6 +110,9 @@ Add to `.env.local`:
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+
+# Server-only; use the Supabase secret key and never expose it to the browser.
+SUPABASE_SECRET_KEY=your-server-only-supabase-secret-key
 
 # Optional — enables AI Learning Assistant
 OPENAI_API_KEY=your-openai-api-key
@@ -158,15 +162,16 @@ src/components/
 - Progress, streak, knowledge-check completion, and mentor quota changes are validated server-side.
 - Privileged RPC implementations and `mentor_settings` live in the unexposed `private` schema.
 - Public RPC wrappers preserve the client API while anonymous execution is revoked for protected operations.
+- Guest completion proofs are issued only by the server with `SUPABASE_SECRET_KEY`; `SUPABASE_SERVICE_ROLE_KEY` remains a legacy environment alias.
 - Admin APIs verify the authenticated user's `profiles.role` before making changes.
 
-Public tables include `profiles`, `user_progress`, `courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `lesson_quiz_topics`, `course_projects`, `project_submissions`, `mentor_daily_usage`, `specialties`, `curriculum_modules`, `curriculum_missions`, `classrooms`, `classroom_members`, `classroom_assignments`, `assignment_submissions`, `classroom_assessments`, `assessment_questions`, and `assessment_attempts`. `private.mentor_settings` is server-managed.
+Public tables include `profiles`, `user_progress`, `courses`, `lessons`, `lesson_metadata`, `quiz_questions`, `lesson_quiz_topics`, `course_projects`, `project_submissions`, `mentor_daily_usage`, `specialties`, `curriculum_modules`, `curriculum_missions`, `curriculum_mission_labs`, `classrooms`, `classroom_members`, `classroom_assignments`, `assignment_submissions`, `classroom_assessments`, `assessment_questions`, and `assessment_attempts`. `private.mentor_settings` and guest-claim records are server-managed.
 
 ## Content
 
 - **6 courses**, **63 lessons**, **38 lesson knowledge-check questions**, and **3 projects** (bilingual EN/BG)
 - **4 vocational specialties**, **8 grade 8 curriculum modules**, and **64 curriculum missions**
-- Grade 8 missions are self-contained and do not redirect students into the optional advanced course catalog
+- Selected Grade 8 missions offer curated technology-lab continuations; mission completion remains teacher-approved, while XP is awarded only by verified lesson completion
 - **7 editable assessment templates** with **56 curriculum-aligned questions**: 3 shared checks and 1 specialty check per class
 - **100 XP** per completed lesson
 - **Knowledge check** on every lesson page; at least 2/3 correct answers are verified server-side before XP is awarded
@@ -220,5 +225,6 @@ npm run check        # lint + typecheck + unit tests + production build
 - [x] Classroom knowledge checks with automatic scoring and question analysis
 - [x] Curriculum-aligned Grade 8 question banks and editable teacher check templates
 - [x] Separate the official Grade 8 missions from optional advanced technology labs
+- [x] Connect selected school missions to verified labs without creating a second XP source
 - [ ] Expand the official curriculum structure through grades 9–12
 - [ ] Expanded mentor analytics and admin usage dashboard

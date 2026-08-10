@@ -26,6 +26,29 @@ type LoginLabels = {
   guestProgressError: string;
 };
 
+export function isGuestMergeSettled(response: Pick<Response, "ok" | "status">) {
+  return response.ok || response.status === 409;
+}
+
+export function discardLocalGuestProgress(
+  clearProgress: () => void = clearStoredProgress,
+  storage: Pick<Storage, "removeItem"> = window.localStorage
+) {
+  // Local guest data is best-effort cleanup. A storage failure must not turn an
+  // already successful authentication into a blocked login.
+  try {
+    clearProgress();
+  } catch {
+    // Ignore unavailable or quota-restricted browser storage.
+  }
+
+  try {
+    storage.removeItem(guestContinueKey);
+  } catch {
+    // Ignore unavailable or quota-restricted browser storage.
+  }
+}
+
 export function LoginForm({
   initialMode = "login",
   labels,
@@ -58,12 +81,11 @@ export function LoginForm({
       body: JSON.stringify({ lessonIds: guestCompletedLessonIds })
     });
 
-    if (!response.ok) {
+    if (!isGuestMergeSettled(response)) {
       throw new Error(labels.guestProgressError);
     }
 
-    clearStoredProgress();
-    window.localStorage.removeItem(guestContinueKey);
+    discardLocalGuestProgress();
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
