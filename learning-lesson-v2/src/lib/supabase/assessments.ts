@@ -18,6 +18,7 @@ import {
 import { getCurrentSession } from "./auth";
 import { createClient } from "./server";
 import { getMyClassroomIds } from "./memberships";
+import { hasSupabaseEnv } from "./env";
 
 const assessmentColumns =
   "id, classroom_id, created_by, title, description, assessment_type, status, due_at, duration_minutes, question_count, created_at";
@@ -113,7 +114,7 @@ export async function getClassroomAssessments(classroomId: string): Promise<Asse
 
 export async function getTeacherAssessments(): Promise<Assessment[]> {
   const session = await getCurrentSession();
-  if (!session.user) {
+  if (!session.user || !hasSupabaseEnv()) {
     return [];
   }
 
