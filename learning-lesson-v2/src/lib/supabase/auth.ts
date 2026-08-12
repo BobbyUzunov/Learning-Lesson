@@ -2,6 +2,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "./server";
 import { createE2eUser, getE2eAuthState } from "./e2e-auth";
+import { isAdminEmailAllowed } from "./admin-allowlist";
 import { hasSupabaseEnv } from "./env";
 import { ensureUserProfile, type ProfileRow } from "./profile";
 
@@ -58,12 +59,15 @@ async function loadCurrentSession() {
       streak_count: 0
     } satisfies UserProfile);
 
+  const roleIsAdmin = normalizedProfile.role === "admin";
+  const allowlisted = isAdminEmailAllowed(normalizedProfile.email ?? user.email);
+
   return {
     configured: true,
     user,
     profile: normalizedProfile,
-    isAdmin: normalizedProfile.role === "admin",
-    isTeacher: normalizedProfile.role === "teacher" || normalizedProfile.role === "admin"
+    isAdmin: roleIsAdmin && allowlisted,
+    isTeacher: normalizedProfile.role === "teacher" || (roleIsAdmin && allowlisted)
   };
 }
 
@@ -83,6 +87,10 @@ export async function requireUser(message = "Please login to continue your learn
 
 export async function requireAdmin() {
   const session = await requireUser();
+
+  if (session.profile?.role === "admin" && !isAdminEmailAllowed(session.profile.email ?? session.user.email)) {
+    redirect(`/login?message=${encodeURIComponent("admin_allowlist")}`);
+  }
 
   if (!session.isAdmin) {
     redirect("/dashboard");

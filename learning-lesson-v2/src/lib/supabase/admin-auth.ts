@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAdminEmailAllowed } from "./admin-allowlist";
 import { createE2eUser, getE2eAuthState } from "./e2e-auth";
 import { createClient } from "./server";
 
@@ -21,9 +22,13 @@ export async function requireAdminUser() {
     return { error: NextResponse.json({ error: "not_authenticated" }, { status: 401 }) };
   }
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  const { data: profile } = await supabase.from("profiles").select("role, email").eq("id", user.id).maybeSingle();
   if (profile?.role !== "admin") {
     return { error: NextResponse.json({ error: "admin_required" }, { status: 403 }) };
+  }
+
+  if (!isAdminEmailAllowed(profile.email ?? user.email)) {
+    return { error: NextResponse.json({ error: "admin_allowlist" }, { status: 403 }) };
   }
 
   return { supabase, user };

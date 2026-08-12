@@ -1,6 +1,7 @@
 import { createClient } from "./server";
 import { getCurrentSession } from "./auth";
 import { hasSupabaseEnv } from "./env";
+import { throwLoadError } from "./load-error";
 import {
   mapClassroomReportRow,
   mapClassroomRow,
@@ -34,14 +35,18 @@ export async function getTeacherClassrooms(): Promise<Classroom[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("list_teacher_classrooms");
 
-  if (error || !data) {
-    return [];
+  if (error) {
+    throwLoadError("teacher_classrooms_unavailable", error);
   }
 
-  return (data as TeacherClassroomRpcRow[]).map((row) => mapClassroomRow(row, row.member_count ?? 0));
+  return ((data ?? []) as TeacherClassroomRpcRow[]).map((row) => mapClassroomRow(row, row.member_count ?? 0));
 }
 
 export async function getClassroomById(id: string): Promise<Classroom | null> {
+  if (!hasSupabaseEnv()) {
+    return null;
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_teacher_classroom", { p_classroom_id: id }).maybeSingle();
 
@@ -99,8 +104,8 @@ export async function getStudentClassrooms(): Promise<StudentClassroom[]> {
     .eq("student_id", session.user.id)
     .order("joined_at", { ascending: false });
 
-  if (error || !data) {
-    return [];
+  if (error) {
+    throwLoadError("student_classrooms_unavailable", error);
   }
 
   type MembershipRow = {
@@ -115,7 +120,7 @@ export async function getStudentClassrooms(): Promise<StudentClassroom[]> {
     } | null;
   };
 
-  return (data as unknown as MembershipRow[])
+  return ((data ?? []) as unknown as MembershipRow[])
     .filter((row): row is MembershipRow & { classrooms: NonNullable<MembershipRow["classrooms"]> } =>
       Boolean(row.classrooms)
     )

@@ -138,8 +138,7 @@ export function LoginForm({
     await supabase.auth.getSession();
 
     const { profile, error: profileError } = await ensureUserProfile(supabase, user, {
-      displayName: displayName.trim() || undefined,
-      role: mode === "register" ? accountRole : undefined
+      displayName: displayName.trim() || undefined
     });
 
     if (profileError) {
@@ -162,7 +161,7 @@ export function LoginForm({
     const nextPath =
       mode === "register"
         ? accountRole === "teacher"
-          ? "/teacher"
+          ? "/dashboard?teacherPending=1"
           : requestedPath === "/dashboard"
             ? "/classes"
             : requestedPath

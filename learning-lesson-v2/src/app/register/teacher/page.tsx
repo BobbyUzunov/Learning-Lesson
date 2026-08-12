@@ -32,7 +32,7 @@ export default async function TeacherRegisterPage() {
       </div>
 
       <div className="mt-8">
-        <LoginForm accountRole="teacher" initialMode="register" labels={copy.login} redirectPath="/teacher" />
+        <LoginForm accountRole="teacher" initialMode="register" labels={copy.login} redirectPath="/dashboard" />
       </div>
 
       <div className="mx-auto mt-6 flex max-w-md flex-col items-center gap-2 text-center text-sm text-ink/55">

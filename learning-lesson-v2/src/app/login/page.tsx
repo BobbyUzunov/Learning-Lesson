@@ -12,6 +12,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const copy = t(language);
   const { message, redirect } = await searchParams;
   const redirectPath = redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : "/dashboard";
+  const displayMessage =
+    message === "admin_allowlist"
+      ? copy.admin.allowlistMessage
+      : message
+        ? message
+        : null;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
@@ -19,8 +25,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-mint">{copy.login.badge}</p>
         <h1 className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">{copy.login.title}</h1>
         <p className="mt-3 text-base leading-7 text-ink/60">{copy.login.subtitle}</p>
-        {message ? (
-          <p className="mt-4 rounded-xl bg-mint/15 px-4 py-3 text-sm font-bold text-ink">{message}</p>
+        {displayMessage ? (
+          <p className="mt-4 rounded-xl bg-mint/15 px-4 py-3 text-sm font-bold text-ink">{displayMessage}</p>
         ) : null}
       </div>
 

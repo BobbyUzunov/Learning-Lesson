@@ -58,7 +58,8 @@ export function createE2eUser(role: E2eRole = "user"): User {
     id: E2E_USER_ID,
     aud: "authenticated",
     role: "authenticated",
-    email: role === "teacher" ? "e2e-teacher@test.local" : "e2e@test.local",
+    email:
+      role === "admin" ? "e2e-admin@test.local" : role === "teacher" ? "e2e-teacher@test.local" : "e2e@test.local",
     email_confirmed_at: new Date().toISOString(),
     phone: "",
     confirmed_at: new Date().toISOString(),

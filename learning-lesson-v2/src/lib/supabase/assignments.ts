@@ -1,6 +1,7 @@
 import { createClient } from "./server";
 import { getCurrentSession } from "./auth";
 import { hasSupabaseEnv } from "./env";
+import { throwLoadError } from "./load-error";
 import { getMyClassroomIds } from "./memberships";
 import {
   mapAssignmentReportRow,
@@ -134,11 +135,11 @@ export async function getPendingTeacherReviews(): Promise<PendingTeacherReview[]
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_pending_teacher_reviews");
 
-  if (error || !data) {
-    return [];
+  if (error) {
+    throwLoadError("teacher_pending_reviews_unavailable", error);
   }
 
-  return (data as PendingTeacherReviewRpcRow[]).map((row) => ({
+  return ((data ?? []) as PendingTeacherReviewRpcRow[]).map((row) => ({
     classroomId: row.classroom_id,
     classroomName: row.classroom_name,
     assignmentId: row.assignment_id,
@@ -150,7 +151,7 @@ export async function getPendingTeacherReviews(): Promise<PendingTeacherReview[]
 
 export async function getMyAssignments(): Promise<ClassroomAssignment[]> {
   const session = await getCurrentSession();
-  if (!session.user) {
+  if (!session.user || !hasSupabaseEnv()) {
     return [];
   }
 
@@ -168,11 +169,11 @@ export async function getMyAssignments(): Promise<ClassroomAssignment[]> {
     .in("classroom_id", classroomIds)
     .order("due_at", { ascending: true, nullsFirst: false });
 
-  if (error || !data) {
-    return [];
+  if (error) {
+    throwLoadError("student_assignments_unavailable", error);
   }
 
-  return (data as unknown as StudentAssignmentRow[]).map((row) => {
+  return ((data ?? []) as unknown as StudentAssignmentRow[]).map((row) => {
     const ownSubmission =
       row.assignment_submissions?.find((submission) => submission.student_id === session.user!.id) ?? null;
 

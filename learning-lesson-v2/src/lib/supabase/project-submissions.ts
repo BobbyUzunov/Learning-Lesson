@@ -1,5 +1,6 @@
 import { createClient } from "./server";
 import { hasSupabaseEnv } from "./env";
+import { throwLoadError } from "./load-error";
 import type { AdminProjectSubmissionRecord, ProjectSubmissionRecord } from "../projects/types";
 
 const submissionSelect =
@@ -102,8 +103,7 @@ export async function getPendingReviewSubmissions(): Promise<AdminProjectSubmiss
     .order("submitted_at", { ascending: true });
 
   if (error) {
-    console.error("Failed to load pending review submissions:", error.message);
-    return [];
+    throwLoadError("admin_pending_reviews_unavailable", error);
   }
 
   const rows = (data ?? []) as Record<string, unknown>[];

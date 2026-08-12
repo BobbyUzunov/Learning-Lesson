@@ -12,10 +12,15 @@ import { requireUser } from "@/lib/supabase/auth";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams
+}: {
+  searchParams: Promise<{ teacherPending?: string }>;
+}) {
   const language = await getLanguage();
   const copy = t(language);
   const session = await requireUser();
+  const { teacherPending } = await searchParams;
 
   if (session.isTeacher && !session.isAdmin) {
     redirect("/teacher");
@@ -89,6 +94,11 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
+      {teacherPending === "1" ? (
+        <p className="mb-4 rounded-xl border border-mint/30 bg-mint/10 px-4 py-3 text-sm font-semibold text-ink">
+          {copy.login.teacherPendingBanner}
+        </p>
+      ) : null}
       <div className="pb-2">
       <section className="relative overflow-hidden rounded-2xl bg-ink text-paper">
         <span className="pointer-events-none absolute -left-16 -top-10 size-[18rem] rounded-full bg-mint/30 blur-3xl" />

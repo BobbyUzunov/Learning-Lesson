@@ -19,6 +19,7 @@ import { getCurrentSession } from "./auth";
 import { createClient } from "./server";
 import { getMyClassroomIds } from "./memberships";
 import { hasSupabaseEnv } from "./env";
+import { throwLoadError } from "./load-error";
 
 const assessmentColumns =
   "id, classroom_id, created_by, title, description, assessment_type, status, due_at, duration_minutes, question_count, created_at";
@@ -125,7 +126,10 @@ export async function getTeacherAssessments(): Promise<Assessment[]> {
   }
 
   const { data: classrooms, error: classroomError } = await classroomQuery;
-  if (classroomError || !classrooms?.length) {
+  if (classroomError) {
+    throwLoadError("teacher_assessments_classrooms_unavailable", classroomError);
+  }
+  if (!classrooms?.length) {
     return [];
   }
 
@@ -138,11 +142,11 @@ export async function getTeacherAssessments(): Promise<Assessment[]> {
     .in("classroom_id", classroomIds)
     .order("created_at", { ascending: false });
 
-  if (error || !data) {
-    return [];
+  if (error) {
+    throwLoadError("teacher_assessments_unavailable", error);
   }
 
-  return (data as unknown as AssessmentListRow[]).map((row) => mapAssessmentListRow(row));
+  return ((data ?? []) as unknown as AssessmentListRow[]).map((row) => mapAssessmentListRow(row));
 }
 
 export async function getMyAssessments(): Promise<Assessment[]> {
@@ -165,11 +169,11 @@ export async function getMyAssessments(): Promise<Assessment[]> {
     .in("classroom_id", classroomIds)
     .order("due_at", { ascending: true, nullsFirst: false });
 
-  if (error || !data) {
-    return [];
+  if (error) {
+    throwLoadError("student_assessments_unavailable", error);
   }
 
-  return (data as unknown as AssessmentListRow[]).map((row) => mapAssessmentListRow(row, true));
+  return ((data ?? []) as unknown as AssessmentListRow[]).map((row) => mapAssessmentListRow(row, true));
 }
 
 export async function getTeacherAssessmentById(
