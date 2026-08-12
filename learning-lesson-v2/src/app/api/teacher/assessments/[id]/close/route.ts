@@ -8,7 +8,14 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-const closeAssessmentErrors = ["not_authorized", "assessment_not_found", "assessment_closed"] as const;
+const closeAssessmentErrors = ["not_authenticated", "not_authorized", "assessment_not_found"] as const;
+
+function closeAssessmentErrorStatus(code: string) {
+  if (code === "not_authenticated") return 401;
+  if (code === "not_authorized") return 403;
+  if (code === "assessment_not_found") return 404;
+  return 500;
+}
 
 export async function POST(_request: Request, context: RouteContext) {
   if (!hasSupabaseEnv()) {
@@ -27,9 +34,7 @@ export async function POST(_request: Request, context: RouteContext) {
 
   if (error) {
     const code = resolvePublicErrorCode(error.message, closeAssessmentErrors, "close_failed");
-    const status =
-      code === "not_authorized" ? 403 : code === "assessment_not_found" ? 404 : code === "close_failed" ? 500 : 400;
-    return NextResponse.json({ error: code }, { status });
+    return NextResponse.json({ error: code }, { status: closeAssessmentErrorStatus(code) });
   }
 
   revalidatePath(`/teacher/assessments/${assessmentId}`);

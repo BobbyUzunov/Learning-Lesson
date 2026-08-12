@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { readJsonObject } from "@/lib/http";
+import { readJsonObject, resolvePublicErrorCode } from "@/lib/http";
 import { requireTeacherUser } from "@/lib/supabase/teacher-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -8,6 +8,21 @@ type TransferRow = {
   id: string;
   teacher_id: string;
 };
+
+const transferClassroomErrors = [
+  "not_authenticated",
+  "classroom_not_found",
+  "not_authorized",
+  "invalid_new_owner"
+] as const;
+
+function transferClassroomErrorStatus(code: string) {
+  if (code === "not_authenticated") return 401;
+  if (code === "not_authorized") return 403;
+  if (code === "classroom_not_found") return 404;
+  if (code === "transfer_failed") return 500;
+  return 400;
+}
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasSupabaseEnv()) {
@@ -35,8 +50,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .single<TransferRow>();
 
   if (error) {
-    const statusCode = error.message.includes("not_authorized") ? 403 : 400;
-    return NextResponse.json({ error: error.message }, { status: statusCode });
+    const code = resolvePublicErrorCode(error.message, transferClassroomErrors, "transfer_failed");
+    return NextResponse.json({ error: code }, { status: transferClassroomErrorStatus(code) });
   }
 
   revalidatePath("/teacher");

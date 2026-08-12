@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { toProjectRow } from "@/lib/cms/serialize";
 import { validateProjectUpdate } from "@/lib/cms/validate";
 import { readJsonObject } from "@/lib/http";
+import { logServerError } from "@/lib/observability";
 import { requireAdminUser } from "@/lib/supabase/admin-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -34,7 +35,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { data, error } = await auth.supabase!.from("course_projects").update(row).eq("id", id).select("id").maybeSingle();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    logServerError("admin_project_update_failed", {
+      projectId: id,
+      detail: error.message.slice(0, 200)
+    });
+    return NextResponse.json({ error: "project_update_failed" }, { status: 500 });
   }
 
   if (!data) {

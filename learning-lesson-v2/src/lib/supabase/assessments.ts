@@ -18,7 +18,7 @@ import {
 import { getCurrentSession } from "./auth";
 import { createClient } from "./server";
 import { getMyClassroomIds } from "./memberships";
-import { hasSupabaseEnv } from "./env";
+import { hasSupabaseDataEnv } from "./data-env";
 import { throwLoadError } from "./load-error";
 
 const assessmentColumns =
@@ -97,6 +97,10 @@ function mapAssessmentListRow(row: AssessmentListRow, ownAttempt = false): Asses
 }
 
 export async function getClassroomAssessments(classroomId: string): Promise<Assessment[]> {
+  if (!hasSupabaseDataEnv()) {
+    return [];
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("classroom_assessments")
@@ -106,26 +110,23 @@ export async function getClassroomAssessments(classroomId: string): Promise<Asse
     .eq("classroom_id", classroomId)
     .order("created_at", { ascending: false });
 
-  if (error || !data) {
-    return [];
+  if (error) {
+    throwLoadError("teacher_classroom_assessments_unavailable", error);
   }
 
-  return (data as unknown as AssessmentListRow[]).map((row) => mapAssessmentListRow(row));
+  return ((data ?? []) as unknown as AssessmentListRow[]).map((row) => mapAssessmentListRow(row));
 }
 
 export async function getTeacherAssessments(): Promise<Assessment[]> {
   const session = await getCurrentSession();
-  if (!session.user || !hasSupabaseEnv()) {
+  if (!session.user || !hasSupabaseDataEnv()) {
     return [];
   }
 
   const supabase = await createClient();
-  let classroomQuery = supabase.from("classrooms").select("id");
-  if (!session.isAdmin) {
-    classroomQuery = classroomQuery.eq("teacher_id", session.user.id);
-  }
-
-  const { data: classrooms, error: classroomError } = await classroomQuery;
+  const { data: classrooms, error: classroomError } = await supabase.rpc(
+    "list_teacher_classrooms"
+  );
   if (classroomError) {
     throwLoadError("teacher_assessments_classrooms_unavailable", classroomError);
   }
@@ -133,7 +134,7 @@ export async function getTeacherAssessments(): Promise<Assessment[]> {
     return [];
   }
 
-  const classroomIds = classrooms.map((classroom) => classroom.id as string);
+  const classroomIds = (classrooms as { id: string }[]).map((classroom) => classroom.id);
   const { data, error } = await supabase
     .from("classroom_assessments")
     .select(
@@ -151,7 +152,7 @@ export async function getTeacherAssessments(): Promise<Assessment[]> {
 
 export async function getMyAssessments(): Promise<Assessment[]> {
   const session = await getCurrentSession();
-  if (!session.user || !hasSupabaseEnv()) {
+  if (!session.user || !hasSupabaseDataEnv()) {
     return [];
   }
 
@@ -179,6 +180,10 @@ export async function getMyAssessments(): Promise<Assessment[]> {
 export async function getTeacherAssessmentById(
   assessmentId: string
 ): Promise<(Assessment & { questions: TeacherAssessmentQuestion[] }) | null> {
+  if (!hasSupabaseDataEnv()) {
+    return null;
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("classroom_assessments")
@@ -188,7 +193,11 @@ export async function getTeacherAssessmentById(
     .eq("id", assessmentId)
     .maybeSingle();
 
-  if (error || !data) {
+  if (error) {
+    throwLoadError("teacher_assessment_unavailable", error);
+  }
+
+  if (!data) {
     return null;
   }
 
@@ -213,12 +222,20 @@ export async function getTeacherAssessmentById(
 }
 
 export async function getStudentAssessmentById(assessmentId: string): Promise<StudentAssessment | null> {
+  if (!hasSupabaseDataEnv()) {
+    return null;
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_assessment_for_student", {
     p_assessment_id: assessmentId
   });
 
-  if (error || !data?.length) {
+  if (error) {
+    throwLoadError("student_assessment_unavailable", error);
+  }
+
+  if (!data?.length) {
     return null;
   }
 
@@ -253,6 +270,10 @@ export async function getStudentAssessmentById(assessmentId: string): Promise<St
 }
 
 export async function getMyAssessmentAttempt(assessmentId: string): Promise<AssessmentAttempt | null> {
+  if (!hasSupabaseDataEnv()) {
+    return null;
+  }
+
   const session = await getCurrentSession();
   if (!session.user) {
     return null;
@@ -266,7 +287,11 @@ export async function getMyAssessmentAttempt(assessmentId: string): Promise<Asse
     .eq("student_id", session.user.id)
     .maybeSingle();
 
-  if (error || !data) {
+  if (error) {
+    throwLoadError("student_assessment_attempt_unavailable", error);
+  }
+
+  if (!data) {
     return null;
   }
 
@@ -276,16 +301,20 @@ export async function getMyAssessmentAttempt(assessmentId: string): Promise<Asse
 export async function getMyAssessmentReview(
   assessmentId: string
 ): Promise<AssessmentReviewQuestion[]> {
+  if (!hasSupabaseDataEnv()) {
+    return [];
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_assessment_review", {
     p_assessment_id: assessmentId
   });
 
-  if (error || !data) {
-    return [];
+  if (error) {
+    throwLoadError("student_assessment_review_unavailable", error);
   }
 
-  return (data as AssessmentReviewRpcRow[]).map((row) => ({
+  return ((data ?? []) as AssessmentReviewRpcRow[]).map((row) => ({
     id: row.question_id,
     prompt: row.prompt,
     options: stringOptions(row.options),
@@ -299,29 +328,37 @@ export async function getMyAssessmentReview(
 }
 
 export async function getAssessmentReport(assessmentId: string): Promise<AssessmentReportRow[]> {
+  if (!hasSupabaseDataEnv()) {
+    return [];
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_assessment_report", {
     p_assessment_id: assessmentId
   });
 
-  if (error || !data) {
-    return [];
+  if (error) {
+    throwLoadError("teacher_assessment_report_unavailable", error);
   }
 
-  return (data as AssessmentReportRpcRow[]).map(mapAssessmentReportRow);
+  return ((data ?? []) as AssessmentReportRpcRow[]).map(mapAssessmentReportRow);
 }
 
 export async function getAssessmentQuestionAnalysis(
   assessmentId: string
 ): Promise<AssessmentQuestionAnalysis[]> {
+  if (!hasSupabaseDataEnv()) {
+    return [];
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_assessment_question_analysis", {
     p_assessment_id: assessmentId
   });
 
-  if (error || !data) {
-    return [];
+  if (error) {
+    throwLoadError("teacher_assessment_analysis_unavailable", error);
   }
 
-  return (data as AssessmentAnalysisRpcRow[]).map(mapAssessmentAnalysisRow);
+  return ((data ?? []) as AssessmentAnalysisRpcRow[]).map(mapAssessmentAnalysisRow);
 }

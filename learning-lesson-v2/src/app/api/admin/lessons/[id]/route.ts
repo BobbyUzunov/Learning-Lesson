@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { toLessonRow, toMetadataRow } from "@/lib/cms/serialize";
 import { validateLessonUpdate } from "@/lib/cms/validate";
 import { readJsonObject } from "@/lib/http";
+import { logServerError } from "@/lib/observability";
 import { requireAdminUser } from "@/lib/supabase/admin-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -39,7 +40,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     .maybeSingle();
 
   if (lookupError) {
-    return NextResponse.json({ error: lookupError.message }, { status: 500 });
+    logServerError("admin_lesson_lookup_failed", {
+      lessonId: id,
+      detail: lookupError.message.slice(0, 200)
+    });
+    return NextResponse.json({ error: "lesson_update_failed" }, { status: 500 });
   }
 
   if (!existingLesson) {
@@ -49,14 +54,22 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (Object.keys(lessonRow).length > 1) {
     const { error } = await auth.supabase!.from("lessons").update(lessonRow).eq("id", id);
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      logServerError("admin_lesson_update_failed", {
+        lessonId: id,
+        detail: error.message.slice(0, 200)
+      });
+      return NextResponse.json({ error: "lesson_update_failed" }, { status: 500 });
     }
   }
 
   if (metadataRow) {
     const { error } = await auth.supabase!.from("lesson_metadata").upsert(metadataRow, { onConflict: "lesson_id" });
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      logServerError("admin_lesson_metadata_update_failed", {
+        lessonId: id,
+        detail: error.message.slice(0, 200)
+      });
+      return NextResponse.json({ error: "lesson_update_failed" }, { status: 500 });
     }
   }
 

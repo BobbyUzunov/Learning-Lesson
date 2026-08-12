@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { readJsonObject } from "@/lib/http";
+import { readJsonObject, resolvePublicErrorCode } from "@/lib/http";
 import { requireTeacherUser } from "@/lib/supabase/teacher-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -9,6 +9,15 @@ type StatusRow = {
   status: string;
   join_code_enabled: boolean;
 };
+
+const updateClassroomStatusErrors = ["not_authenticated", "invalid_status", "not_authorized"] as const;
+
+function updateClassroomStatusErrorStatus(code: string) {
+  if (code === "not_authenticated") return 401;
+  if (code === "not_authorized") return 403;
+  if (code === "status_update_failed") return 500;
+  return 400;
+}
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasSupabaseEnv()) {
@@ -36,8 +45,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .single<StatusRow>();
 
   if (error) {
-    const statusCode = error.message.includes("not_authorized") ? 403 : 400;
-    return NextResponse.json({ error: error.message }, { status: statusCode });
+    const code = resolvePublicErrorCode(error.message, updateClassroomStatusErrors, "status_update_failed");
+    return NextResponse.json({ error: code }, { status: updateClassroomStatusErrorStatus(code) });
   }
 
   revalidatePath("/teacher");

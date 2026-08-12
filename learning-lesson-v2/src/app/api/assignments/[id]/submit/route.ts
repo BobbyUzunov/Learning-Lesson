@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { readJsonObject } from "@/lib/http";
+import { readJsonObject, resolvePublicErrorCode } from "@/lib/http";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -14,6 +14,23 @@ type SubmitRow = {
   status: string;
   submitted_at: string;
 };
+
+const submitAssignmentErrors = [
+  "not_authenticated",
+  "assignment_not_found",
+  "not_authorized",
+  "deliverable_required",
+  "invalid_deliverable_text",
+  "invalid_deliverable_url"
+] as const;
+
+function submitAssignmentErrorStatus(code: string) {
+  if (code === "not_authenticated") return 401;
+  if (code === "not_authorized") return 403;
+  if (code === "assignment_not_found") return 404;
+  if (code === "submission_failed") return 500;
+  return 400;
+}
 
 export async function POST(request: Request, context: RouteContext) {
   if (!hasSupabaseEnv()) {
@@ -47,12 +64,8 @@ export async function POST(request: Request, context: RouteContext) {
     .single<SubmitRow>();
 
   if (error) {
-    const status = error.message.includes("not_authorized")
-      ? 403
-      : error.message.includes("assignment_not_found")
-        ? 404
-        : 400;
-    return NextResponse.json({ error: error.message }, { status });
+    const code = resolvePublicErrorCode(error.message, submitAssignmentErrors, "submission_failed");
+    return NextResponse.json({ error: code }, { status: submitAssignmentErrorStatus(code) });
   }
 
   revalidatePath(`/assignments/${assignmentId}`);

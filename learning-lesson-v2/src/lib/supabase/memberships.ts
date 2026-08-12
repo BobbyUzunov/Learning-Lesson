@@ -1,11 +1,12 @@
 import { cache } from "react";
 import { getCurrentSession } from "./auth";
 import { createClient } from "./server";
-import { hasSupabaseEnv } from "./env";
+import { hasSupabaseDataEnv } from "./data-env";
+import { throwLoadError } from "./load-error";
 
 async function loadMyClassroomIds(): Promise<string[]> {
   const session = await getCurrentSession();
-  if (!session.user || !hasSupabaseEnv()) {
+  if (!session.user || !hasSupabaseDataEnv()) {
     return [];
   }
 
@@ -15,11 +16,11 @@ async function loadMyClassroomIds(): Promise<string[]> {
     .select("classroom_id")
     .eq("student_id", session.user.id);
 
-  if (error || !data) {
-    return [];
+  if (error) {
+    throwLoadError("student_classroom_memberships_unavailable", error);
   }
 
-  return data.map((row) => row.classroom_id as string);
+  return (data ?? []).map((row) => row.classroom_id as string);
 }
 
 export const getMyClassroomIds = cache(loadMyClassroomIds);

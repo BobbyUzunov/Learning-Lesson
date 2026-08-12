@@ -1,6 +1,6 @@
 import { createClient } from "./server";
 import { getCurrentSession } from "./auth";
-import { hasSupabaseEnv } from "./env";
+import { hasSupabaseDataEnv } from "./data-env";
 import { throwLoadError } from "./load-error";
 import { getMyClassroomIds } from "./memberships";
 import {
@@ -74,6 +74,10 @@ function missionExtras(mission: MissionJoin | null): Partial<ClassroomAssignment
 }
 
 export async function getClassroomAssignments(classroomId: string): Promise<ClassroomAssignment[]> {
+  if (!hasSupabaseDataEnv()) {
+    return [];
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("classroom_assignments")
@@ -83,16 +87,20 @@ export async function getClassroomAssignments(classroomId: string): Promise<Clas
     .eq("classroom_id", classroomId)
     .order("created_at", { ascending: false });
 
-  if (error || !data) {
-    return [];
+  if (error) {
+    throwLoadError("teacher_classroom_assignments_unavailable", error);
   }
 
-  return (data as unknown as AssignmentWithMission[]).map((row) =>
+  return ((data ?? []) as unknown as AssignmentWithMission[]).map((row) =>
     mapClassroomAssignmentRow(row, missionExtras(row.curriculum_missions))
   );
 }
 
 export async function getAssignmentById(id: string): Promise<ClassroomAssignment | null> {
+  if (!hasSupabaseDataEnv()) {
+    return null;
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("classroom_assignments")
@@ -102,7 +110,11 @@ export async function getAssignmentById(id: string): Promise<ClassroomAssignment
     .eq("id", id)
     .maybeSingle();
 
-  if (error || !data) {
+  if (error) {
+    throwLoadError("assignment_unavailable", error);
+  }
+
+  if (!data) {
     return null;
   }
 
@@ -114,21 +126,25 @@ export async function getAssignmentById(id: string): Promise<ClassroomAssignment
 }
 
 export async function getAssignmentReport(assignmentId: string): Promise<AssignmentReportRow[]> {
+  if (!hasSupabaseDataEnv()) {
+    return [];
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_assignment_report", {
     p_assignment_id: assignmentId
   });
 
-  if (error || !data) {
-    return [];
+  if (error) {
+    throwLoadError("teacher_assignment_report_unavailable", error);
   }
 
-  return (data as AssignmentReportRpcRow[]).map(mapAssignmentReportRow);
+  return ((data ?? []) as AssignmentReportRpcRow[]).map(mapAssignmentReportRow);
 }
 
 export async function getPendingTeacherReviews(): Promise<PendingTeacherReview[]> {
   const session = await getCurrentSession();
-  if (!session.user || !hasSupabaseEnv()) {
+  if (!session.user || !hasSupabaseDataEnv()) {
     return [];
   }
 
@@ -151,7 +167,7 @@ export async function getPendingTeacherReviews(): Promise<PendingTeacherReview[]
 
 export async function getMyAssignments(): Promise<ClassroomAssignment[]> {
   const session = await getCurrentSession();
-  if (!session.user || !hasSupabaseEnv()) {
+  if (!session.user || !hasSupabaseDataEnv()) {
     return [];
   }
 
@@ -191,6 +207,10 @@ export async function getMyAssignments(): Promise<ClassroomAssignment[]> {
 export async function getMySubmissionForAssignment(
   assignmentId: string
 ): Promise<AssignmentSubmission | null> {
+  if (!hasSupabaseDataEnv()) {
+    return null;
+  }
+
   const session = await getCurrentSession();
   if (!session.user) {
     return null;
@@ -206,7 +226,11 @@ export async function getMySubmissionForAssignment(
     .eq("student_id", session.user.id)
     .maybeSingle();
 
-  if (error || !data) {
+  if (error) {
+    throwLoadError("student_assignment_submission_unavailable", error);
+  }
+
+  if (!data) {
     return null;
   }
 
