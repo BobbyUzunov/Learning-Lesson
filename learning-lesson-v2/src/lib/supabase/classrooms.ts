@@ -18,8 +18,12 @@ type ClassroomWithCountRow = ClassroomRow & {
 
 type TransferCandidateRpcRow = { id: string; label: string };
 
-const classroomColumns =
-  "id, teacher_id, name, description, specialty_id, grade_level, academic_year, status, join_code, join_code_enabled, created_at";
+type TeacherClassroomRpcRow = ClassroomRow & {
+  member_count: number;
+};
+
+const classroomColumnsWithoutJoinCode =
+  "id, teacher_id, name, description, specialty_id, grade_level, academic_year, status, join_code_enabled, created_at";
 
 export async function getTeacherClassrooms(): Promise<Classroom[]> {
   const session = await getCurrentSession();
@@ -28,35 +32,47 @@ export async function getTeacherClassrooms(): Promise<Classroom[]> {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("classrooms")
-    .select(`${classroomColumns}, classroom_members(count)`)
-    .eq("teacher_id", session.user.id)
-    .order("created_at", { ascending: false });
+  const { data, error } = await supabase.rpc("list_teacher_classrooms");
 
   if (error || !data) {
     return [];
   }
 
-  return (data as ClassroomWithCountRow[]).map((row) =>
-    mapClassroomRow(row, row.classroom_members?.[0]?.count ?? 0)
-  );
+  return (data as TeacherClassroomRpcRow[]).map((row) => mapClassroomRow(row, row.member_count ?? 0));
 }
 
 export async function getClassroomById(id: string): Promise<Classroom | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const { data, error } = await supabase.rpc("get_teacher_classroom", { p_classroom_id: id }).maybeSingle();
+
+  if (!error && data) {
+    const row = data as TeacherClassroomRpcRow;
+    return mapClassroomRow(row, row.member_count ?? 0);
+  }
+
+  // Fallback without join code for non-teacher authorized readers (should be rare).
+  const { data: fallback, error: fallbackError } = await supabase
     .from("classrooms")
-    .select(`${classroomColumns}, classroom_members(count)`)
+    .select(`${classroomColumnsWithoutJoinCode}, classroom_members(count)`)
     .eq("id", id)
     .maybeSingle();
 
-  if (error || !data) {
+  if (fallbackError || !fallback) {
     return null;
   }
 
-  const row = data as ClassroomWithCountRow;
-  return mapClassroomRow(row, row.classroom_members?.[0]?.count ?? 0);
+  const row = fallback as Omit<ClassroomWithCountRow, "join_code"> & {
+    join_code?: string | null;
+    classroom_members: { count: number }[] | null;
+  };
+
+  return mapClassroomRow(
+    {
+      ...row,
+      join_code: row.join_code ?? ""
+    } as ClassroomWithCountRow,
+    row.classroom_members?.[0]?.count ?? 0
+  );
 }
 
 export async function getClassroomReport(id: string): Promise<ClassroomReportRow[]> {

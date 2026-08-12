@@ -67,7 +67,11 @@ export function ClassroomReportTable({
                 <tr className="border-t border-ink/10" key={row.studentId}>
                   <td className="px-4 py-3">
                     <p className="font-bold">{row.displayName || copy.common.learner}</p>
-                    <p className="text-xs font-mono text-ink/50">{shortStudentId(row.studentId)}</p>
+                    {row.email ? (
+                      <p className="text-xs text-ink/50">{row.email}</p>
+                    ) : (
+                      <p className="text-xs font-mono text-ink/50">{shortStudentId(row.studentId)}</p>
+                    )}
                   </td>
                   <td className="px-4 py-3">{row.completedLessons}</td>
                   <td className="px-4 py-3">{row.xp}</td>

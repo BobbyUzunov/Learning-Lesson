@@ -57,13 +57,10 @@ export function ClassroomControls({
   const nextStatus = status === "active" ? "archived" : "active";
 
   return (
-    <section className="rounded-lg border border-ink/10 bg-white/80 p-5 shadow-soft">
-      <h2 className="text-lg font-black">{copy.teacher.manageTitle}</h2>
-      <p className="mt-2 text-sm text-ink/70">{copy.teacher.manageSubtitle}</p>
-
-      <div className="mt-4 flex flex-wrap gap-3">
+    <div className="p-3 sm:p-4">
+      <div className="flex flex-wrap gap-2">
         <button
-          className="focus-ring inline-flex items-center gap-2 rounded-md border border-ink/15 px-4 py-2 text-sm font-bold transition hover:bg-ink/5 disabled:opacity-60"
+          className="focus-ring inline-flex items-center gap-2 rounded-xl border border-ink/12 px-3.5 py-2 text-sm font-bold transition hover:bg-ink/5 disabled:opacity-60"
           disabled={loading !== null}
           onClick={() =>
             void callApi(
@@ -84,7 +81,7 @@ export function ClassroomControls({
         </button>
 
         <button
-          className="focus-ring inline-flex items-center gap-2 rounded-md border border-ink/15 px-4 py-2 text-sm font-bold transition hover:bg-ink/5 disabled:opacity-60"
+          className="focus-ring inline-flex items-center gap-2 rounded-xl border border-ink/12 px-3.5 py-2 text-sm font-bold transition hover:bg-ink/5 disabled:opacity-60"
           disabled={loading !== null}
           onClick={() =>
             void callApi(
@@ -101,7 +98,7 @@ export function ClassroomControls({
         </button>
 
         <button
-          className="focus-ring inline-flex items-center gap-2 rounded-md border border-ink/15 px-4 py-2 text-sm font-bold transition hover:bg-ink/5 disabled:opacity-60"
+          className="focus-ring inline-flex items-center gap-2 rounded-xl border border-ink/12 px-3.5 py-2 text-sm font-bold transition hover:bg-ink/5 disabled:opacity-60"
           disabled={loading !== null || (status === "archived" && !joinCodeEnabled)}
           onClick={() =>
             void callApi(
@@ -122,14 +119,14 @@ export function ClassroomControls({
         </button>
       </div>
 
-      {canTransfer ? (
-        <div className="mt-5 border-t border-ink/10 pt-5">
-          <label className="block text-sm font-bold text-ink/80" htmlFor="transfer-owner">
+      {canTransfer && transferCandidates.length > 0 ? (
+        <div className="mt-4 border-t border-ink/8 pt-4">
+          <label className="block text-sm font-bold text-ink/70" htmlFor="transfer-owner">
             {copy.teacher.transferLabel}
           </label>
-          <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row">
             <select
-              className="focus-ring w-full rounded-md border border-ink/15 bg-white px-3 py-3"
+              className="focus-ring w-full rounded-xl border border-ink/12 bg-white px-3 py-2.5"
               id="transfer-owner"
               onChange={(event) => setNewOwnerId(event.target.value)}
               value={newOwnerId}
@@ -142,7 +139,7 @@ export function ClassroomControls({
               ))}
             </select>
             <button
-              className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-ink px-4 py-3 text-sm font-bold text-paper transition hover:bg-ink/90 disabled:opacity-60"
+              className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-bold text-paper transition hover:bg-ink/90 disabled:opacity-60"
               disabled={loading !== null || !newOwnerId}
               onClick={() =>
                 void callApi(
@@ -161,8 +158,8 @@ export function ClassroomControls({
         </div>
       ) : null}
 
-      {error ? <p className="mt-4 rounded-md bg-coral/15 px-4 py-3 text-sm font-semibold text-ink">{error}</p> : null}
-      {message ? <p className="mt-4 rounded-md bg-mint/15 px-4 py-3 text-sm font-semibold text-ink">{message}</p> : null}
-    </section>
+      {error ? <p className="mt-3 rounded-xl bg-coral/15 px-3 py-2 text-sm font-semibold text-ink">{error}</p> : null}
+      {message ? <p className="mt-3 rounded-xl bg-mint/15 px-3 py-2 text-sm font-semibold text-ink">{message}</p> : null}
+    </div>
   );
 }

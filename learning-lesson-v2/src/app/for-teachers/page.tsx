@@ -36,14 +36,14 @@ export default async function ForTeachersPage() {
             ) : (
               <Link
                 className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-mint px-5 py-3 font-bold text-ink transition hover:bg-mint/90"
-                href="/login"
+                href="/register/teacher"
               >
-                {copy.loginCta}
+                {copy.registerCta}
                 <ArrowRight className="size-5" />
               </Link>
             )}
-            <Link className="text-sm font-semibold text-paper/70 underline-offset-4 transition hover:text-paper hover:underline" href="/">
-              {copy.backHome}
+            <Link className="text-sm font-semibold text-paper/70 underline-offset-4 transition hover:text-paper hover:underline" href="/login">
+              {copy.loginCta}
             </Link>
           </div>
         </div>

@@ -27,7 +27,7 @@ test("guest can open the first free lesson", async ({ page }) => {
 
 test("guest cannot open locked lessons", async ({ page }) => {
   await page.goto("/lesson/2", { waitUntil: "domcontentloaded" });
-  await expect(page).toHaveURL(/\/courses\?guestLocked=1/, { timeout: 15_000 });
+  await expect(page).toHaveURL(/\/paths\?tab=labs&guestLocked=1/, { timeout: 15_000 });
 });
 
 test("guest completion hydrates the linked curriculum mission and lab", async ({ page }) => {

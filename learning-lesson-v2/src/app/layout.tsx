@@ -33,33 +33,42 @@ export default async function RootLayout({
   const copy = t(language);
 
   let navItems: { href: string; label: string }[] = [];
+  let brandHref = "/";
+  let roleLabel: string | null = null;
+  let role: "teacher" | "admin" | "student" | null = null;
 
   if (session.isAdmin) {
+    brandHref = "/admin";
+    role = "admin";
+    roleLabel = copy.nav.roleAdmin;
     navItems = [
       { href: "/admin", label: copy.nav.adminHome },
       { href: "/admin/teachers", label: copy.nav.adminRoles },
       { href: "/admin/reviews", label: copy.nav.adminReviews }
     ];
   } else if (session.isTeacher) {
+    brandHref = "/teacher";
+    role = "teacher";
+    roleLabel = copy.nav.roleTeacher;
     navItems = [
-      { href: "/teacher", label: copy.nav.teacherClasses },
-      { href: "/teacher/assessments", label: copy.nav.teacherAssessments },
+      { href: "/teacher", label: copy.nav.teacherHome },
+      { href: "/teacher/classes", label: copy.nav.teacherClasses },
       { href: "/teacher/reviews", label: copy.nav.teacherReviews },
-      { href: "/courses", label: copy.nav.teacherContent }
+      { href: "/teacher/assessments", label: copy.nav.teacherAssessments }
     ];
   } else if (session.user) {
+    brandHref = "/dashboard";
+    role = "student";
+    roleLabel = copy.nav.roleStudent;
     navItems = [
       { href: "/dashboard", label: copy.nav.today },
-      { href: "/paths", label: copy.nav.myLearning },
-      { href: "/courses", label: copy.nav.labs },
-      { href: "/assessments", label: copy.nav.assessments },
-      { href: "/classes", label: copy.nav.classes },
-      { href: "/profile", label: copy.nav.profile }
+      { href: "/paths", label: copy.nav.learning },
+      { href: "/classes", label: copy.nav.classHub }
     ];
   } else {
     navItems = [
       { href: "/", label: copy.nav.home },
-      { href: "/paths", label: copy.nav.directions }
+      { href: "/for-teachers", label: copy.nav.forTeachers }
     ];
   }
 
@@ -68,6 +77,7 @@ export default async function RootLayout({
       <body>
         <SiteHeader
           brand={copy.nav.brand}
+          brandHref={brandHref}
           closeMenuLabel={copy.nav.closeMenu}
           isAuthenticated={Boolean(session.user)}
           language={language}
@@ -75,6 +85,8 @@ export default async function RootLayout({
           logoutLabel={copy.nav.logout}
           menuLabel={copy.nav.openMenu}
           navItems={navItems}
+          role={role}
+          roleLabel={roleLabel}
         />
         {children}
       </body>

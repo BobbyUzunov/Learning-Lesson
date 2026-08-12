@@ -52,11 +52,13 @@ export function discardLocalGuestProgress(
 export function LoginForm({
   initialMode = "login",
   labels,
-  redirectPath = "/dashboard"
+  redirectPath = "/dashboard",
+  accountRole = "user"
 }: {
   initialMode?: "login" | "register";
   labels: LoginLabels;
   redirectPath?: string;
+  accountRole?: "user" | "teacher";
 }) {
   const [mode, setMode] = useState<"login" | "register">(initialMode);
   const [email, setEmail] = useState("");
@@ -108,7 +110,8 @@ export function LoginForm({
             options: {
               emailRedirectTo: `${window.location.origin}/auth/callback?next=/verify-email`,
               data: {
-                display_name: displayName.trim() || email.split("@")[0]
+                display_name: displayName.trim() || email.split("@")[0],
+                intended_role: accountRole
               }
             }
           });
@@ -134,8 +137,9 @@ export function LoginForm({
 
     await supabase.auth.getSession();
 
-    const { error: profileError } = await ensureUserProfile(supabase, user, {
-      displayName: displayName.trim() || undefined
+    const { profile, error: profileError } = await ensureUserProfile(supabase, user, {
+      displayName: displayName.trim() || undefined,
+      role: mode === "register" ? accountRole : undefined
     });
 
     if (profileError) {
@@ -152,24 +156,45 @@ export function LoginForm({
       return;
     }
 
+    const requestedPath = redirectPath.startsWith("/") ? redirectPath : "/dashboard";
+    const roleHome =
+      profile?.role === "admin" ? "/admin" : profile?.role === "teacher" ? "/teacher" : "/dashboard";
+    const nextPath =
+      mode === "register"
+        ? accountRole === "teacher"
+          ? "/teacher"
+          : requestedPath === "/dashboard"
+            ? "/classes"
+            : requestedPath
+        : requestedPath === "/dashboard"
+          ? roleHome
+          : requestedPath;
+
     setLoading(false);
     setMessage(mode === "login" ? labels.loggedIn : labels.registered);
-    router.replace(redirectPath.startsWith("/") ? redirectPath : "/dashboard");
+    router.replace(nextPath);
     router.refresh();
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto max-w-md rounded-lg border border-ink/10 bg-white/80 p-5 shadow-soft">
-      <div className="grid grid-cols-2 rounded-md bg-ink/10 p-1">
+    <form
+      className="mx-auto max-w-md rounded-2xl border border-ink/10 bg-white/80 p-5 shadow-soft sm:p-6"
+      onSubmit={submit}
+    >
+      <div className="inline-grid w-full grid-cols-2 rounded-xl border border-ink/10 bg-ink/[0.04] p-0.5 text-sm font-bold">
         <button
-          className={`focus-ring rounded-md px-3 py-2 text-sm font-bold ${mode === "login" ? "bg-white shadow-sm" : ""}`}
+          className={`focus-ring rounded-lg px-3 py-2.5 transition ${
+            mode === "login" ? "bg-white text-ink shadow-sm" : "text-ink/45 hover:text-ink/70"
+          }`}
           onClick={() => setMode("login")}
           type="button"
         >
           {labels.login}
         </button>
         <button
-          className={`focus-ring rounded-md px-3 py-2 text-sm font-bold ${mode === "register" ? "bg-white shadow-sm" : ""}`}
+          className={`focus-ring rounded-lg px-3 py-2.5 transition ${
+            mode === "register" ? "bg-white text-ink shadow-sm" : "text-ink/45 hover:text-ink/70"
+          }`}
           onClick={() => setMode("register")}
           type="button"
         >
@@ -182,7 +207,7 @@ export function LoginForm({
             {labels.displayName}
           </label>
           <input
-            className="focus-ring mt-2 w-full rounded-md border border-ink/15 bg-white px-3 py-3"
+            className="focus-ring mt-2 w-full rounded-xl border border-ink/15 bg-white px-3 py-3"
             id="displayName"
             onChange={(event) => setDisplayName(event.target.value)}
             placeholder={labels.displayNamePlaceholder}
@@ -195,7 +220,7 @@ export function LoginForm({
         {labels.email}
       </label>
       <input
-        className="focus-ring mt-2 w-full rounded-md border border-ink/15 bg-white px-3 py-3"
+        className="focus-ring mt-2 w-full rounded-xl border border-ink/15 bg-white px-3 py-3"
         id="email"
         onChange={(event) => setEmail(event.target.value)}
         placeholder={labels.emailPlaceholder}
@@ -207,7 +232,7 @@ export function LoginForm({
         {labels.password}
       </label>
       <input
-        className="focus-ring mt-2 w-full rounded-md border border-ink/15 bg-white px-3 py-3"
+        className="focus-ring mt-2 w-full rounded-xl border border-ink/15 bg-white px-3 py-3"
         id="password"
         minLength={6}
         onChange={(event) => setPassword(event.target.value)}
@@ -216,19 +241,19 @@ export function LoginForm({
         value={password}
       />
       {mode === "login" ? (
-        <Link className="mt-2 inline-block text-sm font-bold text-ink/70 hover:text-ink" href="/forgot-password">
+        <Link className="mt-2 inline-block text-sm font-bold text-ink/55 hover:text-ink" href="/forgot-password">
           {labels.forgotPassword}
         </Link>
       ) : null}
       <button
-        className="focus-ring mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-ink px-4 py-3 font-bold text-paper transition hover:bg-ink/90 disabled:opacity-60"
+        className="focus-ring mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-mint px-4 py-3 font-bold text-ink transition hover:bg-mint/90 disabled:opacity-60"
         disabled={loading}
         type="submit"
       >
         {mode === "login" ? <LogIn className="size-5" /> : <UserPlus className="size-5" />}
         {loading ? labels.working : mode === "login" ? labels.login : labels.createAccount}
       </button>
-      {message ? <p className="mt-4 rounded-md bg-ink/10 px-3 py-2 text-sm text-ink/70">{message}</p> : null}
+      {message ? <p className="mt-4 rounded-xl bg-ink/5 px-3 py-2 text-sm text-ink/70">{message}</p> : null}
     </form>
   );
 }

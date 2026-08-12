@@ -1,104 +1,184 @@
 import Link from "next/link";
-import { ArrowRight, GraduationCap, Users } from "lucide-react";
-import { CreateClassroomForm } from "@/components/teacher/create-classroom-form";
-import { CopyCodeButton } from "@/components/teacher/copy-code-button";
-import { TeacherOnboardingChecklist } from "@/components/teacher/onboarding-checklist";
-import { getSchoolCurriculum, localizeCurriculumText } from "@/lib/curriculum";
+import { ArrowRight, ClipboardCheck, Inbox, Users } from "lucide-react";
 import { getTeacherAssessments } from "@/lib/supabase/assessments";
+import { getPendingTeacherReviews } from "@/lib/supabase/assignments";
 import { getTeacherClassrooms } from "@/lib/supabase/classrooms";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
-export default async function TeacherPage() {
+export default async function TeacherHomePage() {
   const language = await getLanguage();
   const copy = t(language);
-  const [classrooms, curriculum, assessments] = await Promise.all([
+  const [classrooms, assessments, pendingReviews] = await Promise.all([
     getTeacherClassrooms(),
-    getSchoolCurriculum(),
-    getTeacherAssessments()
+    getTeacherAssessments(),
+    getPendingTeacherReviews()
   ]);
-  const specialties = curriculum.specialties.map((specialty) => ({
-    id: specialty.id,
-    title: localizeCurriculumText(specialty.title, language)
-  }));
+
+  const activeClassrooms = classrooms.filter((classroom) => classroom.status === "active");
+  const studentCount = classrooms.reduce((sum, classroom) => sum + (classroom.memberCount ?? 0), 0);
+  const pendingCount = pendingReviews.reduce((sum, item) => sum + item.pendingCount, 0);
   const hasClassroom = classrooms.length > 0;
-  const hasStudents = classrooms.some((classroom) => (classroom.memberCount ?? 0) > 0);
-  const hasAssessment = assessments.length > 0;
+  const quickClasses = activeClassrooms.slice(0, 3);
+
+  const primary =
+    pendingCount > 0
+      ? {
+          href: "/teacher/reviews",
+          label: copy.teacher.homePrimaryReviews.replace("{count}", String(pendingCount))
+        }
+      : hasClassroom
+        ? {
+            href: `/teacher/classes/${quickClasses[0]?.id ?? activeClassrooms[0]?.id ?? ""}`,
+            label: copy.teacher.homePrimaryOpenClass
+          }
+        : {
+            href: "/teacher/classes?create=1",
+            label: copy.teacher.homePrimaryCreate
+          };
+
+  const actions = [
+    {
+      href: "/teacher/classes",
+      title: copy.teacher.homeActionClasses,
+      hint: copy.teacher.homeActionClassesHint,
+      icon: Users,
+      meta: hasClassroom ? String(activeClassrooms.length) : null
+    },
+    {
+      href: "/teacher/reviews",
+      title: copy.teacher.homeActionReviews,
+      hint: copy.teacher.homeActionReviewsHint,
+      icon: Inbox,
+      meta: pendingCount > 0 ? String(pendingCount) : null,
+      emphasize: pendingCount > 0
+    },
+    {
+      href: "/teacher/assessments",
+      title: copy.teacher.homeActionAssessments,
+      hint: copy.teacher.homeActionAssessmentsHint,
+      icon: ClipboardCheck,
+      meta: assessments.length > 0 ? String(assessments.length) : null
+    }
+  ] as const;
 
   return (
-    <div>
-      <div>
-        <p className="text-sm font-bold uppercase text-violet">{copy.nav.teacher}</p>
-        <h1 className="mt-2 break-words text-3xl font-black sm:text-4xl">{copy.teacher.panelTitle}</h1>
-        <p className="mt-3 max-w-2xl text-ink/70">{copy.teacher.panelSubtitle}</p>
-      </div>
+    <div className="pb-4">
+      <section className="relative overflow-hidden rounded-2xl bg-ink text-paper">
+        <span className="pointer-events-none absolute -left-16 -top-10 size-[18rem] rounded-full bg-mint/30 blur-3xl" />
+        <span className="pointer-events-none absolute -bottom-16 -right-10 size-[20rem] rounded-full bg-coral/20 blur-3xl" />
+        <span className="pointer-events-none absolute left-1/2 top-1/3 size-[14rem] -translate-x-1/2 rounded-full bg-violet/15 blur-3xl" />
 
-      <div className="mt-6">
-        <TeacherOnboardingChecklist
-          hasAssessment={hasAssessment}
-          hasClassroom={hasClassroom}
-          hasStudents={hasStudents}
-          language={language}
-        />
-      </div>
+        <div className="relative px-5 py-10 sm:px-8 sm:py-12">
+          <div className="animate-home-rise max-w-2xl">
+            <p className="inline-flex rounded-md border border-paper/15 bg-paper/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-mint">
+              {copy.nav.roleTeacher}
+            </p>
+            <h1 className="mt-4 font-display text-[clamp(1.85rem,4vw,2.75rem)] font-bold leading-[1.05] tracking-tight">
+              {copy.teacher.homeTitle}
+            </h1>
+            <p className="mt-3 max-w-xl text-base leading-7 text-paper/60">{copy.teacher.homeSubtitleWork}</p>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-        <CreateClassroomForm language={language} specialties={specialties} />
-
-        <section>
-          {classrooms.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-ink/20 bg-white/60 p-8 text-center">
-              <GraduationCap className="mx-auto size-8 text-ink/40" />
-              <h2 className="mt-3 text-lg font-black">{copy.teacher.emptyTitle}</h2>
-              <p className="mt-2 text-sm text-ink/60">{copy.teacher.emptyBody}</p>
+            <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-paper/50">
+              <span>
+                <span className="font-bold text-paper">{activeClassrooms.length}</span> {copy.teacher.homeStatusClasses}
+              </span>
+              <span className="hidden text-paper/25 sm:inline">·</span>
+              <span>
+                <span className="font-bold text-paper">{studentCount}</span> {copy.teacher.homeStatusStudents}
+              </span>
+              <span className="hidden text-paper/25 sm:inline">·</span>
+              <span>
+                <span className="font-bold text-paper">{pendingCount}</span> {copy.teacher.homeStatusPending}
+              </span>
             </div>
-          ) : (
-            <div className="grid gap-4">
-              {classrooms.map((classroom) => (
-                <div className="rounded-lg border border-ink/10 bg-white/80 p-5 shadow-soft" key={classroom.id}>
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-lg font-black">{classroom.name}</h3>
-                      {classroom.description ? (
-                        <p className="mt-1 text-sm text-ink/60">{classroom.description}</p>
-                      ) : null}
-                      <p className="mt-2 inline-flex items-center gap-2 text-sm font-bold text-ink/70">
-                        <Users className="size-4" />
-                        {classroom.memberCount ?? 0} {copy.teacher.studentsCount}
-                      </p>
-                      <p className="mt-2 text-xs text-ink/55">
-                        {classroom.academicYear} · {copy.teacher.gradeLabel} {classroom.gradeLevel} ·{" "}
-                        {classroom.status === "archived"
-                          ? copy.teacher.statusArchived
-                          : copy.teacher.statusActive}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs font-bold uppercase text-ink/50">{copy.teacher.joinCodeLabel}</p>
-                      <p className="font-mono text-2xl font-black tracking-[0.2em] text-violet">{classroom.joinCode}</p>
-                      {!classroom.joinCodeEnabled ? (
-                        <p className="mt-1 text-xs font-bold text-coral">{copy.teacher.joinCodeDisabled}</p>
-                      ) : null}
-                    </div>
-                  </div>
-                  <div className="mt-4 flex flex-wrap items-center gap-3">
-                    <CopyCodeButton code={classroom.joinCode} language={language} />
-                    <Link
-                      className="focus-ring inline-flex items-center gap-2 rounded-md bg-ink px-4 py-2 text-sm font-bold text-paper transition hover:bg-ink/90"
-                      href={`/teacher/classes/${classroom.id}`}
-                    >
-                      {copy.teacher.openClass}
-                      <ArrowRight className="size-4" />
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+
+            <Link
+              className="focus-ring mt-8 inline-flex min-h-12 items-center gap-2 rounded-xl bg-mint px-5 py-3 font-bold text-ink transition hover:-translate-y-0.5 hover:bg-mint/90"
+              href={primary.href}
+            >
+              {primary.label}
+              <ArrowRight className="size-5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {quickClasses.length > 0 ? (
+        <section className="mt-8 animate-home-rise" style={{ animationDelay: "80ms" }}>
+          <div className="flex items-end justify-between gap-3">
+            <h2 className="font-display text-xl font-bold tracking-tight">{copy.teacher.homeYourClasses}</h2>
+            <Link
+              className="text-sm font-bold text-ink/50 underline-offset-4 transition hover:text-ink hover:underline"
+              href="/teacher/classes"
+            >
+              {copy.teacher.homeAllClasses}
+            </Link>
+          </div>
+          <ul className="mt-4 overflow-hidden rounded-2xl border border-ink/10 bg-white/75 backdrop-blur-sm">
+            {quickClasses.map((classroom, index) => (
+              <li className={index > 0 ? "border-t border-ink/8" : undefined} key={classroom.id}>
+                <Link
+                  className="group flex flex-wrap items-center justify-between gap-3 px-5 py-4 transition hover:bg-mint/[0.06]"
+                  href={`/teacher/classes/${classroom.id}`}
+                >
+                  <span className="min-w-0">
+                    <span className="block font-display text-lg font-bold tracking-tight">{classroom.name}</span>
+                    <span className="mt-1 block text-sm text-ink/50">
+                      {classroom.memberCount ?? 0} {copy.teacher.studentsCount} · {copy.teacher.gradeLabel}{" "}
+                      {classroom.gradeLevel}
+                    </span>
+                  </span>
+                  <span className="inline-flex items-center gap-3">
+                    <span className="rounded-lg bg-ink/[0.04] px-3 py-1.5 font-mono text-sm font-bold tracking-[0.2em] text-violet">
+                      {classroom.joinCode}
+                    </span>
+                    <ArrowRight className="size-4 text-ink/30 transition group-hover:translate-x-0.5 group-hover:text-ink/70" />
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
-      </div>
+      ) : null}
+
+      <section className="mt-8 animate-home-rise" style={{ animationDelay: "140ms" }}>
+        <ul className="grid gap-3 sm:grid-cols-3">
+          {actions.map((action) => (
+            <li key={action.href}>
+              <Link
+                className={`focus-ring group flex h-full flex-col justify-between rounded-2xl border px-4 py-4 transition hover:-translate-y-0.5 ${
+                  "emphasize" in action && action.emphasize
+                    ? "border-coral/25 bg-coral/[0.07] hover:border-coral/40"
+                    : "border-ink/10 bg-white/75 hover:border-ink/20 hover:bg-white"
+                }`}
+                href={action.href}
+              >
+                <span className="flex items-start justify-between gap-3">
+                  <span
+                    className={`grid size-10 place-items-center rounded-xl ${
+                      "emphasize" in action && action.emphasize ? "bg-coral text-paper" : "bg-ink text-paper"
+                    }`}
+                  >
+                    <action.icon className="size-4" />
+                  </span>
+                  {action.meta ? (
+                    <span className="rounded-md bg-ink/5 px-2 py-0.5 text-xs font-bold text-ink/65">{action.meta}</span>
+                  ) : (
+                    <ArrowRight className="size-4 text-ink/25 transition group-hover:translate-x-0.5 group-hover:text-ink/55" />
+                  )}
+                </span>
+                <span className="mt-4">
+                  <span className="block font-display text-lg font-bold tracking-tight">{action.title}</span>
+                  <span className="mt-1 block text-sm leading-6 text-ink/50">{action.hint}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }

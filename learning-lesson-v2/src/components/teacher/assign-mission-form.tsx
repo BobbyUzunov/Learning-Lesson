@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { Plus } from "lucide-react";
 import { t, type Language } from "@/lib/i18n";
 
 type MissionOption = {
@@ -19,6 +20,7 @@ type AssignMissionFormProps = {
 export function AssignMissionForm({ classroomId, language, missions }: AssignMissionFormProps) {
   const copy = t(language).teacher;
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [missionId, setMissionId] = useState(missions[0]?.id ?? "");
   const [dueAt, setDueAt] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -62,6 +64,7 @@ export function AssignMissionForm({ classroomId, language, missions }: AssignMis
       setSuccess(true);
       setInstructions("");
       setDueAt("");
+      setOpen(false);
       router.refresh();
     } catch {
       setError(copy.assignError);
@@ -74,15 +77,39 @@ export function AssignMissionForm({ classroomId, language, missions }: AssignMis
     return null;
   }
 
-  return (
-    <form className="rounded-lg border border-ink/10 bg-white/80 p-5 shadow-soft" onSubmit={onSubmit}>
-      <h3 className="text-lg font-black">{copy.assignmentsTitle}</h3>
-      <p className="mt-1 text-sm text-ink/60">{copy.assignmentsSubtitle}</p>
+  if (!open) {
+    return (
+      <button
+        className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink/12 bg-white px-4 py-2.5 text-sm font-bold text-ink/75 transition hover:border-ink/25 hover:text-ink"
+        onClick={() => setOpen(true)}
+        type="button"
+      >
+        <Plus className="size-4" />
+        {copy.assignButton}
+      </button>
+    );
+  }
 
-      <label className="mt-4 block text-sm font-bold">
+  return (
+    <form className="rounded-2xl border border-ink/10 bg-white/80 p-5" onSubmit={onSubmit}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="font-display text-lg font-bold tracking-tight">{copy.assignButton}</h3>
+          <p className="mt-1 text-sm text-ink/55">{copy.assignmentsSubtitle}</p>
+        </div>
+        <button
+          className="text-sm font-bold text-ink/45 underline-offset-4 hover:text-ink hover:underline"
+          onClick={() => setOpen(false)}
+          type="button"
+        >
+          {copy.cancelCreate}
+        </button>
+      </div>
+
+      <label className="mt-4 block text-sm font-bold text-ink/75">
         {copy.missionLabel}
         <select
-          className="mt-1 w-full rounded-md border border-ink/15 bg-white px-3 py-2 font-medium"
+          className="focus-ring mt-2 w-full rounded-xl border border-ink/12 bg-white px-3 py-2.5 font-medium"
           onChange={(event) => setMissionId(event.target.value)}
           required
           value={missionId}
@@ -99,32 +126,37 @@ export function AssignMissionForm({ classroomId, language, missions }: AssignMis
         </select>
       </label>
 
-      <label className="mt-3 block text-sm font-bold">
+      <label className="mt-3 block text-sm font-bold text-ink/75">
         {copy.dueAtLabel}
         <input
-          className="mt-1 w-full rounded-md border border-ink/15 bg-white px-3 py-2"
+          className="focus-ring mt-2 w-full rounded-xl border border-ink/12 bg-white px-3 py-2.5"
           onChange={(event) => setDueAt(event.target.value)}
           type="datetime-local"
           value={dueAt}
         />
       </label>
 
-      <label className="mt-3 block text-sm font-bold">
-        {copy.instructionsLabel}
-        <textarea
-          className="mt-1 min-h-24 w-full rounded-md border border-ink/15 bg-white px-3 py-2"
-          maxLength={2000}
-          onChange={(event) => setInstructions(event.target.value)}
-          placeholder={copy.instructionsPlaceholder}
-          value={instructions}
-        />
-      </label>
+      <details className="mt-3 rounded-xl border border-ink/10 bg-paper/50 px-3 py-2">
+        <summary className="cursor-pointer list-none text-sm font-bold text-ink/60 [&::-webkit-details-marker]:hidden">
+          {copy.moreOptions}
+        </summary>
+        <label className="mt-3 block text-sm font-bold text-ink/75">
+          {copy.instructionsLabel}
+          <textarea
+            className="focus-ring mt-2 min-h-20 w-full rounded-xl border border-ink/12 bg-white px-3 py-2.5"
+            maxLength={2000}
+            onChange={(event) => setInstructions(event.target.value)}
+            placeholder={copy.instructionsPlaceholder}
+            value={instructions}
+          />
+        </label>
+      </details>
 
       {error ? <p className="mt-3 text-sm font-semibold text-coral">{error}</p> : null}
       {success ? <p className="mt-3 text-sm font-semibold text-mint">{copy.assignSuccess}</p> : null}
 
       <button
-        className="mt-4 inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-4 py-2 font-bold text-paper transition hover:bg-ink/90 disabled:opacity-60"
+        className="focus-ring mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-ink px-4 py-2.5 font-bold text-paper transition hover:bg-ink/90 disabled:opacity-60"
         disabled={pending || !missionId}
         type="submit"
       >

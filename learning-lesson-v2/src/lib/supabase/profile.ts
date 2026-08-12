@@ -36,7 +36,7 @@ export function deriveDisplayName(user: Pick<User, "email" | "user_metadata">, f
 export async function ensureUserProfile(
   supabase: SupabaseClient,
   user: Pick<User, "id" | "email" | "user_metadata">,
-  options?: { displayName?: string }
+  options?: { displayName?: string; role?: "user" | "teacher" }
 ) {
   const { data: existing, error: readError } = await supabase
     .from("profiles")
@@ -52,11 +52,21 @@ export async function ensureUserProfile(
     return { profile: existing as ProfileRow, created: false, error: null };
   }
 
+  const metadataRole =
+    typeof user.user_metadata?.intended_role === "string" ? user.user_metadata.intended_role : null;
+  const role =
+    options?.role === "teacher" || options?.role === "user"
+      ? options.role
+      : metadataRole === "teacher"
+        ? "teacher"
+        : "user";
+
   const row = {
     id: user.id,
     auth_user_id: user.id,
     email: user.email ?? null,
-    display_name: deriveDisplayName(user, options?.displayName) || null
+    display_name: deriveDisplayName(user, options?.displayName) || null,
+    role
   };
 
   const { data: inserted, error: insertError } = await supabase

@@ -55,7 +55,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const completedLessonIds = progressData?.progress.filter((item) => item.completed).map((item) => item.lesson_id) ?? [];
 
   if (!session.user && id !== firstLesson?.id) {
-    redirect("/courses?guestLocked=1");
+    redirect("/paths?tab=labs&guestLocked=1");
   }
 
   const gameLesson = getLessonFromCatalog(catalog, id);
@@ -65,7 +65,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   }
 
   if (session.user && !isLessonUnlocked(catalog, id, completedLessonIds)) {
-    redirect("/courses?lessonLocked=1");
+    redirect("/paths?tab=labs&lessonLocked=1");
   }
 
   const rawQuest = getQuestForLesson(catalog, gameLesson.id);

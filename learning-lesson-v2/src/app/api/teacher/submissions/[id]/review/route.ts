@@ -59,6 +59,7 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   revalidatePath("/teacher");
+  revalidatePath("/teacher/classes");
   revalidatePath(`/assignments/${data.assignment_id}`);
   revalidatePath("/classes");
   revalidatePath("/dashboard");

@@ -28,6 +28,8 @@ export type StudentClassroom = {
 export type ClassroomReportRow = {
   studentId: string;
   displayName: string | null;
+  email: string | null;
+  rosterName: string | null;
   completedLessons: number;
   xp: number;
   level: number;
@@ -52,6 +54,8 @@ export type ClassroomRow = {
 export type ClassroomReportRpcRow = {
   student_id: string;
   display_name: string | null;
+  email: string | null;
+  roster_name: string | null;
   completed_lessons: number;
   xp: number;
   level: number;
@@ -84,6 +88,8 @@ export function mapClassroomReportRow(row: ClassroomReportRpcRow): ClassroomRepo
   return {
     studentId: row.student_id,
     displayName: row.display_name,
+    email: row.email,
+    rosterName: row.roster_name,
     completedLessons: row.completed_lessons,
     xp: row.xp,
     level: row.level,

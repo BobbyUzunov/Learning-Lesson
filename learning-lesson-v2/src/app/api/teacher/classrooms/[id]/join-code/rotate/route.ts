@@ -29,6 +29,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   }
 
   revalidatePath("/teacher");
+  revalidatePath("/teacher/classes");
   revalidatePath(`/teacher/classes/${id}`);
 
   return NextResponse.json({

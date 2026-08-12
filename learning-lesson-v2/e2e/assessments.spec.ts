@@ -20,8 +20,8 @@ test("learners cannot open the teacher panel", async ({ page }) => {
 test("teacher panel shows first-week onboarding for an empty classroom", async ({ page }) => {
   await enableE2eAuth(page, { role: "teacher" });
   await page.goto("/teacher");
-  await expect(page.getByRole("heading", { name: /classroom|класна стая/i })).toBeVisible();
-  await expect(page.getByText(/first week|първа седмица/i)).toBeVisible();
+  await expect(page.getByRole("heading", { name: /teacher hub|учителски център/i })).toBeVisible();
+  await expect(page.getByText(/start in 15 minutes|старт за 15 минути/i)).toBeVisible();
   await expect(page.getByText(/create a class|създай клас/i).first()).toBeVisible();
 });
 

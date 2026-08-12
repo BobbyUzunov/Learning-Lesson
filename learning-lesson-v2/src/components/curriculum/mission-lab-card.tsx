@@ -110,7 +110,7 @@ export function MissionLabCard({
         ) : null}
         <Link
           className="focus-ring inline-flex min-h-11 items-center justify-center rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm font-bold text-ink"
-          href={certificate?.earned ? `/certificate/${lab.course.id}` : `/courses#course-${lab.course.id}`}
+          href={certificate?.earned ? `/certificate/${lab.course.id}` : `/paths?tab=labs#course-${lab.course.id}`}
         >
           {certificate?.earned ? copy.openLabCertificate : copy.openLabCourse}
         </Link>
