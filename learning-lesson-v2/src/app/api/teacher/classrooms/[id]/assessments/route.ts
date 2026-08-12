@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import type { AssessmentType } from "@/lib/assessments/types";
-import { readJsonObject } from "@/lib/http";
+import { readJsonObject, resolvePublicErrorCode } from "@/lib/http";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { requireTeacherUser } from "@/lib/supabase/teacher-auth";
 
@@ -27,6 +27,29 @@ type CreateAssessmentRow = {
   duration_minutes: number | null;
   created_at: string;
 };
+
+const createAssessmentErrors = [
+  "not_authenticated",
+  "not_authorized",
+  "invalid_title",
+  "invalid_description",
+  "invalid_assessment_type",
+  "invalid_duration",
+  "invalid_questions",
+  "invalid_question_prompt",
+  "invalid_question_options",
+  "invalid_question",
+  "invalid_correct_option",
+  "invalid_points",
+  "invalid_explanation"
+] as const;
+
+function createAssessmentErrorStatus(code: string) {
+  if (code === "not_authenticated") return 401;
+  if (code === "not_authorized") return 403;
+  if (code === "assessment_failed") return 500;
+  return 400;
+}
 
 function assessmentType(value: unknown): AssessmentType | null {
   return value === "diagnostic" || value === "formative" || value === "summative" ? value : null;
@@ -127,8 +150,8 @@ export async function POST(request: Request, context: RouteContext) {
     .single<CreateAssessmentRow>();
 
   if (error) {
-    const status = error.message.includes("not_authorized") ? 403 : 400;
-    return NextResponse.json({ error: error.message }, { status });
+    const code = resolvePublicErrorCode(error.message, createAssessmentErrors, "assessment_failed");
+    return NextResponse.json({ error: code }, { status: createAssessmentErrorStatus(code) });
   }
 
   revalidatePath(`/teacher/classes/${classroomId}`);

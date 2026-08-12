@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { readJsonObject } from "@/lib/http";
+import { readJsonObject, resolvePublicErrorCode } from "@/lib/http";
 import { requireTeacherUser } from "@/lib/supabase/teacher-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -9,6 +9,24 @@ type CreateClassroomRow = {
   name: string;
   join_code: string;
 };
+
+const createClassroomErrors = [
+  "not_authenticated",
+  "teacher_required",
+  "invalid_name",
+  "invalid_description",
+  "invalid_grade",
+  "invalid_academic_year",
+  "unknown_specialty",
+  "join_code_generation_failed"
+] as const;
+
+function createClassroomErrorStatus(code: string) {
+  if (code === "not_authenticated") return 401;
+  if (code === "teacher_required") return 403;
+  if (code === "join_code_generation_failed" || code === "classroom_failed") return 500;
+  return 400;
+}
 
 export async function POST(request: Request) {
   if (!hasSupabaseEnv()) {
@@ -53,8 +71,8 @@ export async function POST(request: Request) {
     .single<CreateClassroomRow>();
 
   if (error) {
-    const status = error.message.includes("teacher_required") ? 403 : 400;
-    return NextResponse.json({ error: error.message }, { status });
+    const code = resolvePublicErrorCode(error.message, createClassroomErrors, "classroom_failed");
+    return NextResponse.json({ error: code }, { status: createClassroomErrorStatus(code) });
   }
 
   revalidatePath("/teacher");

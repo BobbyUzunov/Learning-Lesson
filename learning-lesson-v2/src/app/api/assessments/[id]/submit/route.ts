@@ -18,12 +18,24 @@ type SubmitAssessmentRow = {
 };
 
 const submitAssessmentErrors = [
+  "not_authenticated",
   "not_authorized",
   "assessment_not_found",
   "attempt_exists",
   "assessment_closed",
+  "assessment_expired",
+  "all_answers_required",
   "invalid_answers"
 ] as const;
+
+function submitAssessmentErrorStatus(code: string) {
+  if (code === "not_authenticated") return 401;
+  if (code === "not_authorized") return 403;
+  if (code === "assessment_not_found") return 404;
+  if (code === "attempt_exists") return 409;
+  if (code === "submit_failed") return 500;
+  return 400;
+}
 
 export async function POST(request: Request, context: RouteContext) {
   if (!hasSupabaseEnv()) {
@@ -65,17 +77,7 @@ export async function POST(request: Request, context: RouteContext) {
 
   if (error) {
     const code = resolvePublicErrorCode(error.message, submitAssessmentErrors, "submit_failed");
-    const status =
-      code === "not_authorized"
-        ? 403
-        : code === "assessment_not_found"
-          ? 404
-          : code === "attempt_exists"
-            ? 409
-            : code === "submit_failed"
-              ? 500
-              : 400;
-    return NextResponse.json({ error: code }, { status });
+    return NextResponse.json({ error: code }, { status: submitAssessmentErrorStatus(code) });
   }
 
   revalidatePath(`/assessments/${assessmentId}`);

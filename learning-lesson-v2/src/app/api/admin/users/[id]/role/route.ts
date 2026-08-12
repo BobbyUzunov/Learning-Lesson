@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { readJsonObject } from "@/lib/http";
+import { readJsonObject, resolvePublicErrorCode } from "@/lib/http";
+import { logServerError } from "@/lib/observability";
 import { requireAdminUser } from "@/lib/supabase/admin-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -8,6 +9,24 @@ type SetRoleRow = {
   user_id: string;
   role: string;
 };
+
+const setUserRoleErrors = [
+  "not_authenticated",
+  "admin_required",
+  "invalid_role",
+  "unknown_user",
+  "admin_role_protected",
+  "teacher_has_classrooms"
+] as const;
+
+function setUserRoleErrorStatus(code: string) {
+  if (code === "not_authenticated") return 401;
+  if (code === "admin_required") return 403;
+  if (code === "unknown_user") return 404;
+  if (code === "admin_role_protected" || code === "teacher_has_classrooms") return 409;
+  if (code === "set_user_role_failed") return 500;
+  return 400;
+}
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasSupabaseEnv()) {
@@ -32,12 +51,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .single<SetRoleRow>();
 
   if (error) {
-    const status = error.message.includes("unknown_user")
-      ? 404
-      : error.message.includes("teacher_has_classrooms")
-        ? 409
-        : 400;
-    return NextResponse.json({ error: error.message }, { status });
+    const code = resolvePublicErrorCode(error.message, setUserRoleErrors, "set_user_role_failed");
+    if (code === "set_user_role_failed") {
+      logServerError("admin_set_user_role_failed", {
+        userId: id,
+        detail: error.message.slice(0, 200)
+      });
+    }
+    return NextResponse.json({ error: code }, { status: setUserRoleErrorStatus(code) });
   }
 
   revalidatePath("/admin/teachers");

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { readJsonObject } from "@/lib/http";
+import { logServerError } from "@/lib/observability";
 import { getProjectById } from "@/lib/projects";
 import { getCourseProjects } from "@/lib/projects/store";
 import { requireAdminUser } from "@/lib/supabase/admin-auth";
@@ -57,7 +58,11 @@ export async function PATCH(request: Request, context: RouteContext) {
     .eq("id", id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    logServerError("admin_submission_review_failed", {
+      submissionId: id,
+      detail: error.message.slice(0, 200)
+    });
+    return NextResponse.json({ error: "submission_review_failed" }, { status: 500 });
   }
 
   const { projects } = await getCourseProjects();

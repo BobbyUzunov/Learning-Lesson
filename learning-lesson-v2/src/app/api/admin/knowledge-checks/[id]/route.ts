@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { toKnowledgeCheckQuestionRow } from "@/lib/cms/serialize";
 import { validateKnowledgeCheckUpdate } from "@/lib/cms/validate";
 import { readJsonObject } from "@/lib/http";
+import { logServerError } from "@/lib/observability";
 import { requireAdminUser } from "@/lib/supabase/admin-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -41,7 +42,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    logServerError("admin_knowledge_check_update_failed", {
+      questionId: id,
+      detail: error.message.slice(0, 200)
+    });
+    return NextResponse.json({ error: "knowledge_check_update_failed" }, { status: 500 });
   }
 
   if (!data) {

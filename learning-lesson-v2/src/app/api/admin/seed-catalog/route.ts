@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { seedAllContentToDatabase } from "@/lib/catalog/seed";
+import { logServerError } from "@/lib/observability";
 import { requireAdminUser } from "@/lib/supabase/admin-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -27,7 +28,9 @@ export async function POST() {
 
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to seed catalog.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    logServerError("catalog_seed_failed", {
+      detail: error instanceof Error ? error.message.slice(0, 200) : "unknown"
+    });
+    return NextResponse.json({ error: "catalog_seed_failed" }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { createClient } from "./server";
-import { hasSupabaseEnv } from "./env";
+import { hasSupabaseDataEnv } from "./data-env";
 import { throwLoadError } from "./load-error";
+import { getCurrentSession } from "./auth";
 import type { AdminProjectSubmissionRecord, ProjectSubmissionRecord } from "../projects/types";
 
 const submissionSelect =
@@ -25,7 +26,14 @@ async function loadProfilesByUserIds(userIds: string[]) {
   }
 
   const supabase = await createClient();
-  const { data } = await supabase.from("profiles").select("id, email, display_name").in("id", userIds);
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, email, display_name")
+    .in("id", userIds);
+
+  if (error) {
+    throwLoadError("admin_submission_profiles_unavailable", error);
+  }
 
   return new Map(
     (data ?? []).map((profile) => [
@@ -55,7 +63,7 @@ function toAdminSubmission(
 }
 
 export async function getUserProjectSubmissions(userId: string): Promise<ProjectSubmissionRecord[]> {
-  if (!hasSupabaseEnv()) {
+  if (!hasSupabaseDataEnv()) {
     return [];
   }
 
@@ -66,22 +74,18 @@ export async function getUserProjectSubmissions(userId: string): Promise<Project
     .eq("user_id", userId);
 
   if (error) {
-    console.error("Failed to load project submissions:", error.message);
-    return [];
+    throwLoadError("student_project_submissions_unavailable", error);
   }
 
   return (data ?? []).map((row) => mapSubmissionRow(row as Record<string, unknown>));
 }
 
 export async function getCurrentUserProjectSubmissions() {
-  if (!hasSupabaseEnv()) {
+  if (!hasSupabaseDataEnv()) {
     return [];
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const { user } = await getCurrentSession();
 
   if (!user) {
     return [];
@@ -91,7 +95,7 @@ export async function getCurrentUserProjectSubmissions() {
 }
 
 export async function getPendingReviewSubmissions(): Promise<AdminProjectSubmissionRecord[]> {
-  if (!hasSupabaseEnv()) {
+  if (!hasSupabaseDataEnv()) {
     return [];
   }
 
@@ -112,14 +116,18 @@ export async function getPendingReviewSubmissions(): Promise<AdminProjectSubmiss
 }
 
 export async function getAdminSubmissionById(id: string): Promise<AdminProjectSubmissionRecord | null> {
-  if (!hasSupabaseEnv()) {
+  if (!hasSupabaseDataEnv()) {
     return null;
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase.from("project_submissions").select(submissionSelect).eq("id", id).maybeSingle();
 
-  if (error || !data) {
+  if (error) {
+    throwLoadError("admin_submission_unavailable", error);
+  }
+
+  if (!data) {
     return null;
   }
 

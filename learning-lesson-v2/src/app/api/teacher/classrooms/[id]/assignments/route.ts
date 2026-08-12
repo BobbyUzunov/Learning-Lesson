@@ -18,13 +18,20 @@ type CreateAssignmentRow = {
 };
 
 const createAssignmentErrors = [
+  "not_authenticated",
   "not_authorized",
-  "teacher_required",
   "assignment_exists",
-  "mission_not_found",
-  "classroom_not_found",
-  "invalid_mission"
+  "unknown_mission",
+  "invalid_instructions"
 ] as const;
+
+function createAssignmentErrorStatus(code: string) {
+  if (code === "not_authenticated") return 401;
+  if (code === "not_authorized") return 403;
+  if (code === "assignment_exists") return 409;
+  if (code === "assignment_failed") return 500;
+  return 400;
+}
 
 export async function POST(request: Request, context: RouteContext) {
   if (!hasSupabaseEnv()) {
@@ -66,15 +73,7 @@ export async function POST(request: Request, context: RouteContext) {
 
   if (error) {
     const code = resolvePublicErrorCode(error.message, createAssignmentErrors, "assignment_failed");
-    const status =
-      code === "not_authorized" || code === "teacher_required"
-        ? 403
-        : code === "assignment_exists"
-          ? 409
-          : code === "assignment_failed"
-            ? 500
-            : 400;
-    return NextResponse.json({ error: code }, { status });
+    return NextResponse.json({ error: code }, { status: createAssignmentErrorStatus(code) });
   }
 
   revalidatePath(`/teacher/classes/${classroomId}`);

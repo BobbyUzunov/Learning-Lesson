@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { toCourseRow } from "@/lib/cms/serialize";
 import { validateCourseUpdate } from "@/lib/cms/validate";
 import { readJsonObject } from "@/lib/http";
+import { logServerError } from "@/lib/observability";
 import { requireAdminUser } from "@/lib/supabase/admin-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -34,7 +35,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { data, error } = await auth.supabase!.from("courses").update(row).eq("id", id).select("id").maybeSingle();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    logServerError("admin_course_update_failed", {
+      courseId: id,
+      detail: error.message.slice(0, 200)
+    });
+    return NextResponse.json({ error: "course_update_failed" }, { status: 500 });
   }
 
   if (!data) {

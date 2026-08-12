@@ -1,7 +1,8 @@
 import { createClient } from "./server";
 import { getCurrentSession } from "./auth";
-import { hasSupabaseEnv } from "./env";
+import { hasSupabaseDataEnv } from "./data-env";
 import { throwLoadError } from "./load-error";
+import { getKnownErrorCode } from "@/lib/http";
 import {
   mapClassroomReportRow,
   mapClassroomRow,
@@ -28,7 +29,7 @@ const classroomColumnsWithoutJoinCode =
 
 export async function getTeacherClassrooms(): Promise<Classroom[]> {
   const session = await getCurrentSession();
-  if (!session.user || !hasSupabaseEnv()) {
+  if (!session.user || !hasSupabaseDataEnv()) {
     return [];
   }
 
@@ -43,14 +44,21 @@ export async function getTeacherClassrooms(): Promise<Classroom[]> {
 }
 
 export async function getClassroomById(id: string): Promise<Classroom | null> {
-  if (!hasSupabaseEnv()) {
+  if (!hasSupabaseDataEnv()) {
     return null;
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_teacher_classroom", { p_classroom_id: id }).maybeSingle();
 
-  if (!error && data) {
+  if (error) {
+    if (getKnownErrorCode(error.message, ["not_authorized"])) {
+      return null;
+    }
+    throwLoadError("teacher_classroom_unavailable", error);
+  }
+
+  if (data) {
     const row = data as TeacherClassroomRpcRow;
     return mapClassroomRow(row, row.member_count ?? 0);
   }
@@ -62,7 +70,11 @@ export async function getClassroomById(id: string): Promise<Classroom | null> {
     .eq("id", id)
     .maybeSingle();
 
-  if (fallbackError || !fallback) {
+  if (fallbackError) {
+    throwLoadError("classroom_fallback_unavailable", fallbackError);
+  }
+
+  if (!fallback) {
     return null;
   }
 
@@ -81,19 +93,23 @@ export async function getClassroomById(id: string): Promise<Classroom | null> {
 }
 
 export async function getClassroomReport(id: string): Promise<ClassroomReportRow[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("get_classroom_report", { p_classroom_id: id });
-
-  if (error || !data) {
+  if (!hasSupabaseDataEnv()) {
     return [];
   }
 
-  return (data as ClassroomReportRpcRow[]).map(mapClassroomReportRow);
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_classroom_report", { p_classroom_id: id });
+
+  if (error) {
+    throwLoadError("teacher_classroom_report_unavailable", error);
+  }
+
+  return ((data ?? []) as ClassroomReportRpcRow[]).map(mapClassroomReportRow);
 }
 
 export async function getStudentClassrooms(): Promise<StudentClassroom[]> {
   const session = await getCurrentSession();
-  if (!session.user || !hasSupabaseEnv()) {
+  if (!session.user || !hasSupabaseDataEnv()) {
     return [];
   }
 
@@ -136,13 +152,17 @@ export async function getStudentClassrooms(): Promise<StudentClassroom[]> {
 }
 
 export async function listTransferCandidates(classroomId: string) {
+  if (!hasSupabaseDataEnv()) {
+    return [];
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .rpc("list_classroom_transfer_candidates", { p_classroom_id: classroomId });
 
-  if (error || !data) {
-    return [];
+  if (error) {
+    throwLoadError("classroom_transfer_candidates_unavailable", error);
   }
 
-  return (data as TransferCandidateRpcRow[]).map((row) => ({ id: row.id, label: row.label }));
+  return ((data ?? []) as TransferCandidateRpcRow[]).map((row) => ({ id: row.id, label: row.label }));
 }
