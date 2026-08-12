@@ -4,11 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { Bot, Bug, ChevronDown, ChevronUp, Compass, SearchCheck, Sparkles } from "lucide-react";
+import { Bot, Bug, Sparkles } from "lucide-react";
 import { formatMessage, t, type Language } from "@/lib/i18n";
 import type { MentorHintLevel, MentorMode } from "@/lib/mentor/prompt";
 
 const MAX_HINT_LEVEL = 3;
+const MIN_EFFORT_LENGTH = 4;
 
 function getErrorKey(message: string) {
   try {
@@ -23,6 +24,14 @@ function getErrorKey(message: string) {
   return message.trim();
 }
 
+function assistantText(message: { parts: Array<{ type: string; text?: string }> }) {
+  return message.parts
+    .filter((part) => part.type === "text")
+    .map((part) => part.text ?? "")
+    .join("")
+    .trim();
+}
+
 export function LessonAiHint({
   effort = "",
   isAuthenticated,
@@ -35,13 +44,13 @@ export function LessonAiHint({
   lessonId: string;
 }) {
   const copy = t(language);
-  const [expanded, setExpanded] = useState(false);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [usageLoading, setUsageLoading] = useState(isAuthenticated);
   const [activeMode, setActiveMode] = useState<MentorMode | null>(null);
   const [effortAtLastRequest, setEffortAtLastRequest] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
   const pendingEffort = useRef("");
+  const historyRef = useRef<HTMLDivElement | null>(null);
 
   const refreshUsage = useCallback(async (signal?: AbortSignal) => {
     setUsageLoading(true);
@@ -90,6 +99,9 @@ export function LessonAiHint({
     onFinish: () => {
       setEffortAtLastRequest(pendingEffort.current);
       void refreshUsage();
+      requestAnimationFrame(() => {
+        historyRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
     }
   });
 
@@ -105,47 +117,20 @@ export function LessonAiHint({
   }, [isAuthenticated, refreshUsage]);
 
   const assistantMessages = messages.filter((message) => message.role === "assistant");
-  const hintsUsed = assistantMessages.length;
-  const latestAssistant = assistantMessages.at(-1);
-  const hint = latestAssistant?.parts
-    .filter((part) => part.type === "text")
-    .map((part) => part.text)
-    .join("")
-    .trim();
+  const hintHistory = assistantMessages
+    .map((message) => assistantText(message))
+    .filter((text) => text.length > 0);
+  const hintsUsed = hintHistory.length;
   const busy = status === "submitted" || status === "streaming";
   const limitReached = remaining === 0 && !usageLoading;
   const taskLimitReached = hintsUsed >= MAX_HINT_LEVEL;
+  const hasEffort = effort.trim().length >= MIN_EFFORT_LENGTH;
   const hasNewAttempt = effortAtLastRequest === null || effort.trim() !== effortAtLastRequest;
-
-  const modes: Array<{
-    id: MentorMode;
-    title: string;
-    description: string;
-    icon: typeof Compass;
-    requiresEffort: boolean;
-  }> = [
-    {
-      id: "start",
-      title: copy.mentor.modeStart,
-      description: copy.mentor.modeStartDescription,
-      icon: Compass,
-      requiresEffort: false
-    },
-    {
-      id: "review",
-      title: copy.mentor.modeReview,
-      description: copy.mentor.modeReviewDescription,
-      icon: SearchCheck,
-      requiresEffort: true
-    },
-    {
-      id: "explain",
-      title: copy.mentor.modeExplain,
-      description: copy.mentor.modeExplainDescription,
-      icon: Bug,
-      requiresEffort: true
-    }
-  ];
+  const primaryMode: MentorMode = hasEffort ? "review" : "start";
+  const primaryLabel = hasEffort ? copy.mentor.primaryReview : copy.mentor.primaryStart;
+  const canAskPrimary = !busy && !limitReached && !taskLimitReached && (hintsUsed === 0 || hasNewAttempt);
+  const canAskExplain =
+    canAskPrimary && hasEffort && (hintsUsed === 0 || hasNewAttempt);
 
   function resolveError(errorKey?: string) {
     if (!errorKey) {
@@ -157,12 +142,11 @@ export function LessonAiHint({
   }
 
   async function askMentor(mode: MentorMode) {
-    const modeConfig = modes.find((item) => item.id === mode);
-    if (!modeConfig || busy || limitReached || taskLimitReached) {
+    if (busy || limitReached || taskLimitReached) {
       return;
     }
 
-    if (modeConfig.requiresEffort && effort.trim().length < 4) {
+    if (mode !== "start" && !hasEffort) {
       setLocalError("effort_required");
       return;
     }
@@ -178,8 +162,15 @@ export function LessonAiHint({
     setActiveMode(mode);
     pendingEffort.current = effort.trim();
 
+    const modeTitle =
+      mode === "start"
+        ? copy.mentor.modeStart
+        : mode === "review"
+          ? copy.mentor.modeReview
+          : copy.mentor.modeExplain;
+
     await sendMessage(
-      { text: modeConfig.title },
+      { text: modeTitle },
       {
         body: {
           lessonId,
@@ -200,7 +191,10 @@ export function LessonAiHint({
           {copy.mentor.title}
         </div>
         <p className="mt-2 text-sm leading-6 text-ink/65">{copy.mentor.guestMessage}</p>
-        <Link className="mt-3 inline-flex rounded-lg bg-ink px-4 py-2 text-sm font-bold text-paper" href="/login">
+        <Link
+          className="mt-3 inline-flex rounded-lg bg-ink px-4 py-2 text-sm font-bold text-paper"
+          href="/register"
+        >
           {copy.mentor.guestCta}
         </Link>
       </section>
@@ -208,7 +202,16 @@ export function LessonAiHint({
   }
 
   const displayedError = localError ?? (error ? getErrorKey(error.message) : null);
-  const displayLevel = Math.max(1, Math.min(hintsUsed || hintsUsed + 1, MAX_HINT_LEVEL));
+  let guidance: string | null = null;
+  if (!limitReached && !taskLimitReached) {
+    if (hintsUsed > 0 && !hasNewAttempt) {
+      guidance = copy.mentor.tryBeforeNext;
+    } else if (primaryMode === "review") {
+      guidance = copy.mentor.guidanceReviewReady;
+    } else {
+      guidance = copy.mentor.guidanceStartReady;
+    }
+  }
 
   return (
     <section className="rounded-xl border border-violet/20 bg-violet/5 p-4">
@@ -220,94 +223,84 @@ export function LessonAiHint({
           </div>
           <p className="mt-1 text-sm leading-6 text-ink/65">{copy.mentor.subtitle}</p>
         </div>
-        <button
-          aria-expanded={expanded}
-          className="focus-ring inline-flex shrink-0 items-center gap-1 rounded-lg border border-ink/10 bg-white px-3 py-2 text-xs font-bold text-ink"
-          onClick={() => setExpanded((value) => !value)}
-          type="button"
-        >
-          {expanded ? copy.mentor.close : copy.mentor.open}
-          {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-        </button>
+        {usageLoading ? (
+          <p className="shrink-0 text-xs font-semibold text-ink/50">{copy.mentor.usageLoading}</p>
+        ) : remaining !== null ? (
+          <p className="shrink-0 text-xs font-semibold text-ink/50">
+            {formatMessage(copy.mentor.remaining, { remaining })}
+          </p>
+        ) : null}
       </div>
 
-      {expanded ? (
-        <div className="mt-4 border-t border-violet/15 pt-4">
-          {usageLoading ? (
-            <p className="text-xs font-semibold text-ink/50">{copy.mentor.usageLoading}</p>
-          ) : remaining !== null ? (
-            <p className="text-xs font-semibold text-ink/50">
-              {formatMessage(copy.mentor.remaining, { remaining })}
-            </p>
-          ) : null}
+      <div className="mt-4 border-t border-violet/15 pt-4">
+        {limitReached ? (
+          <p className="rounded-lg bg-coral/15 px-4 py-3 text-sm font-semibold text-ink">
+            {copy.mentor.errors.daily_limit_reached}
+          </p>
+        ) : taskLimitReached ? (
+          <div className="rounded-lg border border-mint/30 bg-white px-4 py-3">
+            <p className="text-sm font-bold text-ink">{copy.mentor.taskLimitTitle}</p>
+            <p className="mt-1 text-sm leading-6 text-ink/65">{copy.mentor.taskLimitMessage}</p>
+          </div>
+        ) : (
+          <>
+            {guidance ? <p className="text-sm leading-6 text-ink/60">{guidance}</p> : null}
 
-          {limitReached ? (
-            <p className="mt-3 rounded-lg bg-coral/15 px-4 py-3 text-sm font-semibold text-ink">
-              {copy.mentor.errors.daily_limit_reached}
-            </p>
-          ) : taskLimitReached ? (
-            <div className="mt-3 rounded-lg border border-mint/30 bg-white px-4 py-3">
-              <p className="text-sm font-bold text-ink">{copy.mentor.taskLimitTitle}</p>
-              <p className="mt-1 text-sm leading-6 text-ink/65">{copy.mentor.taskLimitMessage}</p>
-            </div>
-          ) : (
-            <>
-              <p className="mt-3 text-sm font-bold text-ink">{copy.mentor.chooseHelp}</p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                {modes.map((mode) => {
-                  const Icon = mode.icon;
-                  const disabled = busy || (hintsUsed > 0 && !hasNewAttempt);
+            <button
+              className="focus-ring mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-bold text-paper transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"
+              disabled={!canAskPrimary}
+              onClick={() => void askMentor(primaryMode)}
+              type="button"
+            >
+              <Sparkles className="size-4" />
+              {primaryLabel}
+            </button>
 
-                  return (
-                    <button
-                      className={`focus-ring rounded-xl border p-3 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
-                        activeMode === mode.id
-                          ? "border-violet/40 bg-white shadow-sm"
-                          : "border-ink/10 bg-white/70 hover:border-violet/30"
-                      }`}
-                      disabled={disabled}
-                      key={mode.id}
-                      onClick={() => void askMentor(mode.id)}
-                      type="button"
-                    >
-                      <Icon className="size-4 text-violet" />
-                      <span className="mt-2 block text-sm font-bold text-ink">{mode.title}</span>
-                      <span className="mt-1 block text-xs leading-5 text-ink/55">{mode.description}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          )}
-
-          {busy ? (
-            <div className="mt-4 flex items-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-semibold text-ink/65">
-              <Bot className="size-4 animate-pulse text-violet" />
-              {copy.mentor.working}
-            </div>
-          ) : null}
-
-          {displayedError ? (
-            <p className="mt-3 rounded-lg bg-coral/15 px-4 py-3 text-sm font-semibold text-ink">
-              {resolveError(displayedError)}
-            </p>
-          ) : null}
-
-          {hint ? (
-            <div className="mt-4 rounded-xl border border-mint/30 bg-white px-4 py-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-ink/45">
-                {formatMessage(copy.mentor.hintLevel, { level: displayLevel })}
-              </p>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-ink/80">{hint}</p>
-              {!taskLimitReached && !hasNewAttempt ? (
-                <p className="mt-3 border-t border-ink/10 pt-3 text-xs font-semibold text-ink/55">
-                  {copy.mentor.tryBeforeNext}
-                </p>
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+              <button
+                className="text-sm font-bold text-violet underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-45 disabled:no-underline"
+                disabled={!canAskExplain}
+                onClick={() => void askMentor("explain")}
+                type="button"
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <Bug className="size-3.5" />
+                  {copy.mentor.modeExplain}
+                </span>
+              </button>
+              {activeMode && busy ? (
+                <span className="text-xs font-semibold text-ink/45">{copy.mentor.working}</span>
               ) : null}
             </div>
-          ) : null}
-        </div>
-      ) : null}
+          </>
+        )}
+
+        {busy ? (
+          <div className="mt-4 flex items-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-semibold text-ink/65">
+            <Bot className="size-4 animate-pulse text-violet" />
+            {copy.mentor.working}
+          </div>
+        ) : null}
+
+        {displayedError ? (
+          <p className="mt-3 rounded-lg bg-coral/15 px-4 py-3 text-sm font-semibold text-ink">
+            {resolveError(displayedError)}
+          </p>
+        ) : null}
+
+        {hintHistory.length > 0 ? (
+          <div className="mt-4 space-y-3" ref={historyRef}>
+            {hintHistory.map((hint, index) => (
+              <div className="rounded-xl border border-mint/30 bg-white px-4 py-4" key={`mentor-hint-${index + 1}`}>
+                <p className="text-xs font-bold uppercase tracking-wide text-ink/45">
+                  {formatMessage(copy.mentor.hintLevel, { level: index + 1 })}
+                </p>
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-ink/80">{hint}</p>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 }

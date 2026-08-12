@@ -57,7 +57,6 @@ export function LessonStages({
   const [knowledgeCheckVersion, setKnowledgeCheckVersion] = useState(0);
   const [knowledgeCheckRejectedAsUnavailable, setKnowledgeCheckRejectedAsUnavailable] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
-  const [showAi, setShowAi] = useState(false);
   const [showGuestModal, setShowGuestModal] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -275,9 +274,6 @@ export function LessonStages({
     if (hintsUsed < lessonHints.length) {
       setMissionDraft((current) => ({ ...current, hintsUsed: current.hintsUsed + 1 }));
       setMessage(null);
-      if (hintsUsed + 1 >= 1) {
-        setShowAi(true);
-      }
       return;
     }
     setMessage(copy.lesson.allHintsUnlocked);
@@ -294,7 +290,6 @@ export function LessonStages({
     setMessage(null);
     setNextLessonId(null);
     setJustCompleted(false);
-    setShowAi(true);
     setStage(3);
   }
 
@@ -414,9 +409,7 @@ export function LessonStages({
             </div>
           ) : null}
 
-          {showAi ? (
-            <LessonAiHint effort={solutionInput} isAuthenticated={isAuthenticated} language={language} lessonId={lesson.id} />
-          ) : null}
+          <LessonAiHint effort={solutionInput} isAuthenticated={isAuthenticated} language={language} lessonId={lesson.id} />
 
           {canViewSolution ? (
             <button

@@ -64,7 +64,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
     notFound();
   }
 
-  if (session.user && !isLessonUnlocked(catalog, id, completedLessonIds)) {
+  if (session.user && !session.isAdmin && !session.isTeacher && !isLessonUnlocked(catalog, id, completedLessonIds)) {
     redirect("/paths?tab=labs&lessonLocked=1");
   }
 
@@ -76,9 +76,12 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-6 sm:py-8">
-      <Link className="inline-flex items-center gap-2 text-sm font-bold text-ink/70 hover:text-ink" href="/paths">
+      <Link
+        className="inline-flex items-center gap-2 text-sm font-bold text-ink/70 hover:text-ink"
+        href={session.isAdmin ? "/admin" : "/paths"}
+      >
         <ArrowLeft className="size-4" />
-        {copy.common.backToPaths}
+        {session.isAdmin ? copy.nav.adminHome : copy.common.backToPaths}
       </Link>
 
       <LessonStages

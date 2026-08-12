@@ -7,7 +7,7 @@ test.describe("mentor guest", () => {
     await page.goto("/lesson/1");
 
     await revealLessonMentor(page);
-    await expect(page.getByRole("main").getByRole("link", { name: /sign in|вход/i })).toBeVisible();
+    await expect(page.getByRole("main").getByRole("link", { name: /sign up|регистрация/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /need some direction|нужда от насока/i })).toHaveCount(0);
   });
 });
@@ -40,7 +40,7 @@ test.describe("mentor authenticated", () => {
     await mockMentorApi(page, { remaining: 0 });
     await page.goto("/lesson/1");
 
-    await openAuthenticatedLessonMentor(page);
+    await revealLessonMentor(page);
     await expect(page.getByText(/достигна дневния лимит|reached today's AI direction limit/i)).toBeVisible();
     await expect(page.getByRole("button", { name: /help me get started|помогни ми да започна/i })).toHaveCount(0);
   });

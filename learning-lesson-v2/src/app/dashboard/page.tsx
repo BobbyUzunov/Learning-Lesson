@@ -17,10 +17,7 @@ export default async function DashboardPage() {
   const copy = t(language);
   const session = await requireUser();
 
-  if (session.isAdmin) {
-    redirect("/admin");
-  }
-  if (session.isTeacher) {
+  if (session.isTeacher && !session.isAdmin) {
     redirect("/teacher");
   }
   const [catalog, { progress }, assignments, assessments] = await Promise.all([

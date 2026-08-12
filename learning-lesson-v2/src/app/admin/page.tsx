@@ -1,10 +1,22 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, ClipboardCheck, FolderKanban, Inbox, UserCog } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  ClipboardCheck,
+  FolderKanban,
+  GraduationCap,
+  Inbox,
+  LayoutDashboard,
+  Sparkles,
+  UserCog,
+  Users
+} from "lucide-react";
 import { AdminSeedButton } from "@/components/admin-seed-button";
-import { getCourseCatalog } from "@/lib/catalog";
+import { getCourseCatalog, getFirstLesson } from "@/lib/catalog";
 import { localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getAdminKnowledgeCheckContent } from "@/lib/knowledge-check";
+import { hasOpenAIEnv } from "@/lib/mentor/env";
 import { getCourseProjects } from "@/lib/projects/store";
 import { getPendingReviewSubmissions } from "@/lib/supabase/project-submissions";
 
@@ -20,6 +32,9 @@ export default async function AdminPage() {
   ]);
   const copy = t(language);
   const contentSeedEnabled = process.env.ENABLE_ADMIN_CONTENT_SEED === "1";
+  const mentorConfigured = hasOpenAIEnv();
+  const firstLesson = getFirstLesson(catalog);
+  const mentorHref = firstLesson ? `/lesson/${firstLesson.id}` : "/paths?tab=labs";
   const quests = catalog.courses.map((quest) => localizeGameQuest(quest, language));
   const pendingCount = pendingReviews.length;
 
@@ -34,7 +49,7 @@ export default async function AdminPage() {
           label: copy.admin.homePrimaryContent
         };
 
-  const actions = [
+  const manageActions = [
     {
       href: "/admin/reviews",
       title: copy.admin.homeActionReviews,
@@ -66,6 +81,42 @@ export default async function AdminPage() {
       icon: UserCog,
       meta: null,
       emphasize: false
+    }
+  ] as const;
+
+  const accessActions = [
+    {
+      href: "/teacher",
+      title: copy.admin.homeAccessTeacher,
+      hint: copy.admin.homeAccessTeacherHint,
+      icon: Users
+    },
+    {
+      href: "/paths",
+      title: copy.admin.homeAccessLearning,
+      hint: copy.admin.homeAccessLearningHint,
+      icon: BookOpen
+    },
+    {
+      href: "/dashboard",
+      title: copy.admin.homeAccessStudent,
+      hint: copy.admin.homeAccessStudentHint,
+      icon: LayoutDashboard
+    },
+    {
+      href: "/classes",
+      title: copy.admin.homeAccessClassHub,
+      hint: copy.admin.homeAccessClassHubHint,
+      icon: GraduationCap
+    },
+    {
+      href: mentorHref,
+      title: copy.admin.homeActionMentor,
+      hint: mentorConfigured
+        ? copy.admin.homeActionMentorHint
+        : copy.admin.homeActionMentorHintOffline,
+      icon: Sparkles,
+      meta: mentorConfigured ? copy.admin.homeMentorOn : copy.admin.homeMentorOff
     }
   ] as const;
 
@@ -113,7 +164,7 @@ export default async function AdminPage() {
       <section className="mt-8 animate-home-rise" style={{ animationDelay: "80ms" }}>
         <h2 className="font-display text-xl font-bold tracking-tight">{copy.admin.homeQuickTitle}</h2>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-          {actions.map((action) => (
+          {manageActions.map((action) => (
             <li key={action.href}>
               <Link
                 className={`group flex h-full flex-col rounded-2xl border px-5 py-4 transition hover:-translate-y-0.5 ${
@@ -132,6 +183,36 @@ export default async function AdminPage() {
                     <action.icon className="size-5" />
                   </span>
                   {action.meta ? (
+                    <span className="rounded-md bg-ink/5 px-2 py-0.5 text-xs font-bold text-ink/65">{action.meta}</span>
+                  ) : (
+                    <ArrowRight className="size-4 text-ink/25 transition group-hover:translate-x-0.5 group-hover:text-ink/55" />
+                  )}
+                </span>
+                <span className="mt-4">
+                  <span className="block font-display text-lg font-bold tracking-tight">{action.title}</span>
+                  <span className="mt-1 block text-sm leading-6 text-ink/50">{action.hint}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mt-8 animate-home-rise" style={{ animationDelay: "110ms" }}>
+        <h2 className="font-display text-xl font-bold tracking-tight">{copy.admin.homeAccessTitle}</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/55">{copy.admin.homeAccessSubtitle}</p>
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {accessActions.map((action) => (
+            <li key={action.href}>
+              <Link
+                className="group flex h-full flex-col rounded-2xl border border-ink/10 bg-white/75 px-5 py-4 transition hover:-translate-y-0.5 hover:border-ink/20 hover:bg-white"
+                href={action.href}
+              >
+                <span className="flex items-center justify-between gap-3">
+                  <span className="grid size-10 place-items-center rounded-xl bg-violet/10 text-violet">
+                    <action.icon className="size-5" />
+                  </span>
+                  {"meta" in action && action.meta ? (
                     <span className="rounded-md bg-ink/5 px-2 py-0.5 text-xs font-bold text-ink/65">{action.meta}</span>
                   ) : (
                     <ArrowRight className="size-4 text-ink/25 transition group-hover:translate-x-0.5 group-hover:text-ink/55" />
@@ -187,6 +268,15 @@ export default async function AdminPage() {
         </summary>
         <div className="border-t border-ink/8 px-5 py-4">
           <p className="text-sm text-ink/50">{copy.admin.homeSettingsHint}</p>
+          <p className="mt-3 text-sm text-ink/65">
+            {copy.admin.homeMentorStatus}:{" "}
+            <span className="font-bold text-ink">
+              {mentorConfigured ? copy.admin.homeMentorOn : copy.admin.homeMentorOff}
+            </span>
+          </p>
+          {!mentorConfigured ? (
+            <p className="mt-1 text-xs text-ink/45">{copy.admin.homeMentorStatusHint}</p>
+          ) : null}
           {contentSeedEnabled ? (
             <div className="mt-4">
               <AdminSeedButton language={language} />
