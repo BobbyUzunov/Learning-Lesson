@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { openLessonTask } from "./helpers/lesson";
+import { clickLessonCheckAttempt, openLessonTask } from "./helpers/lesson";
 import {
   fallbackKnowledgeCheckBank,
   fallbackLessonKnowledgeCheckMap
@@ -35,7 +35,7 @@ test("guest completion hydrates the linked curriculum mission and lab", async ({
 
   await openLessonTask(page);
   await page.locator("#lesson-solution").fill("Built a semantic HTML page with header, main, and footer sections.");
-  await page.getByRole("button", { name: /check my attempt|провери опита/i }).click();
+  await clickLessonCheckAttempt(page);
   await expect(page.getByText(/knowledge check|самопроверка/i).first()).toBeVisible();
   await expect(page.getByRole("main")).not.toContainText(/\bquiz\b|quiz-ът|куиз/i);
   const knowledgeCheckQuestions = page.locator("article article");

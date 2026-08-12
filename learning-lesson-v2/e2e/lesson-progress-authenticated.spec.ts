@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { enableE2eAuth } from "./helpers/mentor";
-import { openLessonTask } from "./helpers/lesson";
+import { clickLessonCheckAttempt, openLessonTask } from "./helpers/lesson";
 import {
   fallbackKnowledgeCheckBank,
   fallbackLessonKnowledgeCheckMap
@@ -33,7 +33,7 @@ async function completePassingKnowledgeCheck(page: Page, lessonId = "1") {
   await page.goto(`/lesson/${lessonId}`);
   await openLessonTask(page);
   await page.locator("#lesson-solution").fill("Built a complete semantic solution for this lesson task.");
-  await page.getByRole("button", { name: /check my attempt|провери опита/i }).click();
+  await clickLessonCheckAttempt(page);
 
   const topic = getKnowledgeCheckTopicForLesson(knowledgeCheckContent, lessonId);
   expect(topic).not.toBeNull();
