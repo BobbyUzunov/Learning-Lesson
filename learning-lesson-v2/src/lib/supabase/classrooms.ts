@@ -88,7 +88,7 @@ export async function getClassroomReport(id: string): Promise<ClassroomReportRow
 
 export async function getStudentClassrooms(): Promise<StudentClassroom[]> {
   const session = await getCurrentSession();
-  if (!session.user) {
+  if (!session.user || !hasSupabaseEnv()) {
     return [];
   }
 

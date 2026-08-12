@@ -11,7 +11,7 @@ test("register page renders signup form", async ({ page }) => {
   await page.goto("/register");
 
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.getByRole("button", { name: /create account|създай акаунт/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /create account|създай (акаунт|профил)/i })).toBeVisible();
 });
 
 test("dashboard requires login", async ({ page }) => {

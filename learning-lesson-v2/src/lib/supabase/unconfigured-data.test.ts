@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getTeacherAssessments } from "./assessments";
+import { getPendingTeacherReviews } from "./assignments";
 import { getTeacherClassrooms } from "./classrooms";
 import { getMyClassroomIds } from "./memberships";
 
@@ -34,6 +35,7 @@ describe("Supabase data fallbacks without usable public credentials", () => {
   it.each([
     ["teacher classrooms", getTeacherClassrooms],
     ["teacher assessments", getTeacherAssessments],
+    ["teacher pending reviews", getPendingTeacherReviews],
     ["student classroom memberships", getMyClassroomIds]
   ])("returns an empty %s result without creating a client", async (_label, loadData) => {
     await expect(loadData()).resolves.toEqual([]);

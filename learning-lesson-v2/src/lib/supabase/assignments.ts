@@ -1,5 +1,6 @@
 import { createClient } from "./server";
 import { getCurrentSession } from "./auth";
+import { hasSupabaseEnv } from "./env";
 import { getMyClassroomIds } from "./memberships";
 import {
   mapAssignmentReportRow,
@@ -125,6 +126,11 @@ export async function getAssignmentReport(assignmentId: string): Promise<Assignm
 }
 
 export async function getPendingTeacherReviews(): Promise<PendingTeacherReview[]> {
+  const session = await getCurrentSession();
+  if (!session.user || !hasSupabaseEnv()) {
+    return [];
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_pending_teacher_reviews");
 

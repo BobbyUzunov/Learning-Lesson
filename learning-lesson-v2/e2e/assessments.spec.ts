@@ -17,12 +17,11 @@ test("learners cannot open the teacher panel", async ({ page }) => {
   await expect(page).toHaveURL(/\/dashboard/);
 });
 
-test("teacher panel shows first-week onboarding for an empty classroom", async ({ page }) => {
+test("teacher panel shows create-class CTA when there are no classrooms", async ({ page }) => {
   await enableE2eAuth(page, { role: "teacher" });
   await page.goto("/teacher");
   await expect(page.getByRole("heading", { name: /teacher hub|учителски център/i })).toBeVisible();
-  await expect(page.getByText(/start in 15 minutes|старт за 15 минути/i)).toBeVisible();
-  await expect(page.getByText(/create a class|създай клас/i).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /create (a )?class|създай клас/i }).first()).toBeVisible();
 });
 
 test("teacher close-assessment API returns a stable public error without a real assessment", async ({

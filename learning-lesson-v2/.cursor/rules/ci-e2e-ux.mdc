@@ -1,0 +1,13 @@
+---
+description: Keep CI green when changing nav, landing, auth, or role hubs
+alwaysApply: true
+---
+
+# CI and E2E after UX changes
+
+Before pushing UX/nav/auth/role-hub changes:
+
+1. Update matching Playwright specs in `e2e/` in the same change (home CTAs, header/mobile nav hrefs, register button copy, teacher/admin hub copy).
+2. Server data loaders used by hubs must guard with `hasSupabaseEnv()` and return empty/fallback data — never call `createClient()` when CI uses placeholder Supabase env (`https://example.supabase.co`).
+3. Prefer a single page-level `h1`; nested explorers should use `h2`.
+4. Locally verify with: build using CI placeholder env, then `npm run test:e2e` (or at least the specs that cover the changed surfaces).

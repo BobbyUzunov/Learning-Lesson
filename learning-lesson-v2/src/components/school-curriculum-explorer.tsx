@@ -123,7 +123,7 @@ export function SchoolCurriculumExplorer({
   return (
     <section className="space-y-8">
       <div>
-        <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">{pathsTitle}</h1>
+        <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">{pathsTitle}</h2>
         <p className="mt-3 max-w-2xl text-base leading-7 text-ink/60">{copy.pathsSubtitle}</p>
       </div>
 

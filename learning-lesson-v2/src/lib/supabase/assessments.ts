@@ -147,7 +147,7 @@ export async function getTeacherAssessments(): Promise<Assessment[]> {
 
 export async function getMyAssessments(): Promise<Assessment[]> {
   const session = await getCurrentSession();
-  if (!session.user) {
+  if (!session.user || !hasSupabaseEnv()) {
     return [];
   }
 

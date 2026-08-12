@@ -10,14 +10,14 @@ test("mobile menu opens, locks scroll, and closes", async ({ page }) => {
 
   const panel = page.getByTestId("mobile-menu-panel");
   await expect(panel).toBeVisible();
-  await expect(panel.locator('a[href="/paths"]')).toBeVisible();
+  await expect(panel.locator('a[href="/for-teachers"]')).toBeVisible();
   await expect(panel.getByRole("link", { name: /login|вход/i })).toBeVisible();
 
   await expect
     .poll(async () => page.evaluate(() => document.body.classList.contains("mobile-menu-open")))
     .toBe(true);
 
-  await panel.locator('a[href="/paths"]').click();
+  await panel.locator('a[href="/for-teachers"]').click();
   await expect(panel).toHaveCount(0);
   await expect
     .poll(async () => page.evaluate(() => document.body.classList.contains("mobile-menu-open")))
