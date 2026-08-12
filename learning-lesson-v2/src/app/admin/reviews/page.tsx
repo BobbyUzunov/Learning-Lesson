@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight, Inbox } from "lucide-react";
 import { getProjectById, localizeProject } from "@/lib/projects";
 import { getCourseProjects } from "@/lib/projects/store";
 import { t } from "@/lib/i18n";
@@ -14,53 +15,54 @@ export default async function AdminReviewsPage() {
 
   return (
     <div>
-      <p className="text-sm font-bold uppercase text-coral">{copy.admin.protected}</p>
-      <h1 className="mt-2 break-words text-3xl font-black sm:text-4xl">{copy.admin.reviewsTitle}</h1>
-      <p className="mt-3 max-w-2xl text-ink/70">{copy.admin.reviewsSubtitle}</p>
+      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-coral">{copy.nav.roleAdmin}</p>
+      <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{copy.admin.reviewsTitle}</h1>
+      <p className="mt-3 max-w-2xl text-ink/60">{copy.admin.reviewsSubtitle}</p>
 
-      <section className="mt-6 rounded-lg border border-ink/10 bg-white/80">
-        {submissions.length === 0 ? (
-          <p className="p-6 text-sm font-semibold text-ink/60">{copy.admin.reviewsEmpty}</p>
-        ) : (
-          <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] border-collapse text-left text-sm">
-            <thead className="bg-ink text-paper">
-              <tr>
-                <th className="px-4 py-3">{copy.admin.reviewLearner}</th>
-                <th className="px-4 py-3">{copy.admin.reviewProject}</th>
-                <th className="px-4 py-3">{copy.admin.reviewSubmittedAt}</th>
-                <th className="px-4 py-3">{copy.admin.reviewAction}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {submissions.map((submission) => {
-                const projectDef = getProjectById(projects, submission.project_id);
-                const project = projectDef ? localizeProject(projectDef, language) : null;
+      {submissions.length === 0 ? (
+        <div className="mt-8 rounded-2xl border border-dashed border-ink/15 bg-white/60 px-4 py-8 text-center">
+          <Inbox className="mx-auto size-8 text-ink/30" />
+          <p className="mt-3 text-sm font-semibold text-ink/50">{copy.admin.reviewsEmpty}</p>
+        </div>
+      ) : (
+        <ul className="mt-6 overflow-hidden rounded-2xl border border-ink/10 bg-white/75">
+          {submissions.map((submission, index) => {
+            const projectDef = getProjectById(projects, submission.project_id);
+            const project = projectDef ? localizeProject(projectDef, language) : null;
 
-                return (
-                  <tr className="border-t border-ink/10" key={submission.id}>
-                    <td className="px-4 py-3 font-bold">
-                      {submission.learner_name ?? submission.learner_email ?? submission.user_id}
-                    </td>
-                    <td className="px-4 py-3">{project?.title ?? submission.project_id}</td>
-                    <td className="px-4 py-3">
-                      {submission.submitted_at
-                        ? new Date(submission.submitted_at).toLocaleString(language === "bg" ? "bg-BG" : "en-US")
-                        : "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Link className="font-bold text-violet hover:underline" href={`/admin/reviews/${submission.id}`}>
-                        {copy.admin.reviewOpen}
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          </div>
-        )}
-      </section>
+            return (
+              <li
+                className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 ${
+                  index > 0 ? "border-t border-ink/8" : ""
+                }`}
+                key={submission.id}
+              >
+                <div className="min-w-0">
+                  <p className="font-semibold text-ink/85">
+                    {submission.learner_name ?? submission.learner_email ?? submission.user_id}
+                  </p>
+                  <p className="mt-0.5 text-xs text-ink/45">
+                    {project?.title ?? submission.project_id}
+                    {submission.submitted_at
+                      ? ` · ${new Date(submission.submitted_at).toLocaleString(
+                          language === "bg" ? "bg-BG" : "en-US",
+                          { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }
+                        )}`
+                      : ""}
+                  </p>
+                </div>
+                <Link
+                  className="focus-ring inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl bg-ink px-3.5 py-2 text-sm font-bold text-paper"
+                  href={`/admin/reviews/${submission.id}`}
+                >
+                  {copy.admin.reviewOpen}
+                  <ArrowRight className="size-4" />
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }

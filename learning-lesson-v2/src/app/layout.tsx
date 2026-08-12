@@ -43,8 +43,8 @@ export default async function RootLayout({
     roleLabel = copy.nav.roleAdmin;
     navItems = [
       { href: "/admin", label: copy.nav.adminHome },
-      { href: "/admin/teachers", label: copy.nav.adminRoles },
-      { href: "/admin/reviews", label: copy.nav.adminReviews }
+      { href: "/admin/reviews", label: copy.nav.adminReviews },
+      { href: "/admin/teachers", label: copy.nav.adminRoles }
     ];
   } else if (session.isTeacher) {
     brandHref = "/teacher";

@@ -1,142 +1,201 @@
 import Link from "next/link";
+import { ArrowRight, BookOpen, ClipboardCheck, FolderKanban, Inbox, UserCog } from "lucide-react";
 import { AdminSeedButton } from "@/components/admin-seed-button";
-import {
-  getCourseCatalog,
-  getLessonOrderInQuest,
-  getLessonUnlockRule,
-  getQuestLessons,
-  getTotalAvailableXp
-} from "@/lib/catalog";
-import { xpPerLesson } from "@/lib/game-data";
-import { getCourseProjects } from "@/lib/projects/store";
-import { getAdminKnowledgeCheckContent } from "@/lib/knowledge-check";
-import { localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
+import { getCourseCatalog } from "@/lib/catalog";
+import { localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
+import { getAdminKnowledgeCheckContent } from "@/lib/knowledge-check";
+import { getCourseProjects } from "@/lib/projects/store";
+import { getPendingReviewSubmissions } from "@/lib/supabase/project-submissions";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const [language, catalog, { projects }, knowledgeChecks] = await Promise.all([
+  const [language, catalog, { projects }, knowledgeChecks, pendingReviews] = await Promise.all([
     getLanguage(),
     getCourseCatalog(),
     getCourseProjects(),
-    getAdminKnowledgeCheckContent()
+    getAdminKnowledgeCheckContent(),
+    getPendingReviewSubmissions()
   ]);
   const copy = t(language);
   const contentSeedEnabled = process.env.ENABLE_ADMIN_CONTENT_SEED === "1";
   const quests = catalog.courses.map((quest) => localizeGameQuest(quest, language));
-  const lessons = catalog.lessons;
-  const localizedLessons = lessons.map((lesson) => localizeGameLesson(lesson, language));
+  const pendingCount = pendingReviews.length;
+
+  const primary =
+    pendingCount > 0
+      ? {
+          href: "/admin/reviews",
+          label: copy.admin.homePrimaryReviews.replace("{count}", String(pendingCount))
+        }
+      : {
+          href: "/admin/projects",
+          label: copy.admin.homePrimaryContent
+        };
+
+  const actions = [
+    {
+      href: "/admin/reviews",
+      title: copy.admin.homeActionReviews,
+      hint: copy.admin.homeActionReviewsHint,
+      icon: Inbox,
+      meta: pendingCount > 0 ? String(pendingCount) : null,
+      emphasize: pendingCount > 0
+    },
+    {
+      href: "/admin/projects",
+      title: copy.admin.homeActionProjects,
+      hint: copy.admin.homeActionProjectsHint,
+      icon: FolderKanban,
+      meta: projects.length > 0 ? String(projects.length) : null,
+      emphasize: false
+    },
+    {
+      href: "/admin/knowledge-checks",
+      title: copy.admin.homeActionChecks,
+      hint: copy.admin.homeActionChecksHint,
+      icon: ClipboardCheck,
+      meta: knowledgeChecks.questions.length > 0 ? String(knowledgeChecks.questions.length) : null,
+      emphasize: false
+    },
+    {
+      href: "/admin/teachers",
+      title: copy.admin.homeActionRoles,
+      hint: copy.admin.homeActionRolesHint,
+      icon: UserCog,
+      meta: null,
+      emphasize: false
+    }
+  ] as const;
 
   return (
-    <div>
-      <div>
-        <p className="text-sm font-bold uppercase text-coral">{copy.admin.protected}</p>
-        <h1 className="mt-2 break-words text-3xl font-black sm:text-4xl">{copy.admin.cmsTitle}</h1>
-        <p className="mt-3 max-w-2xl text-ink/70">{copy.admin.cmsSubtitle}</p>
-        <p className="mt-3 inline-flex rounded-md bg-ink/5 px-3 py-2 text-xs font-bold uppercase text-ink/60">
-          {copy.admin.catalogSource}: {catalog.source === "db" ? copy.admin.catalogDb : copy.admin.catalogFallback}
-        </p>
-      </div>
+    <div className="pb-4">
+      <section className="relative overflow-hidden rounded-2xl bg-ink text-paper">
+        <span className="pointer-events-none absolute -left-16 -top-10 size-[18rem] rounded-full bg-violet/25 blur-3xl" />
+        <span className="pointer-events-none absolute -bottom-16 -right-10 size-[20rem] rounded-full bg-mint/20 blur-3xl" />
 
-      {contentSeedEnabled ? <AdminSeedButton language={language} /> : null}
+        <div className="relative px-5 py-10 sm:px-8 sm:py-12">
+          <div className="animate-home-rise max-w-2xl">
+            <p className="inline-flex rounded-md border border-paper/15 bg-paper/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-mint">
+              {copy.nav.roleAdmin}
+            </p>
+            <h1 className="mt-4 font-display text-[clamp(1.85rem,4vw,2.75rem)] font-bold leading-[1.05] tracking-tight">
+              {copy.admin.homeTitle}
+            </h1>
+            <p className="mt-3 max-w-xl text-base leading-7 text-paper/60">{copy.admin.homeSubtitle}</p>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="rounded-lg bg-white/80 p-4">
-          <p className="text-sm text-ink/60">{copy.admin.courses}</p>
-          <p className="mt-2 text-3xl font-black">{quests.length}</p>
-        </div>
-        <div className="rounded-lg bg-white/80 p-4">
-          <p className="text-sm text-ink/60">{copy.admin.lessons}</p>
-          <p className="mt-2 text-3xl font-black">{lessons.length}</p>
-        </div>
-        <div className="rounded-lg bg-white/80 p-4">
-          <p className="text-sm text-ink/60">{copy.admin.knowledgeCheckQuestionsCount}</p>
-          <p className="mt-2 text-3xl font-black">{knowledgeChecks.questions.length}</p>
-        </div>
-        <div className="rounded-lg bg-white/80 p-4">
-          <p className="text-sm text-ink/60">{copy.admin.projectsNav}</p>
-          <p className="mt-2 text-3xl font-black">{projects.length}</p>
-        </div>
-        <div className="rounded-lg bg-white/80 p-4">
-          <p className="text-sm text-ink/60">{copy.admin.totalXp}</p>
-          <p className="mt-2 text-3xl font-black">{getTotalAvailableXp(catalog, xpPerLesson)}</p>
-        </div>
-      </div>
+            <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-paper/50">
+              <span>
+                <span className="font-bold text-paper">{pendingCount}</span> {copy.admin.homeStatusPending}
+              </span>
+              <span className="hidden text-paper/25 sm:inline">·</span>
+              <span>
+                <span className="font-bold text-paper">{quests.length}</span> {copy.admin.homeStatusCourses}
+              </span>
+              <span className="hidden text-paper/25 sm:inline">·</span>
+              <span>
+                <span className="font-bold text-paper">{projects.length}</span> {copy.admin.homeStatusProjects}
+              </span>
+            </div>
 
-      <section className="mt-6 rounded-lg border border-ink/10 bg-white/80 p-5">
-        <h2 className="text-xl font-black">{copy.admin.contentSections}</h2>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link className="rounded-md bg-ink px-4 py-2 text-sm font-bold text-paper" href="/admin/projects">
-            {copy.admin.projectsNav}
-          </Link>
-          <Link
-            className="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold text-ink"
-            href="/admin/knowledge-checks"
-          >
-            {copy.admin.knowledgeCheckNav}
-          </Link>
-          <Link className="rounded-md border border-ink/15 px-4 py-2 text-sm font-bold text-ink" href="/admin/reviews">
-            {copy.admin.reviewsNav}
-          </Link>
+            <Link
+              className="focus-ring mt-8 inline-flex min-h-12 items-center gap-2 rounded-xl bg-mint px-5 py-3 font-bold text-ink transition hover:-translate-y-0.5 hover:bg-mint/90"
+              href={primary.href}
+            >
+              {primary.label}
+              <ArrowRight className="size-5" />
+            </Link>
+          </div>
         </div>
       </section>
 
-      <section className="mt-6 rounded-lg border border-ink/10 bg-white/80 p-5">
-        <h2 className="text-xl font-black">{copy.admin.courses}</h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
-          {quests.map((quest) => {
-            const questLessons = getQuestLessons(catalog, quest.id);
-            return (
-              <div className="rounded-lg border border-ink/10 p-4" key={quest.id}>
-                <h3 className="font-bold">{quest.title}</h3>
-                <p className="mt-2 text-sm text-ink/70">
-                  {questLessons.length} {copy.dashboard.lessons} · {quest.estimatedTime}
+      <section className="mt-8 animate-home-rise" style={{ animationDelay: "80ms" }}>
+        <h2 className="font-display text-xl font-bold tracking-tight">{copy.admin.homeQuickTitle}</h2>
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+          {actions.map((action) => (
+            <li key={action.href}>
+              <Link
+                className={`group flex h-full flex-col rounded-2xl border px-5 py-4 transition hover:-translate-y-0.5 ${
+                  action.emphasize
+                    ? "border-coral/25 bg-coral/[0.08] hover:border-coral/40"
+                    : "border-ink/10 bg-white/75 hover:border-ink/20 hover:bg-white"
+                }`}
+                href={action.href}
+              >
+                <span className="flex items-center justify-between gap-3">
+                  <span
+                    className={`grid size-10 place-items-center rounded-xl ${
+                      action.emphasize ? "bg-coral text-paper" : "bg-ink/5 text-ink"
+                    }`}
+                  >
+                    <action.icon className="size-5" />
+                  </span>
+                  {action.meta ? (
+                    <span className="rounded-md bg-ink/5 px-2 py-0.5 text-xs font-bold text-ink/65">{action.meta}</span>
+                  ) : (
+                    <ArrowRight className="size-4 text-ink/25 transition group-hover:translate-x-0.5 group-hover:text-ink/55" />
+                  )}
+                </span>
+                <span className="mt-4">
+                  <span className="block font-display text-lg font-bold tracking-tight">{action.title}</span>
+                  <span className="mt-1 block text-sm leading-6 text-ink/50">{action.hint}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mt-8 animate-home-rise" style={{ animationDelay: "140ms" }}>
+        <div className="flex items-end justify-between gap-3">
+          <h2 className="font-display text-xl font-bold tracking-tight">{copy.admin.homeCoursesTitle}</h2>
+          <p className="text-xs font-bold text-ink/40">
+            {copy.admin.catalogSource}: {catalog.source === "db" ? copy.admin.catalogDb : copy.admin.catalogFallback}
+          </p>
+        </div>
+        <ul className="mt-4 overflow-hidden rounded-2xl border border-ink/10 bg-white/75">
+          {quests.map((quest, index) => (
+            <li
+              className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 ${
+                index > 0 ? "border-t border-ink/8" : ""
+              }`}
+              key={quest.id}
+            >
+              <div className="min-w-0">
+                <p className="inline-flex items-center gap-2 font-semibold text-ink/85">
+                  <BookOpen className="size-4 shrink-0 text-ink/30" />
+                  {quest.title}
                 </p>
-                <Link className="mt-4 inline-flex text-sm font-bold text-violet hover:underline" href={`/admin/courses/${quest.id}`}>
-                  {copy.admin.editCourse}
-                </Link>
+                <p className="mt-0.5 text-xs text-ink/40">{quest.estimatedTime}</p>
               </div>
-            );
-          })}
-        </div>
+              <Link
+                className="focus-ring inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-ink px-3.5 py-2 text-sm font-bold text-paper"
+                href={`/admin/courses/${quest.id}`}
+              >
+                {copy.admin.editCourse}
+                <ArrowRight className="size-4" />
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
 
-      <div className="mt-6 overflow-x-auto rounded-lg border border-ink/10 bg-white/80">
-        <table className="w-full min-w-[720px] border-collapse text-left text-sm">
-          <thead className="bg-ink text-paper">
-            <tr>
-              <th className="px-4 py-3">{copy.admin.lesson}</th>
-              <th className="px-4 py-3">{copy.admin.quest}</th>
-              <th className="px-4 py-3">{copy.admin.order}</th>
-              <th className="px-4 py-3">XP</th>
-              <th className="px-4 py-3">{copy.admin.unlockRule}</th>
-              <th className="px-4 py-3">{copy.admin.editMission}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {localizedLessons.map((lesson) => {
-              const unlockRule = getLessonUnlockRule(catalog, lesson.id);
-              const quest = quests.find((item) => item.id === lesson.questId);
-
-              return (
-                <tr className="border-t border-ink/10" key={lesson.id}>
-                  <td className="px-4 py-3 font-bold">{lesson.title}</td>
-                  <td className="px-4 py-3">{quest?.title}</td>
-                  <td className="px-4 py-3">{getLessonOrderInQuest(catalog, lesson.id)}</td>
-                  <td className="px-4 py-3">{xpPerLesson}</td>
-                  <td className="px-4 py-3">{unlockRule ?? copy.admin.open}</td>
-                  <td className="px-4 py-3">
-                    <Link className="font-bold text-violet hover:underline" href={`/admin/missions/${lesson.id}`}>
-                      {copy.admin.editMission}
-                    </Link>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <details className="mt-8 rounded-2xl border border-ink/10 bg-white/60 open:bg-white/80">
+        <summary className="cursor-pointer list-none px-5 py-4 text-sm font-bold text-ink/55 [&::-webkit-details-marker]:hidden">
+          {copy.admin.homeSettings}
+        </summary>
+        <div className="border-t border-ink/8 px-5 py-4">
+          <p className="text-sm text-ink/50">{copy.admin.homeSettingsHint}</p>
+          {contentSeedEnabled ? (
+            <div className="mt-4">
+              <AdminSeedButton language={language} />
+            </div>
+          ) : (
+            <p className="mt-3 text-xs font-bold text-ink/35">{copy.admin.homeSeedDisabled}</p>
+          )}
+        </div>
+      </details>
     </div>
   );
 }

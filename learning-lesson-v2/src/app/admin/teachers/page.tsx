@@ -40,40 +40,34 @@ export default async function AdminTeachersPage() {
 
   return (
     <div>
-      <div>
-        <p className="text-sm font-bold uppercase text-coral">{copy.admin.protected}</p>
-        <h1 className="mt-2 break-words text-3xl font-black sm:text-4xl">{copy.admin.teachersTitle}</h1>
-        <p className="mt-3 max-w-2xl text-ink/70">{copy.admin.teachersSubtitle}</p>
-      </div>
+      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-coral">{copy.nav.roleAdmin}</p>
+      <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{copy.admin.teachersTitle}</h1>
+      <p className="mt-3 max-w-2xl text-ink/60">{copy.admin.teachersSubtitle}</p>
 
-      <div className="mt-6 overflow-x-auto rounded-lg border border-ink/10 bg-white/80">
-        {users.length === 0 ? (
-          <p className="px-4 py-6 text-sm text-ink/60">{copy.admin.teachersEmpty}</p>
-        ) : (
-          <table className="w-full min-w-[640px] border-collapse text-left text-sm">
-            <thead className="bg-ink text-paper">
-              <tr>
-                <th className="px-4 py-3">{copy.admin.nameColumn}</th>
-                <th className="px-4 py-3">{copy.admin.emailColumn}</th>
-                <th className="px-4 py-3">{copy.admin.roleColumn}</th>
-                <th className="px-4 py-3">{copy.admin.actionColumn}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr className="border-t border-ink/10" key={user.id}>
-                  <td className="px-4 py-3 font-bold">{user.display_name || copy.common.learner}</td>
-                  <td className="px-4 py-3 break-words">{user.email ?? "—"}</td>
-                  <td className="px-4 py-3">{roleLabel(user.role, copy)}</td>
-                  <td className="px-4 py-3">
-                    <PromoteTeacherButton language={language} role={user.role} userId={user.id} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {users.length === 0 ? (
+        <p className="mt-6 rounded-2xl border border-dashed border-ink/15 bg-white/60 px-4 py-6 text-sm text-ink/55">
+          {copy.admin.teachersEmpty}
+        </p>
+      ) : (
+        <ul className="mt-6 overflow-hidden rounded-2xl border border-ink/10 bg-white/75">
+          {users.map((user, index) => (
+            <li
+              className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 ${
+                index > 0 ? "border-t border-ink/8" : ""
+              }`}
+              key={user.id}
+            >
+              <div className="min-w-0">
+                <p className="font-semibold text-ink/85">{user.display_name || copy.common.learner}</p>
+                <p className="mt-0.5 truncate text-xs text-ink/45">
+                  {user.email ?? "—"} · {roleLabel(user.role, copy)}
+                </p>
+              </div>
+              <PromoteTeacherButton language={language} role={user.role} userId={user.id} />
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
