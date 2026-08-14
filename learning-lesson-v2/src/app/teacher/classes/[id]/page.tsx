@@ -12,6 +12,8 @@ import { getClassroomAssessments } from "@/lib/supabase/assessments";
 import {
   getClassroomById,
   getClassroomReport,
+  listClassroomTeachers,
+  listCoTeacherCandidates,
   listTransferCandidates
 } from "@/lib/supabase/classrooms";
 import { getCurrentSession } from "@/lib/supabase/auth";
@@ -46,13 +48,16 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
   const canTransfer =
     Boolean(session.user) && (session.isAdmin || session.user?.id === classroom.teacherId);
 
-  const [report, assignments, assessments, curriculum, transferCandidates] = await Promise.all([
-    getClassroomReport(id),
-    getClassroomAssignments(id),
-    getClassroomAssessments(id),
-    getSchoolCurriculum(),
-    canTransfer ? listTransferCandidates(classroom.id) : Promise.resolve([])
-  ]);
+  const [report, assignments, assessments, curriculum, transferCandidates, classroomTeachers, coTeacherCandidates] =
+    await Promise.all([
+      getClassroomReport(id),
+      getClassroomAssignments(id),
+      getClassroomAssessments(id),
+      getSchoolCurriculum(),
+      canTransfer ? listTransferCandidates(classroom.id) : Promise.resolve([]),
+      canTransfer ? listClassroomTeachers(classroom.id) : Promise.resolve([]),
+      canTransfer ? listCoTeacherCandidates(classroom.id) : Promise.resolve([])
+    ]);
 
   const modules = [
     ...getCommonModules(curriculum, classroom.gradeLevel),
@@ -210,6 +215,8 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
           <ClassroomControls
             canTransfer={canTransfer}
             classroomId={classroom.id}
+            classroomTeachers={classroomTeachers}
+            coTeacherCandidates={coTeacherCandidates}
             joinCodeEnabled={classroom.joinCodeEnabled}
             language={language}
             status={classroom.status}

@@ -1,5 +1,13 @@
 export type ClassroomStatus = "active" | "archived";
 
+export type ClassroomTeacherRole = "owner" | "co_teacher";
+
+export type ClassroomTeacher = {
+  userId: string;
+  role: ClassroomTeacherRole;
+  label: string;
+};
+
 export type Classroom = {
   id: string;
   teacherId: string;

@@ -1,28 +1,80 @@
 # Пълен одит — Learning Lesson v2
 
-Кодов одит от 4 паралелни агента (ученик, учител, админ, инфра/AI), допълнен с rollback-only runtime SQL smoke срещу live Supabase. Без истински multi-user browser smoke.
-**Дата:** 12 Aug 2026 · **Repo:** learning-lesson-v2
+Актуален статус след stabilization release-а.  
+**Дата:** 13 Aug 2026 · **Repo:** learning-lesson-v2 · **Production commit:** `943fd48` · **PR:** #8 merged
 
-> **Вердикт за училищен пилот:** Ядрото за VIII клас + класна стая + уроци + AI наставник е достатъчно за пилот с 1–2 учители. Production Supabase и OpenAI конфигурацията е налична, DB миграциите и основните teacher/student RPC потоци са проверени live с rollback. Липсват още отчетност (дневник), известия, school-scoped admin и истински multi-user browser smoke.
+> **Вердикт за училищен пилот:** Ядрото за VIII клас + класна стая + уроци + AI наставник е готово за пилот с 1–2 учители. GitHub, локалният `main`, Vercel и Supabase са синхронизирани. Остават реален browser smoke с два акаунта, live mentor заявка и по-късни product gaps (известия, дневник, tenancy).
 
 | Метрика | Стойност |
 | --- | --- |
-| Готови способности | ~68 |
-| Частични / слаби места | ~23 |
-| Липси / backlog | ~25 |
-| Зони одитирани | 4 |
+| Production commit | `943fd48` |
+| Unit тестове | 401 зелени |
+| E2E тестове | 32/32 зелени |
+| Supabase migrations | до `20260813150000` |
+| Production сайт | READY |
 
-## Статус след стабилизацията
+---
 
-| Обхват | Статус | Текущо състояние |
+## Какво завършихме
+
+- Подредихме ученическата, учителската и администраторската навигация.
+- Свързахме учебните мисии с лабораториите, XP прогреса и курсовете.
+- Защитихме guest progress merge-а — браузърът вече не може сам да си присвоява XP.
+- Добавихме стабилен CI с lint, TypeScript, unit, build и Playwright.
+- Защитихме `main`: PR, verify, 1 approval и забранени force-push/delete.
+- Teacher регистрацията вече не дава автоматично teacher права — админът промотира.
+- Добавихме опционален server-side `ADMIN_EMAIL_ALLOWLIST`.
+- Спряхме изтичането на Supabase/Postgres грешки към клиентите.
+- Loaders вече различават реална DB повреда от валиден празен резултат.
+- Co-teacher вече може да създава задания, да ревюира и да управлява assessments.
+- Owner/admin може да кани и премахва co-teacher от настройките на класа.
+- Поправихме production RPC дефекти при:
+  - classroom `grade_level`;
+  - project submission;
+  - assignment submission;
+  - assessment submission.
+- Добавихме подробно contract покритие за основния teacher/student workflow.
+- Приложихме всички Supabase миграции до `20260813150000`.
+- Изтрихме безопасно всички вече merge-нати стари branches.
+
+---
+
+## Проверено и качено
+
+| Обхват | Състояние |
+| --- | --- |
+| Последен production commit | `943fd48` |
+| PR #8 | merge-нат |
+| Production сайт | READY |
+| Unit тестове | 401 зелени |
+| E2E тестове | 32/32 зелени |
+| Supabase DB lint | без schema грешки |
+| Live rollback smoke | минаха без останали тестови данни |
+| Синхронизация | GitHub, локален `main`, Vercel и Supabase |
+
+Допълнителни runtime проверки:
+
+- `SUPABASE_SECRET_KEY` е server-side sensitive secret; `OPENAI_API_KEY` присъства; `ENABLE_ADMIN_CONTENT_SEED` липсва в prod.
+- Classroom, assignment, assessment, membership и project-submission loader-ите различават outage от валиден празен/not-found резултат.
+- Co-teacher classwork authorization е live (`20260812170000`); assign/review/assessment правата минаха rollback SQL smoke.
+- `20260812180000` подравнява classroom `smallint`/RPC `integer`; `20260812190000` поправя project/assignment upsert и assessment JSON броенето.
+- `20260813150000` добавя list/add/remove co-teacher RPCs; приложена live.
+
+---
+
+## Какво остава
+
+| Prio | Задача | Защо |
 | --- | --- | --- |
-| Production конфигурация | Решено | `SUPABASE_SECRET_KEY` е server-side sensitive secret; `OPENAI_API_KEY` присъства; migrations съвпадат до `20260812190000`; `ENABLE_ADMIN_CONTENT_SEED` липсва |
-| Teacher signup + admin allowlist | Решено | Регистрацията остава с роля `user`; админ промотира; опционалният `ADMIN_EMAIL_ALLOWLIST` се прилага server-side |
-| DB load error semantics | Решено в основните потоци | Classroom, assignment, assessment, membership и project-submission loader-ите вече различават outage от валиден празен/not-found резултат |
-| Teacher flow coverage | Частично | Има базов Playwright и route contracts за create/join/assign/submit/review/create assessment/submit/close |
-| Co-teacher classwork authorization | Частично | Миграцията `20260812170000_authorize_co_teachers_for_classwork.sql` е приложена live; assign/review/assessment правата минаха rollback SQL smoke; липсва invite/remove UI |
-| Submission RPC runtime | Решено | `20260812180000` подравнява classroom `smallint`/RPC `integer`; `20260812190000` поправя project/assignment upsert и assessment JSON броенето; `supabase db lint` е чист |
-| Реална пилотна валидация | Частично | Live RLS/RPC smoke мина с транзакционни teacher/student claims и без остатъчни данни; няма истински browser smoke с отделни сесии и реален mentor request |
+| P0 | Browser smoke с два реални акаунта — teacher и student | Rollback SQL smoke не валидира браузър с реални Auth сесии, навигация и UI |
+| P0 | Реална AI mentor заявка в production | Наличен `OPENAI_API_KEY` не гарантира работещ OpenAI streaming path |
+| P1 | Известия / inbox и календар | Пилотът иначе разчита на устни напомняния |
+| P1 | Real Supabase RLS integration CI | Текущият CI използва fake auth и placeholder env |
+| P2 | Gradebook и CSV export | Училищна отчетност |
+| P2 | Mentor analytics | Оперативен контрол върху квоти/разходи |
+| P2 | School-level tenancy | „Админ на училище“ отделно от platform admin |
+| P2 | Curriculum 9–12 | README roadmap; сега само VIII клас foundation |
+| P2 | CMS create/delete + lesson discoverability | По-лесно съдържателно управление |
 
 ---
 
@@ -33,10 +85,10 @@
 | Ученик | 18 | 6 | 7 | Pilot-ready |
 | Учител | 16 | 4 | 8 | Pilot-ready |
 | Админ / платформа | 14 | 5 | 5 | Операторски ready |
-| AI наставник | 8 | 3 | 2 | Работи с ключ |
+| AI наставник | 8 | 3 | 2 | Работи с ключ; липсва live request smoke |
 | Инфра / сигурност | 12 | 5 | 3 | Силна база |
 
-Бройките са ориентировъчни групирания от одита (не line-count).
+Бройките са ориентировъчни групирания от първоначалния одит (не line-count).
 
 ---
 
@@ -58,7 +110,8 @@
 | Учител | Задачи + ревю опашка | Готово | Assign mission, approve/needs_changes |
 | Учител | Classroom assessments + analysis | Готово | Create, close, report, question analysis |
 | Учител | Transfer / archive status | Готово | Ownership transfer + classroom status |
-| Учител | Co-teacher управление | Частично | Classwork RPC authorization е live и проверен с rollback SQL smoke; липсват invite/remove UI и истински multi-user browser smoke |
+| Учител | Co-teacher classwork | Готово | Може да създава задания, да ревюира и да управлява assessments |
+| Учител | Co-teacher invite/remove UI | Готово | Owner/admin кани и премахва от настройките на класа |
 | Учител | Gradebook / export / bulk assign | Липсва | Няма дневник, CSV, копиране между класове |
 | Учител | Родители / съобщения | Липсва | Няма guardian модел или messaging |
 | Админ | Hub + пълен достъп | Готово | Управление + teacher/student/mentor shortcuts |
@@ -67,9 +120,9 @@
 | Админ | Create/delete съдържание в UI | Частично | Само PATCH на съществуващи записи |
 | Админ | School-scoped admin (училище) | Липсва | Само глобален platform admin |
 | Админ | Mentor analytics dashboard | Липсва | README TODO; само on/off статус |
-| Админ | Admin allowlist enforcement | Готово | Опционален server-side `ADMIN_EMAIL_ALLOWLIST`; празна стойност запазва role-only admin access |
-| Инфра | RLS / private RPCs / guest claims | Готово | Много hardening миграции |
-| Инфра | CI lint+unit+e2e | Готово | Placeholder Supabase + fake auth |
+| Админ | Admin allowlist enforcement | Готово | Опционален server-side `ADMIN_EMAIL_ALLOWLIST` |
+| Инфра | RLS / private RPCs / guest claims | Готово | Guest merge е защитен; браузърът не си присвоява XP |
+| Инфра | CI lint+unit+e2e | Готово | 401 unit + 32/32 Playwright; protected `main` |
 | Инфра | Live Supabase/OpenAI CI | Частично | Няма ephemeral DB / real mentor integration |
 | Инфра | Curriculum 9–12 клас | Липсва | README roadmap: само VIII клас foundation |
 
@@ -78,73 +131,27 @@
 ## Какво имаме — резюме
 
 ### Ученик
-Пълен цикъл: регистрация → Днес → Обучение → урок (3 етапа) → клас/задачи/проверки → проекти/сертификат/профил.
+Пълен цикъл: регистрация → Днес → Обучение → урок (3 етапа) → клас/задачи/проверки → проекти/сертификат/профил.  
 Guest само първи урок. AI наставник е в задачата с 1 CTA и дневен лимит.
 
 ### Учител
-Класове, join код, roster имена, assign mission, ревюта, assessments с анализ, transfer/archive.
-Админът в DB вече е учител за всички класове (`is_classroom_teacher` + is_admin).
+Класове, join код, roster имена, assign mission, ревюта, assessments с анализ, transfer/archive.  
+Co-teacher може да създава задания, да ревюира и да управлява assessments. Owner/admin кани и премахва съучители от настройките на класа.
 
 ### Админ (platform)
-CMS edit, capstone reviews, роли, seed (flag), пълен достъп към teacher/student/mentor изгледи.
+CMS edit, capstone reviews, роли, seed (flag), пълен достъп към teacher/student/mentor изгледи.  
 Това е супер-админ на платформата — още няма „админ на училище“.
 
 ### Инфра / сигурност
-Private RPCs, RLS, guest claims, CSP, mentor guardrails, CI verify (lint/unit/e2e).
+Private RPCs, RLS, guest claims, CSP, mentor guardrails, CI verify (lint/unit/e2e), protected `main`.  
 CI не тества live Supabase policies или реален OpenAI път.
 
 ---
 
-## Какво не е готово / рискове
+## Източници
 
-### Оперативни рискове за пилот
-Основните loader-и вече показват DB проблемите като грешки, а teacher signup не дава автоматично teacher role. Route contract тестовете покриват целия pilot API цикъл. Live rollback SQL smoke покрива co-teacher visibility, assign/submit/review и assessment create/submit/report/analysis/close, но няма истински multi-user browser happy-path с отделни teacher и student сесии.
-
-### Production зависимости
-Production secrets са конфигурирани и migrations съвпадат до `20260812190000`. Co-teacher и submission RPC миграциите са приложени и проверени live; rollback smoke-овете не оставиха тестови записи. Наличието на `OPENAI_API_KEY` още не доказва успешен live mentor request.
-
-### Product gaps (частично)
-- Известия / inbox
-- Gradebook + CSV
-- Bulk assign / co-teacher UI
-- Mentor analytics
-- Curriculum 9–12
-
-### Tenancy (липсва)
-- School-scoped admin
-- `school_id` в профили
-- Изолация между училища
-
-### Quality (технически дълг)
-- Real multi-user teacher/student browser smoke
-- Live Supabase RLS integration CI
-- CMS create/delete
-
----
-
-## Приоритизиран backlog
-
-| Prio | Задача | Защо |
-| --- | --- | --- |
-| P0 | Live pilot smoke с отделни teacher/student акаунти | Rollback SQL smoke не валидира браузър с реални Auth сесии, навигация и UI |
-| P0 | Live mentor smoke | Наличен secret не гарантира работещ OpenAI streaming path |
-| P1 | Real Supabase RLS integration CI | Текущият CI използва fake auth и placeholder env |
-| P1 | Student notifications (нов feedback / due date) | Пилотът иначе разчита на устни напомняния |
-| P1 | Admin mentor usage dashboard | Оперативен контрол върху квоти/разходи |
-| P2 | School-level admin (tenant) | За „админ на училище“ отделно от platform admin |
-| P2 | Gradebook / CSV export / bulk assign | Училищна отчетност |
-| P2 | Curriculum 9–12 | README roadmap |
-| P2 | CMS create/delete + lesson discoverability | По-лесно съдържателно управление |
-
----
-
-## Източници на одита
-
-- Student explore agent
-- Teacher explore agent
-- Admin explore agent
-- Infra/AI explore agent
+- Student / teacher / admin / infra explore agents (първоначален одит, 12 Aug 2026)
+- Stabilization release + live rollback SQL smoke
+- Production sync: GitHub `main`, Vercel, Supabase до `20260813150000`
 
 Ключови файлове: `src/app/(dashboard|paths|classes|teacher|admin|lesson)`, `src/app/api/*`, `supabase/migrations/*`, README roadmap, `.github/workflows/learning-lesson-v2.yml`
-
-> **Забележка:** Базовите метрики остават snapshot от първоначалния одит. Текущите статуси отразяват stabilization release-а и live Supabase migration history до `20260812190000`. Route contract тестовете, fake-auth E2E и rollback SQL smoke не заменят истински multi-user browser pilot smoke.

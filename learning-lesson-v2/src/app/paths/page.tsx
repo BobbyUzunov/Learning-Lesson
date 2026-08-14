@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { SchoolCurriculumExplorer } from "@/components/school-curriculum-explorer";
 import { SyllabusView } from "@/components/syllabus-view";
 import { getCourseCatalog } from "@/lib/catalog";
@@ -38,6 +39,9 @@ export default async function PathsPage({ searchParams }: PathsPageProps) {
     getCourseProjects()
   ]);
   const copy = t(language);
+  if (!session.user) {
+    redirect("/login");
+  }
   const tab = params.tab === "labs" ? "labs" : "program";
   const [progressData, assignments, submissions] = session.user
     ? await Promise.all([getCurrentUserProgress(), getMyAssignments(), getCurrentUserProjectSubmissions()])

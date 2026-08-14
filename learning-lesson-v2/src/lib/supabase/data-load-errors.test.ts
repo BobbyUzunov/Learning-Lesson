@@ -18,6 +18,8 @@ import {
 import {
   getClassroomById,
   getClassroomReport,
+  listClassroomTeachers,
+  listCoTeacherCandidates,
   listTransferCandidates
 } from "./classrooms";
 import { getMyClassroomIds } from "./memberships";
@@ -103,6 +105,8 @@ describe("Supabase detail and report loader error semantics", () => {
     ["classroom detail", "rpc", "get_teacher_classroom", "teacher_classroom_unavailable", () => getClassroomById("class-1")],
     ["classroom report", "rpc", "get_classroom_report", "teacher_classroom_report_unavailable", () => getClassroomReport("class-1")],
     ["transfer candidates", "rpc", "list_classroom_transfer_candidates", "classroom_transfer_candidates_unavailable", () => listTransferCandidates("class-1")],
+    ["classroom teachers", "rpc", "list_classroom_teachers", "classroom_teachers_unavailable", () => listClassroomTeachers("class-1")],
+    ["co-teacher candidates", "rpc", "list_classroom_co_teacher_candidates", "classroom_co_teacher_candidates_unavailable", () => listCoTeacherCandidates("class-1")],
     ["classroom assignments", "table", "classroom_assignments", "teacher_classroom_assignments_unavailable", () => getClassroomAssignments("class-1")],
     ["assignment detail", "table", "classroom_assignments", "assignment_unavailable", () => getAssignmentById("assignment-1")],
     ["assignment report", "rpc", "get_assignment_report", "teacher_assignment_report_unavailable", () => getAssignmentReport("assignment-1")],

@@ -3,12 +3,9 @@ import { enableE2eAuth, mockMentorApi } from "./helpers/mentor";
 import { openAuthenticatedLessonMentor, revealLessonMentor } from "./helpers/lesson";
 
 test.describe("mentor guest", () => {
-  test("guest sees AI hint signup prompt on lesson 1", async ({ page }) => {
+  test("guest is sent to login instead of the lesson mentor", async ({ page }) => {
     await page.goto("/lesson/1");
-
-    await revealLessonMentor(page);
-    await expect(page.getByRole("main").getByRole("link", { name: /sign up|регистрация/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /need some direction|нужда от насока/i })).toHaveCount(0);
+    await expect(page).toHaveURL(/\/login/);
   });
 });
 

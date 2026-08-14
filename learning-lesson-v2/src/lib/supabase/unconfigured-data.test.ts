@@ -20,6 +20,8 @@ import {
   getClassroomById,
   getClassroomReport,
   getTeacherClassrooms,
+  listClassroomTeachers,
+  listCoTeacherCandidates,
   listTransferCandidates
 } from "./classrooms";
 import { getMyClassroomIds } from "./memberships";
@@ -62,6 +64,8 @@ describe("Supabase data fallbacks without usable public credentials", () => {
     ["classroom detail", () => getClassroomById("class-1"), null],
     ["classroom report", () => getClassroomReport("class-1"), []],
     ["classroom transfer candidates", () => listTransferCandidates("class-1"), []],
+    ["classroom teachers", () => listClassroomTeachers("class-1"), []],
+    ["classroom co-teacher candidates", () => listCoTeacherCandidates("class-1"), []],
     ["classroom assignments", () => getClassroomAssignments("class-1"), []],
     ["assignment detail", () => getAssignmentById("assignment-1"), null],
     ["assignment report", () => getAssignmentReport("assignment-1"), []],

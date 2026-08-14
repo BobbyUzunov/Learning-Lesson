@@ -11,6 +11,8 @@ import {
   type ClassroomReportRpcRow,
   type ClassroomRow,
   type ClassroomStatus,
+  type ClassroomTeacher,
+  type ClassroomTeacherRole,
   type StudentClassroom
 } from "@/lib/classrooms/types";
 
@@ -19,6 +21,12 @@ type ClassroomWithCountRow = ClassroomRow & {
 };
 
 type TransferCandidateRpcRow = { id: string; label: string };
+
+type ClassroomTeacherRpcRow = {
+  user_id: string;
+  role: ClassroomTeacherRole;
+  label: string;
+};
 
 type TeacherClassroomRpcRow = ClassroomRow & {
   member_count: number;
@@ -162,6 +170,44 @@ export async function listTransferCandidates(classroomId: string) {
 
   if (error) {
     throwLoadError("classroom_transfer_candidates_unavailable", error);
+  }
+
+  return ((data ?? []) as TransferCandidateRpcRow[]).map((row) => ({ id: row.id, label: row.label }));
+}
+
+export async function listClassroomTeachers(classroomId: string): Promise<ClassroomTeacher[]> {
+  if (!hasSupabaseDataEnv()) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("list_classroom_teachers", {
+    p_classroom_id: classroomId
+  });
+
+  if (error) {
+    throwLoadError("classroom_teachers_unavailable", error);
+  }
+
+  return ((data ?? []) as ClassroomTeacherRpcRow[]).map((row) => ({
+    userId: row.user_id,
+    role: row.role,
+    label: row.label
+  }));
+}
+
+export async function listCoTeacherCandidates(classroomId: string) {
+  if (!hasSupabaseDataEnv()) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("list_classroom_co_teacher_candidates", {
+    p_classroom_id: classroomId
+  });
+
+  if (error) {
+    throwLoadError("classroom_co_teacher_candidates_unavailable", error);
   }
 
   return ((data ?? []) as TransferCandidateRpcRow[]).map((row) => ({ id: row.id, label: row.label }));

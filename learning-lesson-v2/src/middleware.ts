@@ -16,6 +16,12 @@ export const config = {
     "/projects/:path*",
     "/verify-email/:path*",
     "/teacher/:path*",
-    "/admin/:path*"
+    "/admin/:path*",
+    "/lesson/:path*",
+    "/paths",
+    "/paths/:path*",
+    "/missions/:path*",
+    "/courses",
+    "/courses/:path*"
   ]
 };

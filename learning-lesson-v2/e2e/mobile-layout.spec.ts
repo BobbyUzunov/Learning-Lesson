@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { openLessonTask } from "./helpers/lesson";
+import { enableE2eAuth } from "./helpers/mentor";
 
 const mobileViewport = { width: 390, height: 844 };
 
@@ -18,12 +19,14 @@ test.describe("mobile layout", () => {
   });
 
   test("paths page fits mobile viewport", async ({ page }) => {
+    await enableE2eAuth(page);
     await page.goto("/paths");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
   test("lesson page fits mobile viewport", async ({ page }) => {
+    await enableE2eAuth(page);
     await page.goto("/lesson/1");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await openLessonTask(page);

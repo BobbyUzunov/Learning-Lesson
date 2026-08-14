@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowDown, ArrowLeft, Clock3, GraduationCap, Layers3, UsersRound } from "lucide-react";
 import { MissionLabCard } from "@/components/curriculum/mission-lab-card";
 import { getCourseCatalog } from "@/lib/catalog";
@@ -34,6 +34,9 @@ export default async function MissionPage({ params }: { params: Promise<{ id: st
     getCourseProjects()
   ]);
   const dictionary = t(language);
+  if (!session.user) {
+    redirect("/login");
+  }
   const copy = dictionary.schoolCurriculum;
   const mission = curriculum.missions.find((entry) => entry.id === id);
 

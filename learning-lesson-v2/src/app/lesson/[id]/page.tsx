@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { LessonStages } from "@/components/lesson-stages";
-import { getCourseCatalog, getFirstLesson, getLessonFromCatalog, getQuestForLesson, isLessonUnlocked } from "@/lib/catalog";
+import { getCourseCatalog, getLessonFromCatalog, getQuestForLesson, isLessonUnlocked } from "@/lib/catalog";
 import { formatMessage, localizeGameLesson, localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { localizeLessonStructure } from "@/lib/lesson-structure";
@@ -50,12 +50,11 @@ export default async function LessonPage({ params }: LessonPageProps) {
     getKnowledgeCheckContent()
   ]);
   const copy = t(language);
-  const firstLesson = getFirstLesson(catalog);
   const progressData = session.user ? await getCurrentUserProgress() : null;
   const completedLessonIds = progressData?.progress.filter((item) => item.completed).map((item) => item.lesson_id) ?? [];
 
-  if (!session.user && id !== firstLesson?.id) {
-    redirect("/paths?tab=labs&guestLocked=1");
+  if (!session.user) {
+    redirect("/login");
   }
 
   const gameLesson = getLessonFromCatalog(catalog, id);

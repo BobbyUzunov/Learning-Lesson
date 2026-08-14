@@ -56,7 +56,11 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/projects") ||
     pathname.startsWith("/verify-email") ||
     pathname.startsWith("/teacher") ||
-    pathname.startsWith("/admin");
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/lesson") ||
+    pathname.startsWith("/paths") ||
+    pathname.startsWith("/missions") ||
+    pathname.startsWith("/courses");
 
   if (isProtected && !verifiedToken?.claims.sub) {
     const redirectUrl = request.nextUrl.clone();
