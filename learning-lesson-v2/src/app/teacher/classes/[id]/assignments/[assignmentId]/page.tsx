@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarClock } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { AssignmentReportTable } from "@/components/teacher/assignment-report-table";
 import { summarizeAssignmentReport } from "@/lib/assignments/types";
 import { getAssignmentById, getAssignmentReport } from "@/lib/supabase/assignments";
@@ -41,19 +41,13 @@ export default async function TeacherAssignmentPage({
     language === "bg"
       ? assignment.titleOverride || assignment.missionTitleBg || assignment.missionTitle || assignment.missionId
       : assignment.titleOverride || assignment.missionTitle || assignment.missionId;
-  const progressLabel = copy.reviewProgress
-    .replace("{approved}", String(summary.approved))
-    .replace("{total}", String(summary.studentCount));
-  const waitingLabel =
+  const statusLine =
     summary.submitted > 0
       ? copy.waitingReview.replace("{count}", String(summary.submitted))
-      : copy.allCaughtUp;
-  const progressPercent = summary.studentCount
-    ? Math.round((summary.approved / summary.studentCount) * 100)
-    : 0;
+      : copy.reviewProgress.replace("{approved}", String(summary.approved)).replace("{total}", String(summary.studentCount));
 
   return (
-    <div className="pb-4">
+    <div>
       <Link
         className="inline-flex items-center gap-2 text-sm font-bold text-ink/50 transition hover:text-ink"
         href={`/teacher/classes/${id}`}
@@ -62,43 +56,22 @@ export default async function TeacherAssignmentPage({
         {copy.backToClass}
       </Link>
 
-      <section className="relative mt-4 overflow-hidden rounded-2xl bg-ink text-paper">
-        <span className="pointer-events-none absolute -right-8 -top-8 size-40 rounded-full bg-mint/25 blur-3xl" />
-        <span className="pointer-events-none absolute -bottom-16 -left-10 size-[18rem] rounded-full bg-violet/20 blur-3xl" />
-        <div className="relative px-5 py-7 sm:px-7 sm:py-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-mint">
-            {assignment.classroomName}
-          </p>
-          <h1 className="mt-3 max-w-3xl break-words font-display text-[clamp(1.6rem,3.4vw,2.4rem)] font-bold leading-[1.1] tracking-tight">
-            {title}
-          </h1>
-          <p className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-paper/60">
-            <CalendarClock className="size-4 text-paper/40" />
-            {copy.dueLabel}: {formatDue(assignment.dueAt, language, copy.noDueDate)}
-          </p>
-          {assignment.instructions ? (
-            <p className="mt-4 max-w-2xl rounded-xl bg-paper/10 px-4 py-3 text-sm leading-6 text-paper/70">
-              {assignment.instructions}
-            </p>
-          ) : null}
-          <div className="mt-6 max-w-md">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-paper/55">
-              <span>
-                <span className="font-bold text-paper">{progressLabel}</span>
-              </span>
-              <span>{waitingLabel}</span>
-            </div>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-paper/10">
-              <div
-                className="h-full rounded-full bg-mint"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      <header className="mt-4">
+        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-mint">{assignment.classroomName}</p>
+        <h1 className="mt-2 max-w-3xl break-words font-display text-3xl font-bold tracking-tight sm:text-4xl">
+          {title}
+        </h1>
+        <p className="mt-2 text-sm text-ink/55">
+          {copy.dueLabel}: {formatDue(assignment.dueAt, language, copy.noDueDate)}
+          <span className="px-2 text-ink/25">·</span>
+          {statusLine}
+        </p>
+        {assignment.instructions ? (
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/65">{assignment.instructions}</p>
+        ) : null}
+      </header>
 
-      <div className="mt-6">
+      <div className="mt-8">
         <AssignmentReportTable language={language} rows={report} summary={summary} />
       </div>
     </div>

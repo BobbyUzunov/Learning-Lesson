@@ -18,6 +18,7 @@ const createClassroomErrors = [
   "invalid_grade",
   "invalid_academic_year",
   "unknown_specialty",
+  "invalid_specialty",
   "join_code_generation_failed"
 ] as const;
 
@@ -50,6 +51,10 @@ export async function POST(request: Request) {
 
   if (!name || name.length > 120) {
     return NextResponse.json({ error: "invalid_name" }, { status: 400 });
+  }
+
+  if (!specialtyId) {
+    return NextResponse.json({ error: "invalid_specialty" }, { status: 400 });
   }
 
   if (gradeLevel < 8 || gradeLevel > 12) {

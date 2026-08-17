@@ -67,8 +67,9 @@ describe("POST /api/teacher/classrooms", () => {
 
   it.each([
     [{ name: "" }, "invalid_name"],
-    [{ name: "Pilot", gradeLevel: 7 }, "invalid_grade"],
-    [{ name: "Pilot", academicYear: "2026" }, "invalid_academic_year"]
+    [{ name: "Pilot" }, "invalid_specialty"],
+    [{ name: "Pilot", specialtyId: "software-development", gradeLevel: 7 }, "invalid_grade"],
+    [{ name: "Pilot", specialtyId: "software-development", academicYear: "2026" }, "invalid_academic_year"]
   ])("rejects invalid classroom input before calling the RPC", async (body, error) => {
     const response = await POST(request(body));
 
@@ -82,7 +83,7 @@ describe("POST /api/teacher/classrooms", () => {
       error: Response.json({ error: "teacher_required" }, { status: 403 })
     });
 
-    const response = await POST(request({ name: "Pilot" }));
+    const response = await POST(request({ name: "Pilot", specialtyId: "software-development" }));
 
     expect(response.status).toBe(403);
     expect(await response.json()).toEqual({ error: "teacher_required" });
@@ -101,7 +102,7 @@ describe("POST /api/teacher/classrooms", () => {
   ])("maps the create_classroom %s code to a stable public response", async (message, status) => {
     mocks.single.mockResolvedValue({ data: null, error: { message } });
 
-    const response = await POST(request({ name: "Pilot" }));
+    const response = await POST(request({ name: "Pilot", specialtyId: "software-development" }));
 
     expect(response.status).toBe(status);
     expect(await response.json()).toEqual({ error: message });
@@ -113,7 +114,7 @@ describe("POST /api/teacher/classrooms", () => {
       error: { message: "duplicate key violates private classroom constraint" }
     });
 
-    const response = await POST(request({ name: "Pilot" }));
+    const response = await POST(request({ name: "Pilot", specialtyId: "software-development" }));
 
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ error: "classroom_failed" });
@@ -122,7 +123,7 @@ describe("POST /api/teacher/classrooms", () => {
   it("fails closed when Supabase is not configured", async () => {
     mocks.hasSupabaseEnv.mockReturnValue(false);
 
-    const response = await POST(request({ name: "Pilot" }));
+    const response = await POST(request({ name: "Pilot", specialtyId: "software-development" }));
 
     expect(response.status).toBe(503);
     expect(mocks.requireTeacherUser).not.toHaveBeenCalled();

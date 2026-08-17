@@ -8,7 +8,8 @@ import { t, type Language } from "@/lib/i18n";
 type MissionOption = {
   id: string;
   label: string;
-  moduleTitle: string;
+  groupKey: string;
+  groupLabel: string;
 };
 
 type AssignMissionFormProps = {
@@ -31,11 +32,15 @@ export function AssignMissionForm({ classroomId, language, missions }: AssignMis
   const grouped = useMemo(() => {
     const map = new Map<string, MissionOption[]>();
     for (const mission of missions) {
-      const list = map.get(mission.moduleTitle) ?? [];
+      const list = map.get(mission.groupKey) ?? [];
       list.push(mission);
-      map.set(mission.moduleTitle, list);
+      map.set(mission.groupKey, list);
     }
-    return [...map.entries()];
+    return [...map.entries()].map(([groupKey, items]) => ({
+      groupKey,
+      groupLabel: items[0]?.groupLabel ?? groupKey,
+      items
+    }));
   }, [missions]);
 
   async function onSubmit(event: React.FormEvent) {
@@ -114,9 +119,9 @@ export function AssignMissionForm({ classroomId, language, missions }: AssignMis
           required
           value={missionId}
         >
-          {grouped.map(([moduleTitle, items]) => (
-            <optgroup key={moduleTitle} label={moduleTitle}>
-              {items.map((mission) => (
+          {grouped.map((group) => (
+            <optgroup key={group.groupKey} label={group.groupLabel}>
+              {group.items.map((mission) => (
                 <option key={mission.id} value={mission.id}>
                   {mission.label}
                 </option>

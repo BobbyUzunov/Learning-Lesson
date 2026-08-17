@@ -117,6 +117,25 @@ export function CreateClassroomForm({
         value={name}
       />
 
+      <label className="mt-4 block text-sm font-bold text-ink/75" htmlFor="classroom-specialty">
+        {copy.teacher.specialtyLabel}
+      </label>
+      <p className="mt-1 text-sm text-ink/50">{copy.teacher.specialtyHint}</p>
+      <select
+        className={fieldClass}
+        id="classroom-specialty"
+        onChange={(event) => setSpecialtyId(event.target.value)}
+        required
+        value={specialtyId}
+      >
+        <option value="">{copy.teacher.specialtyNone}</option>
+        {specialties.map((specialty) => (
+          <option key={specialty.id} value={specialty.id}>
+            {specialty.title}
+          </option>
+        ))}
+      </select>
+
       <details className="mt-4 rounded-xl border border-ink/10 bg-paper/60 px-3.5 py-2.5">
         <summary className="cursor-pointer list-none text-sm font-bold text-ink/65 [&::-webkit-details-marker]:hidden">
           <span className="inline-flex items-center gap-2">
@@ -137,25 +156,7 @@ export function CreateClassroomForm({
             value={description}
           />
 
-          <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            <div>
-              <label className="block text-sm font-bold text-ink/75" htmlFor="classroom-specialty">
-                {copy.teacher.specialtyLabel}
-              </label>
-              <select
-                className={fieldClass}
-                id="classroom-specialty"
-                onChange={(event) => setSpecialtyId(event.target.value)}
-                value={specialtyId}
-              >
-                <option value="">{copy.teacher.specialtyNone}</option>
-                {specialties.map((specialty) => (
-                  <option key={specialty.id} value={specialty.id}>
-                    {specialty.title}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-bold text-ink/75" htmlFor="classroom-grade">
                 {copy.teacher.gradeLabel}

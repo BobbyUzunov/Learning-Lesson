@@ -49,6 +49,17 @@ export function getSpecialtyModules(curriculum: SchoolCurriculum, specialtyId: s
     .sort((left, right) => left.sortOrder - right.sortOrder);
 }
 
+export function getAssignableModules(
+  curriculum: SchoolCurriculum,
+  gradeLevel: number,
+  specialtyId: string | null | undefined
+) {
+  return [
+    ...getCommonModules(curriculum, gradeLevel),
+    ...(specialtyId ? getSpecialtyModules(curriculum, specialtyId, gradeLevel) : [])
+  ];
+}
+
 export function getMissionsForModule(curriculum: SchoolCurriculum, moduleId: string) {
   return curriculum.missions
     .filter((mission) => mission.moduleId === moduleId)

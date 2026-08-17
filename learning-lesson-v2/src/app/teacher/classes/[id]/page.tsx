@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ClipboardCheck, Plus, Table2, Users } from "lucide-react";
 import { AssignMissionForm } from "@/components/teacher/assign-mission-form";
 import { ClassroomControls } from "@/components/teacher/classroom-controls";
+import { ClassroomSpecialtyForm } from "@/components/teacher/classroom-specialty-form";
 import { ClassroomStudentsList } from "@/components/teacher/classroom-students-list";
 import { CopyCodeButton } from "@/components/teacher/copy-code-button";
 import { getSchoolCurriculum, localizeCurriculumText } from "@/lib/curriculum";
-import { getCommonModules, getSpecialtyModules, getMissionsForModule } from "@/lib/curriculum/helpers";
+import { getAssignableModules, getMissionsForModule } from "@/lib/curriculum/helpers";
 import { getClassroomAssignments } from "@/lib/supabase/assignments";
 import { getClassroomAssessments } from "@/lib/supabase/assessments";
 import {
@@ -59,25 +60,35 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
       canTransfer ? listCoTeacherCandidates(classroom.id) : Promise.resolve([])
     ]);
 
-  const modules = [
-    ...getCommonModules(curriculum, classroom.gradeLevel),
-    ...(classroom.specialtyId
-      ? getSpecialtyModules(curriculum, classroom.specialtyId, classroom.gradeLevel)
-      : curriculum.specialties.flatMap((specialty) =>
-          getSpecialtyModules(curriculum, specialty.id, classroom.gradeLevel)
-        ))
-  ];
+  const modules = getAssignableModules(curriculum, classroom.gradeLevel, classroom.specialtyId);
+  const specialty = classroom.specialtyId
+    ? curriculum.specialties.find((item) => item.id === classroom.specialtyId)
+    : null;
+  const specialtyTitle = specialty ? localizeCurriculumText(specialty.title, language) : null;
+  const specialtyOptions = curriculum.specialties.map((item) => ({
+    id: item.id,
+    title: localizeCurriculumText(item.title, language)
+  }));
 
   const assignedMissionIds = new Set(assignments.map((item) => item.missionId));
-  const missionOptions = modules.flatMap((module) =>
-    getMissionsForModule(curriculum, module.id)
+  const missionOptions = modules.flatMap((module) => {
+    const moduleTitle = localizeCurriculumText(module.title, language);
+    const moduleSpecialty = module.specialtyId
+      ? curriculum.specialties.find((item) => item.id === module.specialtyId)
+      : null;
+    const groupLabel = moduleSpecialty
+      ? `${moduleTitle} · ${localizeCurriculumText(moduleSpecialty.title, language)}`
+      : moduleTitle;
+
+    return getMissionsForModule(curriculum, module.id)
       .filter((mission) => !assignedMissionIds.has(mission.id))
       .map((mission) => ({
         id: mission.id,
         label: localizeCurriculumText(mission.title, language),
-        moduleTitle: localizeCurriculumText(module.title, language)
-      }))
-  );
+        groupKey: module.id,
+        groupLabel
+      }));
+  });
 
   return (
     <div>
@@ -99,6 +110,8 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
           {classroom.memberCount ?? report.length} {copy.teacher.studentsCount}
           <span className="text-ink/25">·</span>
           {copy.teacher.gradeLabel} {classroom.gradeLevel}
+          <span className="text-ink/25">·</span>
+          {specialtyTitle ?? copy.teacher.specialtyMissingShort}
         </p>
       </header>
 
@@ -181,6 +194,14 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
         <div className="flex flex-wrap items-end justify-between gap-3">
           <h2 className="font-display text-xl font-bold tracking-tight">{copy.teacher.assignmentsTitle}</h2>
         </div>
+
+        {!classroom.specialtyId && canTransfer ? (
+          <ClassroomSpecialtyForm
+            classroomId={classroom.id}
+            language={language}
+            specialties={specialtyOptions}
+          />
+        ) : null}
 
         {assignments.length === 0 ? (
           <p className="mt-3 text-sm text-ink/50">{copy.teacher.noAssignments}</p>

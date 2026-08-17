@@ -22,6 +22,16 @@ export function getAssignmentReviewMode(status: AssignmentStatus): AssignmentRev
   return "none";
 }
 
+export function canShowApproveAction(status: AssignmentStatus): boolean {
+  const mode = getAssignmentReviewMode(status);
+  return mode === "pending" || mode === "returned";
+}
+
+export function canShowReturnAction(status: AssignmentStatus): boolean {
+  const mode = getAssignmentReviewMode(status);
+  return mode === "pending" || mode === "approved";
+}
+
 export function sortAssignmentReportRows(rows: AssignmentReportRow[]): AssignmentReportRow[] {
   return [...rows].sort((left, right) => {
     const modeDiff =

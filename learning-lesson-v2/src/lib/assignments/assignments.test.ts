@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getAssignmentReviewMode, sortAssignmentReportRows } from "./review-ui";
+import { getAssignmentReviewMode, sortAssignmentReportRows, canShowApproveAction } from "./review-ui";
 import {
   mapAssignmentReportRow,
   mapClassroomAssignmentRow,
@@ -141,8 +141,11 @@ describe("assignment review UI mode", () => {
     expect(getAssignmentReviewMode("submitted")).toBe("pending");
   });
 
-  it("hides the first-time approve action after the teacher already approved", () => {
-    expect(getAssignmentReviewMode("approved")).toBe("approved");
+  it("never offers Approve again after the work is already approved", () => {
+    expect(canShowApproveAction("approved")).toBe(false);
+    expect(canShowApproveAction("submitted")).toBe(true);
+    expect(canShowApproveAction("needs_changes")).toBe(true);
+    expect(canShowApproveAction("missing")).toBe(false);
   });
 
   it("treats returned work as waiting for a new student version", () => {

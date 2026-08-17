@@ -7,6 +7,7 @@ import {
   getMissionMinutesRange,
   getMissionsForModule,
   getMissionsForModules,
+  getAssignableModules,
   getSpecialtyModules,
   mapRowsToSchoolCurriculum
 } from "./helpers";
@@ -30,6 +31,17 @@ describe("school curriculum", () => {
     }
 
     expect(getCommonModules(fallbackSchoolCurriculum, 8)).toHaveLength(3);
+  });
+
+  it("does not mix professional missions from other parallels", () => {
+    const software = getAssignableModules(fallbackSchoolCurriculum, 8, "software-development");
+    const missing = getAssignableModules(fallbackSchoolCurriculum, 8, null);
+
+    expect(software.some((module) => module.specialtyId === "software-development")).toBe(true);
+    expect(software.some((module) => module.specialtyId === "cybersecurity")).toBe(false);
+    expect(software.filter((module) => module.specialtyId === null)).toHaveLength(3);
+    expect(missing.every((module) => module.specialtyId === null)).toBe(true);
+    expect(missing).toHaveLength(3);
   });
 
   it("covers a full school year with eight ordered missions in every module", () => {

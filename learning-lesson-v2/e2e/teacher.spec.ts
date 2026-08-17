@@ -46,6 +46,7 @@ test.describe("teacher happy path", () => {
     await page.goto("/teacher/classes");
 
     await page.locator("#classroom-name").fill("8A Pilot");
+    await page.locator("#classroom-specialty").selectOption({ index: 1 });
     await page.getByRole("button", { name: /^(create class|създай клас)$/i }).click();
 
     await expect(page).toHaveURL(/\/teacher\/classes\/e2e-classroom-1/);
