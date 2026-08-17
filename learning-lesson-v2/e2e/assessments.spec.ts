@@ -17,6 +17,17 @@ test("learners cannot open the teacher panel", async ({ page }) => {
   await expect(page).toHaveURL(/\/dashboard/);
 });
 
+test("student inbox is reachable from the header", async ({ page }) => {
+  await enableE2eAuth(page);
+  await page.goto("/dashboard");
+
+  await expect(page.locator('header a[href="/inbox"]').first()).toBeVisible();
+  await page.locator('header a[href="/inbox"]').first().click();
+  await expect(page).toHaveURL(/\/inbox/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.locator("main")).toContainText(/сигнали|alerts/i);
+});
+
 test("teacher panel shows create-class CTA when there are no classrooms", async ({ page }) => {
   await enableE2eAuth(page, { role: "teacher" });
   await page.goto("/teacher");

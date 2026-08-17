@@ -68,9 +68,9 @@
 | --- | --- | --- |
 | P0 | Browser smoke с два реални акаунта — teacher и student | Rollback SQL smoke не валидира браузър с реални Auth сесии, навигация и UI |
 | P0 | Реална AI mentor заявка в production | Наличен `OPENAI_API_KEY` не гарантира работещ OpenAI streaming path |
-| P1 | Известия / inbox и календар | Пилотът иначе разчита на устни напомняния |
+| P1 | Календар и push известия | Inbox вече показва срокове/feedback; липсват календар и real-time alerts |
 | P1 | Real Supabase RLS integration CI | Текущият CI използва fake auth и placeholder env |
-| P2 | Gradebook и CSV export | Училищна отчетност |
+| P2 | Gradebook / bulk assign | Дневник + CSV са готови; липсва копиране на задачи между класове |
 | P2 | Mentor analytics | Оперативен контрол върху квоти/разходи |
 | P2 | School-level tenancy | „Админ на училище“ отделно от platform admin |
 | P2 | Curriculum 9–12 | README roadmap; сега само VIII клас foundation |
@@ -104,7 +104,7 @@
 | Ученик | Клас hub + join + assignments | Готово | /classes, submit assignment API |
 | Ученик | Classroom assessments | Готово | Списък, submit, review след опит |
 | Ученик | Проекти + сертификати + профил | Готово | Capstone review + certificate page |
-| Ученик | Inbox / известия / календар | Липсва | Няма централни alerts за deadlines/feedback |
+| Ученик | Inbox / известия / календар | Частично | /inbox + сигнали на Днес от задачи/проверки; няма календар/push |
 | Ученик | Index /assignments и /projects | Частично | Само detail routes; overview липсва |
 | Учител | Класове + join code + roster names | Готово | Create, rotate, enable, rename students |
 | Учител | Задачи + ревю опашка | Готово | Assign mission, approve/needs_changes |
@@ -112,7 +112,7 @@
 | Учител | Transfer / archive status | Готово | Ownership transfer + classroom status |
 | Учител | Co-teacher classwork | Готово | Може да създава задания, да ревюира и да управлява assessments |
 | Учител | Co-teacher invite/remove UI | Готово | Owner/admin кани и премахва от настройките на класа |
-| Учител | Gradebook / export / bulk assign | Липсва | Няма дневник, CSV, копиране между класове |
+| Учител | Gradebook / export / bulk assign | Частично | Дневник по клас + CSV без имейли; няма bulk assign между класове |
 | Учител | Родители / съобщения | Липсва | Няма guardian модел или messaging |
 | Админ | Hub + пълен достъп | Готово | Управление + teacher/student/mentor shortcuts |
 | Админ | CMS курсове/уроци/проекти/KC | Готово | Edit existing entities; seed при flag |

@@ -20,6 +20,12 @@ test("dashboard requires login", async ({ page }) => {
   await expect(page).toHaveURL(/\/login/);
 });
 
+test("inbox requires login", async ({ page }) => {
+  await page.goto("/inbox");
+
+  await expect(page).toHaveURL(/\/login/);
+});
+
 test("forgot password page renders reset form", async ({ page }) => {
   await page.goto("/forgot-password");
 

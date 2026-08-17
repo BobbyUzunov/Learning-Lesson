@@ -24,6 +24,7 @@ import {
   listCoTeacherCandidates,
   listTransferCandidates
 } from "./classrooms";
+import { getClassroomGradebook } from "./gradebook";
 import { getMyClassroomIds } from "./memberships";
 import {
   getAdminSubmissionById,
@@ -85,6 +86,11 @@ describe("Supabase data fallbacks without usable public credentials", () => {
     ["admin project submission detail", () => getAdminSubmissionById("submission-1"), null]
   ] as const)("returns an empty %s result without creating a client", async (_label, loadData, expected) => {
     await expect(loadData()).resolves.toEqual(expected);
+    expect(mocks.createClient).not.toHaveBeenCalled();
+  });
+
+  it("returns an empty classroom gradebook without creating a client", async () => {
+    await expect(getClassroomGradebook("class-1", "bg")).resolves.toEqual({ columns: [], rows: [] });
     expect(mocks.createClient).not.toHaveBeenCalled();
   });
 });

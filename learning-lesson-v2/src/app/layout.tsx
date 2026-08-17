@@ -62,6 +62,7 @@ export default async function RootLayout({
     roleLabel = copy.nav.roleStudent;
     navItems = [
       { href: "/dashboard", label: copy.nav.today },
+      { href: "/inbox", label: copy.nav.inbox },
       { href: "/paths", label: copy.nav.learning },
       { href: "/classes", label: copy.nav.classHub }
     ];

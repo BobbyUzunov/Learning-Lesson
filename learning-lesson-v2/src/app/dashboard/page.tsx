@@ -7,6 +7,8 @@ import { getLanguage } from "@/lib/i18n-server";
 import { getMyAssignments } from "@/lib/supabase/assignments";
 import { getMyAssessments } from "@/lib/supabase/assessments";
 import { isAssessmentExpired } from "@/lib/assessments/types";
+import { buildStudentInbox } from "@/lib/inbox/build-student-inbox";
+import { StudentInboxList } from "@/components/student-inbox-list";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 import { requireUser } from "@/lib/supabase/auth";
 
@@ -45,6 +47,7 @@ export default async function DashboardPage({
     null;
 
   const lastFeedback = assignments.find((item) => item.teacherNote)?.teacherNote ?? null;
+  const inboxItems = buildStudentInbox({ assignments, assessments, language }).slice(0, 3);
   const activeAssessment =
     assessments.find((item) => !item.attempt && !isAssessmentExpired(item)) ?? null;
 
@@ -150,7 +153,17 @@ export default async function DashboardPage({
         </div>
       </section>
 
-      {lastFeedback ? (
+      {inboxItems.length > 0 ? (
+        <section className="mt-6 animate-home-rise" style={{ animationDelay: "80ms" }}>
+          <div className="mb-3 flex items-end justify-between gap-3">
+            <h2 className="font-display text-xl font-bold tracking-tight">{copy.inbox.title}</h2>
+            <Link className="text-sm font-bold text-ink/55 underline-offset-4 hover:text-ink hover:underline" href="/inbox">
+              {copy.inbox.viewAll}
+            </Link>
+          </div>
+          <StudentInboxList copy={copy.inbox} items={inboxItems} language={language} openLabel={copy.inbox.openItem} />
+        </section>
+      ) : lastFeedback ? (
         <section
           className="mt-6 animate-home-rise rounded-2xl border border-coral/20 bg-coral/[0.08] px-5 py-4 sm:px-6"
           style={{ animationDelay: "80ms" }}
@@ -162,8 +175,15 @@ export default async function DashboardPage({
 
       <nav
         className="mt-6 flex animate-home-rise flex-wrap gap-3"
-        style={{ animationDelay: lastFeedback ? "140ms" : "80ms" }}
+        style={{ animationDelay: inboxItems.length || lastFeedback ? "140ms" : "80ms" }}
       >
+        <Link
+          className="group inline-flex min-h-11 flex-1 items-center justify-between gap-3 rounded-2xl border border-ink/10 bg-white/75 px-4 py-3 text-sm font-bold text-ink/75 transition hover:border-ink/20 hover:bg-white sm:flex-none"
+          href="/inbox"
+        >
+          {copy.inbox.viewAll}
+          <ArrowRight className="size-4 text-ink/25 transition group-hover:translate-x-0.5 group-hover:text-ink/55" />
+        </Link>
         <Link
           className="group inline-flex min-h-11 flex-1 items-center justify-between gap-3 rounded-2xl border border-ink/10 bg-white/75 px-4 py-3 text-sm font-bold text-ink/75 transition hover:border-ink/20 hover:bg-white sm:flex-none"
           href="/classes"

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, ClipboardCheck, Plus, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, ClipboardCheck, Plus, Table2, Users } from "lucide-react";
 import { AssignMissionForm } from "@/components/teacher/assign-mission-form";
 import { ClassroomControls } from "@/components/teacher/classroom-controls";
 import { ClassroomStudentsList } from "@/components/teacher/classroom-students-list";
@@ -121,7 +121,7 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
         </div>
       </section>
 
-      <section className="mt-5 grid gap-3 sm:grid-cols-2">
+      <section className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           className="focus-ring group flex min-h-[4.5rem] items-center justify-between gap-3 rounded-2xl border border-ink/10 bg-white/80 px-4 py-4 transition hover:-translate-y-0.5 hover:border-ink/20"
           href={`/teacher/classes/${classroom.id}/assessments/new`}
@@ -155,6 +155,22 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
                 {copy.assessment.teacherTitle}
               </span>
               <span className="mt-0.5 block text-sm text-ink/50">{copy.teacher.classOpenChecks}</span>
+            </span>
+          </span>
+          <ArrowRight className="size-4 text-ink/25 transition group-hover:translate-x-0.5 group-hover:text-ink/60" />
+        </Link>
+
+        <Link
+          className="focus-ring group flex min-h-[4.5rem] items-center justify-between gap-3 rounded-2xl border border-ink/10 bg-white/80 px-4 py-4 transition hover:-translate-y-0.5 hover:border-ink/20"
+          href={`/teacher/classes/${classroom.id}/gradebook`}
+        >
+          <span className="inline-flex items-center gap-3">
+            <span className="grid size-10 place-items-center rounded-xl bg-ink text-paper">
+              <Table2 className="size-4" />
+            </span>
+            <span>
+              <span className="block font-display text-lg font-bold tracking-tight">{copy.teacher.gradebookTitle}</span>
+              <span className="mt-0.5 block text-sm text-ink/50">{copy.teacher.openGradebook}</span>
             </span>
           </span>
           <ArrowRight className="size-4 text-ink/25 transition group-hover:translate-x-0.5 group-hover:text-ink/60" />

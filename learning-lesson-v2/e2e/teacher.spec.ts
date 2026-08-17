@@ -51,3 +51,9 @@ test.describe("teacher happy path", () => {
     await expect(page).toHaveURL(/\/teacher\/classes\/e2e-classroom-1/);
   });
 });
+
+test("student cannot open the class gradebook", async ({ page }) => {
+  await enableE2eAuth(page);
+  await page.goto("/teacher/classes/e2e-classroom-1/gradebook");
+  await expect(page).toHaveURL(/\/dashboard/);
+});

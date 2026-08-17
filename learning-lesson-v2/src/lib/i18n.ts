@@ -99,7 +99,8 @@ const dictionary = {
       closeMenu: "Затвори меню",
       roleStudent: "Ученик",
       roleTeacher: "Учител",
-      roleAdmin: "Админ"
+      roleAdmin: "Админ",
+      inbox: "Сигнали"
     },
     teacher: {
       panelTitle: "Класове",
@@ -216,6 +217,12 @@ const dictionary = {
       removeCoTeacherSuccess: "Съучителят е премахнат.",
       reportTitle: "Напредък на класа",
       reportSubtitle: "Обобщение на активността и завършените уроци.",
+      gradebookTitle: "Дневник",
+      gradebookSubtitle: "Задачи и проверки по ученик. Имена от списъка на класа — без имейли.",
+      gradebookExport: "Изтегли CSV",
+      gradebookEmpty: "Още няма ученици за дневник. Сподели кода за присъединяване.",
+      gradebookNoWork: "Още няма възложени задачи или проверки за този клас.",
+      openGradebook: "Отвори дневника",
       colStudent: "Ученик",
       colCompleted: "Завършени уроци",
       colXp: "XP",
@@ -559,6 +566,22 @@ const dictionary = {
       nextLessons: "Следващи уроци",
       lessons: "урока",
       gameMvp: "Game MVP"
+    },
+    inbox: {
+      title: "Сигнали",
+      subtitle: "Срокове, проверки и обратна връзка от класа — на едно място.",
+      empty: "Няма чакащи сигнали.",
+      emptyHint: "Когато учителят даде задача или проверка, ще се появи тук.",
+      openItem: "Отвори",
+      viewAll: "Всички сигнали",
+      dueLabel: "Срок",
+      needs_changes: "Поправи задачата",
+      open_assessment: "Отворена проверка",
+      overdue: "Срокът е минал",
+      due_soon: "Срокът наближава",
+      waiting: "Чака те задача",
+      submitted: "Изпратено — чака проверка",
+      feedback: "Обратна връзка от учителя"
     },
     paths: {
       badge: "Учебна програма",
@@ -1193,7 +1216,8 @@ const dictionary = {
       closeMenu: "Close menu",
       roleStudent: "Student",
       roleTeacher: "Teacher",
-      roleAdmin: "Admin"
+      roleAdmin: "Admin",
+      inbox: "Alerts"
     },
     teacher: {
       panelTitle: "Classes",
@@ -1310,6 +1334,12 @@ const dictionary = {
       removeCoTeacherSuccess: "Co-teacher removed.",
       reportTitle: "Class progress",
       reportSubtitle: "A summary of activity and completed lessons.",
+      gradebookTitle: "Gradebook",
+      gradebookSubtitle: "Assignments and checks by student. Names come from the class roster — no emails.",
+      gradebookExport: "Download CSV",
+      gradebookEmpty: "No students in the gradebook yet. Share the join code.",
+      gradebookNoWork: "No assignments or checks for this class yet.",
+      openGradebook: "Open gradebook",
       colStudent: "Student",
       colCompleted: "Completed lessons",
       colXp: "XP",
@@ -1652,6 +1682,22 @@ const dictionary = {
       nextLessons: "Next lessons",
       lessons: "lessons",
       gameMvp: "Game MVP"
+    },
+    inbox: {
+      title: "Alerts",
+      subtitle: "Deadlines, checks, and class feedback in one place.",
+      empty: "No alerts right now.",
+      emptyHint: "When a teacher assigns work or a check, it will show up here.",
+      openItem: "Open",
+      viewAll: "All alerts",
+      dueLabel: "Due",
+      needs_changes: "Fix the assignment",
+      open_assessment: "Open check",
+      overdue: "Deadline passed",
+      due_soon: "Due soon",
+      waiting: "Assignment waiting",
+      submitted: "Submitted — waiting for review",
+      feedback: "Teacher feedback"
     },
     paths: {
       badge: "Curriculum",
