@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getAssignmentReviewMode, sortAssignmentReportRows } from "./review-ui";
 import {
   mapAssignmentReportRow,
   mapClassroomAssignmentRow,
@@ -134,3 +135,47 @@ describe("assignments helpers", () => {
     });
   });
 });
+
+describe("assignment review UI mode", () => {
+  it("treats submitted work as a first review, not a finished check", () => {
+    expect(getAssignmentReviewMode("submitted")).toBe("pending");
+  });
+
+  it("hides the first-time approve action after the teacher already approved", () => {
+    expect(getAssignmentReviewMode("approved")).toBe("approved");
+  });
+
+  it("treats returned work as waiting for a new student version", () => {
+    expect(getAssignmentReviewMode("needs_changes")).toBe("returned");
+  });
+
+  it("has no review actions when the student has not submitted", () => {
+    expect(getAssignmentReviewMode("missing")).toBe("none");
+    expect(getAssignmentReviewMode("draft")).toBe("none");
+  });
+
+  it("puts waiting reviews before finished ones", () => {
+    const sorted = sortAssignmentReportRows([
+      reportRow("approved", "Иван"),
+      reportRow("missing", "Мария"),
+      reportRow("submitted", "Георги")
+    ]);
+
+    expect(sorted.map((item) => item.displayName)).toEqual(["Георги", "Мария", "Иван"]);
+  });
+});
+
+function reportRow(status: AssignmentReportRow["status"], displayName: string): AssignmentReportRow {
+  return {
+    studentId: displayName,
+    displayName,
+    submissionId: status === "missing" ? null : displayName,
+    status,
+    deliverableText: null,
+    deliverableUrl: null,
+    teacherNote: null,
+    submittedAt: null,
+    reviewedAt: null,
+    joinedAt: "2026-01-01"
+  };
+}
