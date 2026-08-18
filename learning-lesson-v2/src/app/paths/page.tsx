@@ -21,6 +21,7 @@ import { getMyAssignments } from "@/lib/supabase/assignments";
 import { getCurrentSession } from "@/lib/supabase/auth";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 import { getCurrentUserProjectSubmissions } from "@/lib/supabase/project-submissions";
+import { getStudentClassrooms } from "@/lib/supabase/classrooms";
 
 export const dynamic = "force-dynamic";
 
@@ -43,9 +44,14 @@ export default async function PathsPage({ searchParams }: PathsPageProps) {
     redirect("/login");
   }
   const tab = params.tab === "labs" ? "labs" : "program";
-  const [progressData, assignments, submissions] = session.user
-    ? await Promise.all([getCurrentUserProgress(), getMyAssignments(), getCurrentUserProjectSubmissions()])
-    : [null, [], []];
+  const [progressData, assignments, submissions, classrooms] = session.user
+    ? await Promise.all([
+        getCurrentUserProgress(),
+        getMyAssignments(),
+        getCurrentUserProjectSubmissions(),
+        getStudentClassrooms()
+      ])
+    : [null, [], [], []];
   const completedLessonIds =
     progressData?.progress.filter((item) => item.completed).map((item) => item.lesson_id) ?? [];
 
@@ -130,9 +136,7 @@ export default async function PathsPage({ searchParams }: PathsPageProps) {
             copy={pickCurriculumExplorerCopy(copy.schoolCurriculum)}
             data={explorerData}
             isAuthenticated={Boolean(session.user)}
-            pathsTitle={
-              session.user ? copy.schoolCurriculum.pathsTitleStudent : copy.schoolCurriculum.pathsTitle
-            }
+            lockedSpecialtyId={classrooms.find((classroom) => classroom.specialtyId)?.specialtyId ?? null}
           />
         )}
       </div>

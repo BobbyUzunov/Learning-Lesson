@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
+import { DueDateField } from "@/components/due-date-field";
 import { t, type Language } from "@/lib/i18n";
 
 type MissionOption = {
@@ -17,6 +18,24 @@ type AssignMissionFormProps = {
   language: Language;
   missions: MissionOption[];
 };
+
+type AssignCopy = ReturnType<typeof t>["teacher"];
+
+function assignErrorMessage(copy: AssignCopy, code?: string) {
+  if (code === "teacher_required" || code === "not_authenticated") {
+    return copy.assignErrorAuth;
+  }
+  if (code === "assignment_exists") {
+    return copy.assignErrorExists;
+  }
+  if (code === "not_authorized") {
+    return copy.assignErrorUnauthorized;
+  }
+  if (code === "unknown_mission") {
+    return copy.assignErrorUnknownMission;
+  }
+  return copy.assignError;
+}
 
 export function AssignMissionForm({ classroomId, language, missions }: AssignMissionFormProps) {
   const copy = t(language).teacher;
@@ -52,6 +71,7 @@ export function AssignMissionForm({ classroomId, language, missions }: AssignMis
     try {
       const response = await fetch(`/api/teacher/classrooms/${classroomId}/assignments`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           missionId,
@@ -62,7 +82,7 @@ export function AssignMissionForm({ classroomId, language, missions }: AssignMis
       const payload = (await response.json()) as { error?: string };
 
       if (!response.ok) {
-        setError(payload.error ?? copy.assignError);
+        setError(assignErrorMessage(copy, payload.error));
         return;
       }
 
@@ -131,15 +151,9 @@ export function AssignMissionForm({ classroomId, language, missions }: AssignMis
         </select>
       </label>
 
-      <label className="mt-3 block text-sm font-bold text-ink/75">
-        {copy.dueAtLabel}
-        <input
-          className="focus-ring mt-2 w-full rounded-xl border border-ink/12 bg-white px-3 py-2.5"
-          onChange={(event) => setDueAt(event.target.value)}
-          type="datetime-local"
-          value={dueAt}
-        />
-      </label>
+      <div className="mt-3">
+        <DueDateField language={language} label={copy.dueAtLabel} onChange={setDueAt} value={dueAt} />
+      </div>
 
       <details className="mt-3 rounded-xl border border-ink/10 bg-paper/50 px-3 py-2">
         <summary className="cursor-pointer list-none text-sm font-bold text-ink/60 [&::-webkit-details-marker]:hidden">

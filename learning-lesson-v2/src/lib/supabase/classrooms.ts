@@ -124,7 +124,7 @@ export async function getStudentClassrooms(): Promise<StudentClassroom[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("classroom_members")
-    .select("joined_at, classrooms(id, name, description, grade_level, academic_year, status)")
+    .select("joined_at, classrooms(id, name, description, specialty_id, grade_level, academic_year, status)")
     .eq("student_id", session.user.id)
     .order("joined_at", { ascending: false });
 
@@ -138,6 +138,7 @@ export async function getStudentClassrooms(): Promise<StudentClassroom[]> {
       id: string;
       name: string;
       description: string | null;
+      specialty_id: string | null;
       grade_level: number;
       academic_year: string;
       status: ClassroomStatus;
@@ -152,6 +153,7 @@ export async function getStudentClassrooms(): Promise<StudentClassroom[]> {
       id: row.classrooms.id,
       name: row.classrooms.name,
       description: row.classrooms.description,
+      specialtyId: row.classrooms.specialty_id,
       gradeLevel: row.classrooms.grade_level,
       academicYear: row.classrooms.academic_year,
       status: row.classrooms.status,

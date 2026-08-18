@@ -19,6 +19,7 @@ type CreateAssignmentRow = {
 
 const createAssignmentErrors = [
   "not_authenticated",
+  "teacher_required",
   "not_authorized",
   "assignment_exists",
   "unknown_mission",
@@ -27,7 +28,7 @@ const createAssignmentErrors = [
 
 function createAssignmentErrorStatus(code: string) {
   if (code === "not_authenticated") return 401;
-  if (code === "not_authorized") return 403;
+  if (code === "not_authorized" || code === "teacher_required") return 403;
   if (code === "assignment_exists") return 409;
   if (code === "assignment_failed") return 500;
   return 400;

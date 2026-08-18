@@ -24,6 +24,7 @@ export const config = {
     "/paths/:path*",
     "/missions/:path*",
     "/courses",
-    "/courses/:path*"
+    "/courses/:path*",
+    "/api/:path*"
   ]
 };

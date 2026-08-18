@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fallbackSchoolCurriculum } from "./data";
-import { applyGuestLessonProgress, buildCurriculumExplorerData } from "./explorer";
+import { applyGuestLessonProgress, buildCurriculumExplorerData, getSpecialtyExplorerGroups, resolveStudentProgramSpecialtyId } from "./explorer";
 import { getActiveGradeLevel } from "./helpers";
 
 describe("curriculum explorer payload", () => {
@@ -91,5 +91,31 @@ describe("curriculum explorer payload", () => {
     const explorerSize = JSON.stringify(buildCurriculumExplorerData(fallbackSchoolCurriculum, "bg")).length;
 
     expect(explorerSize).toBeLessThan(fullSize * 0.7);
+  });
+
+  it("keeps each specialty's mission list inside that specialty", () => {
+    const data = buildCurriculumExplorerData(fallbackSchoolCurriculum, "en");
+    const intelligent = getSpecialtyExplorerGroups(data, "intelligent-systems");
+    const otherModuleIds = new Set(
+      fallbackSchoolCurriculum.modules
+        .filter((module) => module.specialtyId && module.specialtyId !== "intelligent-systems")
+        .map((module) => module.id)
+    );
+
+    expect(intelligent.length).toBeGreaterThan(0);
+    expect(intelligent.some((group) => otherModuleIds.has(group.module.id))).toBe(false);
+  });
+
+  it("prefers the classroom specialty over a stored student choice", () => {
+    const specialties = fallbackSchoolCurriculum.specialties.map((specialty) => ({ id: specialty.id }));
+
+    expect(resolveStudentProgramSpecialtyId(specialties, "intelligent-systems", "cybersecurity")).toEqual({
+      specialtyId: "intelligent-systems",
+      locked: true
+    });
+    expect(resolveStudentProgramSpecialtyId(specialties, null, "cybersecurity")).toEqual({
+      specialtyId: "cybersecurity",
+      locked: false
+    });
   });
 });

@@ -21,7 +21,16 @@ export async function requireTeacherUser() {
     return { error: NextResponse.json({ error: "not_authenticated" }, { status: 401 }) };
   }
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    return { error: NextResponse.json({ error: "not_authenticated" }, { status: 401 }) };
+  }
+
   if (profile?.role !== "teacher" && profile?.role !== "admin") {
     return { error: NextResponse.json({ error: "teacher_required" }, { status: 403 }) };
   }

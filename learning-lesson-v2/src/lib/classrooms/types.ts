@@ -27,6 +27,7 @@ export type StudentClassroom = {
   id: string;
   name: string;
   description: string | null;
+  specialtyId: string | null;
   gradeLevel: number;
   academicYear: string;
   status: ClassroomStatus;

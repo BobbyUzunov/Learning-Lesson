@@ -27,3 +27,14 @@ test("paths page lists learning program", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.locator("main")).toContainText(/program|програма|direction|направление|backend|frontend/i);
 });
+
+test("student program keeps missions inside the chosen direction", async ({ page }) => {
+  await enableE2eAuth(page);
+  await page.goto("/paths");
+
+  await page.getByRole("button", { name: /интелигентни системи|intelligent systems/i }).click();
+  await expect(page.locator("#all-missions")).toBeVisible();
+  await expect(page.locator("#all-missions")).not.toContainText(
+    /киберсигурност|cybersecurity|компютърна графика|computer graphics|предприемачество|entrepreneurship/i
+  );
+});

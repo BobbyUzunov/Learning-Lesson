@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpenCheck, Plus, Trash2 } from "lucide-react";
 import type { LocalizedAssessmentTemplate } from "@/lib/assessments/templates";
+import { DueDateField } from "@/components/due-date-field";
 import { t, type Language } from "@/lib/i18n";
 
 type QuestionDraft = {
@@ -251,16 +252,6 @@ export function CreateAssessmentForm({
             </select>
           </label>
 
-          <label className="block text-sm font-bold">
-            {copy.dueAtLabel}
-            <input
-              className="mt-1 w-full rounded-lg border border-ink/15 bg-white px-3 py-2.5"
-              onChange={(event) => setDueAt(event.target.value)}
-              type="datetime-local"
-              value={dueAt}
-            />
-          </label>
-
           <label className="block text-sm font-bold sm:max-w-xs">
             {copy.durationLabel} ({copy.minutes})
             <input
@@ -273,6 +264,10 @@ export function CreateAssessmentForm({
             />
             <span className="mt-1 block text-xs font-normal leading-5 text-ink/50">{copy.durationHint}</span>
           </label>
+
+          <div className="sm:col-span-2">
+            <DueDateField language={language} label={copy.dueAtLabel} onChange={setDueAt} value={dueAt} />
+          </div>
         </div>
       </section>
 

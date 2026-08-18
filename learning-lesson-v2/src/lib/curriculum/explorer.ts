@@ -74,6 +74,7 @@ export type CurriculumExplorerCopy = {
   commonSubjects: string;
   commonSubjectsHint: string;
   currentDirection: string;
+  directionFromClass: string;
   minutes: string;
   labAvailable: string;
   labCompleted: string;
@@ -166,6 +167,25 @@ export function buildCurriculumExplorerData(
   };
 }
 
+export function getSpecialtyExplorerGroups(data: CurriculumExplorerData, specialtyId: string) {
+  return data.specialties.find((specialty) => specialty.id === specialtyId)?.groups ?? [];
+}
+
+export function resolveStudentProgramSpecialtyId(
+  specialties: Array<{ id: string }>,
+  classroomSpecialtyId: string | null | undefined,
+  storedSpecialtyId: string | null | undefined
+) {
+  const allowed = new Set(specialties.map((specialty) => specialty.id));
+  if (classroomSpecialtyId && allowed.has(classroomSpecialtyId)) {
+    return { specialtyId: classroomSpecialtyId, locked: true };
+  }
+  if (storedSpecialtyId && allowed.has(storedSpecialtyId)) {
+    return { specialtyId: storedSpecialtyId, locked: false };
+  }
+  return { specialtyId: specialties[0]?.id ?? "", locked: false };
+}
+
 function applyGuestProgressToMission(
   mission: CurriculumExplorerMission,
   completedLessonIds: Set<string>
@@ -225,6 +245,7 @@ export function pickCurriculumExplorerCopy(source: CurriculumExplorerCopy): Curr
     commonSubjects: source.commonSubjects,
     commonSubjectsHint: source.commonSubjectsHint,
     currentDirection: source.currentDirection,
+    directionFromClass: source.directionFromClass,
     minutes: source.minutes,
     labAvailable: source.labAvailable,
     labCompleted: source.labCompleted,

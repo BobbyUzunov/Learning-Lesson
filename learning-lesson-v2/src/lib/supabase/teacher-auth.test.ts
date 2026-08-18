@@ -81,7 +81,7 @@ describe("requireTeacherUser", () => {
   it("authorizes a real user only from the server-side profile role", async () => {
     const user = { id: "teacher-1" };
     mocks.getUser.mockResolvedValue({ data: { user } });
-    mocks.maybeSingle.mockResolvedValue({ data: { role: "teacher" } });
+    mocks.maybeSingle.mockResolvedValue({ data: { role: "teacher" }, error: null });
 
     const result = await requireTeacherUser();
 
@@ -89,5 +89,18 @@ describe("requireTeacherUser", () => {
     expect(mocks.from).toHaveBeenCalledWith("profiles");
     expect(mocks.select).toHaveBeenCalledWith("role");
     expect(mocks.eq).toHaveBeenCalledWith("id", user.id);
+  });
+
+  it("does not treat a failed profile lookup as a missing teacher role", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: { id: "teacher-1" } } });
+    mocks.maybeSingle.mockResolvedValue({ data: null, error: { message: "profiles unavailable" } });
+
+    const result = await requireTeacherUser();
+
+    expect("error" in result).toBe(true);
+    if ("error" in result && result.error) {
+      expect(result.error.status).toBe(401);
+      expect(await result.error.json()).toEqual({ error: "not_authenticated" });
+    }
   });
 });

@@ -91,6 +91,7 @@ describe("POST /api/teacher/classrooms/[id]/assignments", () => {
 
   it.each([
     ["not_authenticated", 401],
+    ["teacher_required", 403],
     ["not_authorized", 403],
     ["assignment_exists", 409],
     ["unknown_mission", 400],

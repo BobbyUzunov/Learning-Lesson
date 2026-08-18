@@ -8,6 +8,7 @@ import { SpecialtySelector } from "@/components/curriculum/specialty-selector";
 import { StudentMissionCard } from "@/components/curriculum/student-mission-card";
 import {
   applyGuestLessonProgress,
+  resolveStudentProgramSpecialtyId,
   type CurriculumExplorerCopy,
   type CurriculumExplorerData
 } from "@/lib/curriculum/explorer";
@@ -21,7 +22,7 @@ type SchoolCurriculumExplorerProps = {
   copy: CurriculumExplorerCopy;
   data: CurriculumExplorerData;
   isAuthenticated: boolean;
-  pathsTitle: string;
+  lockedSpecialtyId?: string | null;
 };
 
 const SPECIALTY_STORAGE_KEY = "ll-selected-specialty";
@@ -34,14 +35,17 @@ export function SchoolCurriculumExplorer({
   copy,
   data,
   isAuthenticated,
-  pathsTitle
+  lockedSpecialtyId = null
 }: SchoolCurriculumExplorerProps) {
-  const fallbackSpecialtyId = data.specialties[0]?.id ?? "software-development";
+  const initial = resolveStudentProgramSpecialtyId(data.specialties, lockedSpecialtyId, null);
+  const fallbackSpecialtyId = initial.specialtyId || data.specialties[0]?.id || "software-development";
   const [selection, setSelection] = useState(() => ({
     specialtyId: fallbackSpecialtyId,
     missionId: firstSpecialtyMissionId(data, fallbackSpecialtyId)
   }));
-  const [savedSpecialtyId, setSavedSpecialtyId] = useState<string | null>(null);
+  const [savedSpecialtyId, setSavedSpecialtyId] = useState<string | null>(
+    initial.locked ? fallbackSpecialtyId : null
+  );
   const [guestCompletedLessonIds, setGuestCompletedLessonIds] = useState<string[] | null>(null);
   const [changingDirection, setChangingDirection] = useState(false);
   const allMissionsRef = useRef<HTMLDivElement>(null);
@@ -57,6 +61,17 @@ export function SchoolCurriculumExplorer({
   );
 
   useEffect(() => {
+    const locked = resolveStudentProgramSpecialtyId(data.specialties, lockedSpecialtyId, null);
+    if (locked.locked) {
+      setSelection({
+        specialtyId: locked.specialtyId,
+        missionId: firstMissionBySpecialty.get(locked.specialtyId) ?? ""
+      });
+      setSavedSpecialtyId(locked.specialtyId);
+      setChangingDirection(false);
+      return;
+    }
+
     try {
       const stored = window.localStorage.getItem(SPECIALTY_STORAGE_KEY);
       const missionId = stored ? firstMissionBySpecialty.get(stored) : undefined;
@@ -67,7 +82,7 @@ export function SchoolCurriculumExplorer({
     } catch {
       // Ignore storage failures.
     }
-  }, [firstMissionBySpecialty]);
+  }, [firstMissionBySpecialty, lockedSpecialtyId, data.specialties]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -100,11 +115,11 @@ export function SchoolCurriculumExplorer({
   const specialtyGroups = selectedSpecialty.groups;
   const commonGroups = displayData.commonGroups;
   const specialtyMissions = specialtyGroups.flatMap((group) => group.missions);
-  const allMissions = [...specialtyMissions, ...commonGroups.flatMap((group) => group.missions)];
   const recommendedMission =
-    allMissions.find((mission) => mission.id === selection.missionId) ?? specialtyMissions[0] ?? null;
+    specialtyMissions.find((mission) => mission.id === selection.missionId) ?? specialtyMissions[0] ?? null;
+  const directionLocked = Boolean(lockedSpecialtyId);
   const hasSavedSpecialty = savedSpecialtyId === selectedSpecialty.id;
-  const showSpecialtyPicker = !isAuthenticated || !hasSavedSpecialty || changingDirection;
+  const showSpecialtyPicker = !directionLocked && (!isAuthenticated || !hasSavedSpecialty || changingDirection);
 
   function selectSpecialty(specialtyId: string) {
     setSelection({
@@ -122,11 +137,6 @@ export function SchoolCurriculumExplorer({
 
   return (
     <section className="space-y-8">
-      <div>
-        <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">{pathsTitle}</h2>
-        <p className="mt-3 max-w-2xl text-base leading-7 text-ink/60">{copy.pathsSubtitle}</p>
-      </div>
-
       {showSpecialtyPicker ? (
         <SpecialtySelector
           copy={copy}
@@ -139,13 +149,17 @@ export function SchoolCurriculumExplorer({
           <p className="text-sm font-bold text-ink/70">
             {copy.currentDirection}: {selectedSpecialty.title}
           </p>
-          <button
-            className="text-sm font-semibold text-violet underline-offset-4 hover:underline"
-            onClick={() => setChangingDirection(true)}
-            type="button"
-          >
-            {copy.changeDirection}
-          </button>
+          {directionLocked ? (
+            <p className="text-sm text-ink/45">{copy.directionFromClass}</p>
+          ) : (
+            <button
+              className="text-sm font-semibold text-violet underline-offset-4 hover:underline"
+              onClick={() => setChangingDirection(true)}
+              type="button"
+            >
+              {copy.changeDirection}
+            </button>
+          )}
         </div>
       )}
 
@@ -161,7 +175,7 @@ export function SchoolCurriculumExplorer({
       <div ref={allMissionsRef}>
         <MissionList
           accent={selectedSpecialty.accent}
-          commonGroups={commonGroups}
+          commonGroups={[]}
           copy={copy}
           onSelect={(missionId) => setSelection((current) => ({ ...current, missionId }))}
           selectedMission={recommendedMission}
