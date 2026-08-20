@@ -1,26 +1,21 @@
 import { NextResponse } from "next/server";
-import { getCatalogLesson } from "@/lib/catalog";
 import { readJsonObject } from "@/lib/http";
-import { localizeGameLesson } from "@/lib/i18n";
+import { E2E_ASSIGNMENT_ID, e2eStudentAssignment } from "@/lib/assignments/e2e-fixture";
+import { isMentorOpenStatus } from "@/lib/mentor/access";
 import { hasOpenAIEnv } from "@/lib/mentor/env";
 import { streamMentorHint } from "@/lib/mentor/openai";
 import { buildMentorMessages, isMentorHintLevel, isMentorMode } from "@/lib/mentor/prompt";
 import { logServerError } from "@/lib/observability";
+import { getCurrentSession } from "@/lib/supabase/auth";
+import { getE2eAuthState } from "@/lib/supabase/e2e-auth";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { getAssignmentById, getMySubmissionForAssignment } from "@/lib/supabase/assignments";
+import { getMyClassroomIds } from "@/lib/supabase/memberships";
 import { fetchMentorUsage, reserveMentorHint } from "@/lib/supabase/mentor-usage";
 
 const MIN_EFFORT_LENGTH = 4;
 const MAX_EFFORT_LENGTH = 1600;
-
-async function getAuthenticatedSupabase() {
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  return { supabase, user };
-}
 
 function extractPreviousHints(value: unknown) {
   if (!Array.isArray(value)) {
@@ -47,17 +42,31 @@ function extractPreviousHints(value: unknown) {
     .slice(-2);
 }
 
+async function requireStudentSession() {
+  const session = await getCurrentSession();
+  if (!session.user) {
+    return { ok: false as const, response: NextResponse.json({ error: "not_authenticated" }, { status: 401 }) };
+  }
+
+  if (session.isTeacher) {
+    return { ok: false as const, response: NextResponse.json({ error: "student_required" }, { status: 403 }) };
+  }
+
+  return { ok: true as const, session };
+}
+
 export async function GET() {
   if (!hasSupabaseEnv()) {
     return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
   }
 
-  const { supabase, user } = await getAuthenticatedSupabase();
-  if (!user) {
-    return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+  const auth = await requireStudentSession();
+  if (!auth.ok) {
+    return auth.response;
   }
 
   try {
+    const supabase = await createClient();
     const usage = await fetchMentorUsage(supabase);
 
     return NextResponse.json({
@@ -79,9 +88,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "mentor_not_configured" }, { status: 503 });
   }
 
-  const { supabase, user } = await getAuthenticatedSupabase();
-  if (!user) {
-    return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+  const auth = await requireStudentSession();
+  if (!auth.ok) {
+    return auth.response;
   }
 
   const body = await readJsonObject(request);
@@ -89,14 +98,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
 
-  const lessonId = typeof body.lessonId === "string" ? body.lessonId.trim() : "";
+  const assignmentId = typeof body.assignmentId === "string" ? body.assignmentId.trim() : "";
   const effort = typeof body.effort === "string" ? body.effort.trim() : "";
   const language = body.language === "en" ? "en" : "bg";
   const mode = body.mode;
   const hintLevel = body.hintLevel;
 
-  if (!lessonId) {
-    return NextResponse.json({ error: "lesson_required" }, { status: 400 });
+  if (!assignmentId) {
+    return NextResponse.json({ error: "assignment_required" }, { status: 400 });
   }
 
   if (!isMentorMode(mode)) {
@@ -115,11 +124,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "effort_required" }, { status: 400 });
   }
 
-  const lesson = await getCatalogLesson(lessonId);
-  if (!lesson) {
-    return NextResponse.json({ error: "unknown_lesson" }, { status: 404 });
+  const e2e = await getE2eAuthState();
+  const assignment =
+    e2e?.role === "user" && assignmentId === E2E_ASSIGNMENT_ID
+      ? e2eStudentAssignment()
+      : await getAssignmentById(assignmentId);
+
+  if (!assignment) {
+    return NextResponse.json({ error: "assignment_not_found" }, { status: 404 });
   }
 
+  if (!(e2e?.role === "user" && assignmentId === E2E_ASSIGNMENT_ID)) {
+    const classroomIds = await getMyClassroomIds();
+    if (!classroomIds.includes(assignment.classroomId)) {
+      return NextResponse.json({ error: "not_authorized" }, { status: 403 });
+    }
+  }
+
+  const submission =
+    e2e?.role === "user" && assignmentId === E2E_ASSIGNMENT_ID
+      ? null
+      : await getMySubmissionForAssignment(assignmentId);
+  const status = submission?.status ?? assignment.submissionStatus ?? "missing";
+
+  if (!isMentorOpenStatus(status)) {
+    return NextResponse.json({ error: "assignment_closed" }, { status: 403 });
+  }
+
+  const supabase = await createClient();
   let reservation: Awaited<ReturnType<typeof reserveMentorHint>>;
   try {
     reservation = await reserveMentorHint(supabase);
@@ -132,9 +164,19 @@ export async function POST(request: Request) {
   }
 
   try {
-    const localized = localizeGameLesson(lesson, language);
+    const title =
+      language === "bg"
+        ? assignment.titleOverride || assignment.missionTitleBg || assignment.missionTitle || assignment.missionId
+        : assignment.titleOverride || assignment.missionTitle || assignment.missionId;
     const messages = buildMentorMessages({
-      lesson: localized,
+      title,
+      brief: language === "bg" ? assignment.missionBriefBg || assignment.missionBrief : assignment.missionBrief,
+      deliverable:
+        language === "bg"
+          ? assignment.missionDeliverableBg || assignment.missionDeliverable
+          : assignment.missionDeliverable,
+      instructions: assignment.instructions,
+      teacherNote: submission?.teacherNote ?? assignment.teacherNote,
       language,
       mode,
       level: hintLevel,
@@ -151,7 +193,7 @@ export async function POST(request: Request) {
       onError: () => "mentor_failed"
     });
   } catch {
-    logServerError("mentor_failed", { lessonId });
+    logServerError("mentor_failed", { assignmentId });
     return NextResponse.json({ error: "mentor_failed" }, { status: 502 });
   }
 }

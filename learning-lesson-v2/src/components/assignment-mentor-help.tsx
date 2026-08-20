@@ -1,15 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { Bot, Bug, Sparkles } from "lucide-react";
+import { Bot, Sparkles } from "lucide-react";
+import type { AssignmentStatus } from "@/lib/assignments/types";
 import { formatMessage, t, type Language } from "@/lib/i18n";
+import { hasMentorEffort, resolveMentorMode } from "@/lib/mentor/access";
 import type { MentorHintLevel, MentorMode } from "@/lib/mentor/prompt";
 
 const MAX_HINT_LEVEL = 3;
-const MIN_EFFORT_LENGTH = 4;
 
 function getErrorKey(message: string) {
   try {
@@ -32,21 +32,21 @@ function assistantText(message: { parts: Array<{ type: string; text?: string }> 
     .trim();
 }
 
-export function LessonAiHint({
+export function AssignmentMentorHelp({
+  assignmentId,
   effort = "",
-  isAuthenticated,
   language,
-  lessonId
+  status
 }: {
+  assignmentId: string;
   effort?: string;
-  isAuthenticated: boolean;
   language: Language;
-  lessonId: string;
+  status: AssignmentStatus;
 }) {
   const copy = t(language);
+  const [open, setOpen] = useState(status === "needs_changes");
   const [remaining, setRemaining] = useState<number | null>(null);
-  const [usageLoading, setUsageLoading] = useState(isAuthenticated);
-  const [activeMode, setActiveMode] = useState<MentorMode | null>(null);
+  const [usageLoading, setUsageLoading] = useState(true);
   const [effortAtLastRequest, setEffortAtLastRequest] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
   const pendingEffort = useRef("");
@@ -94,7 +94,7 @@ export function LessonAiHint({
     []
   );
 
-  const { clearError, error, messages, sendMessage, status } = useChat({
+  const { clearError, error, messages, sendMessage, status: chatStatus } = useChat({
     transport,
     onFinish: () => {
       setEffortAtLastRequest(pendingEffort.current);
@@ -106,31 +106,29 @@ export function LessonAiHint({
   });
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      return;
-    }
-
     const controller = new AbortController();
     void refreshUsage(controller.signal);
 
     return () => controller.abort();
-  }, [isAuthenticated, refreshUsage]);
+  }, [refreshUsage]);
 
   const assistantMessages = messages.filter((message) => message.role === "assistant");
   const hintHistory = assistantMessages
     .map((message) => assistantText(message))
     .filter((text) => text.length > 0);
   const hintsUsed = hintHistory.length;
-  const busy = status === "submitted" || status === "streaming";
+  const busy = chatStatus === "submitted" || chatStatus === "streaming";
   const limitReached = remaining === 0 && !usageLoading;
   const taskLimitReached = hintsUsed >= MAX_HINT_LEVEL;
-  const hasEffort = effort.trim().length >= MIN_EFFORT_LENGTH;
   const hasNewAttempt = effortAtLastRequest === null || effort.trim() !== effortAtLastRequest;
-  const primaryMode: MentorMode = hasEffort ? "review" : "start";
-  const primaryLabel = hasEffort ? copy.mentor.primaryReview : copy.mentor.primaryStart;
-  const canAskPrimary = !busy && !limitReached && !taskLimitReached && (hintsUsed === 0 || hasNewAttempt);
-  const canAskExplain =
-    canAskPrimary && hasEffort && (hintsUsed === 0 || hasNewAttempt);
+  const primaryMode = resolveMentorMode(status, effort);
+  const primaryLabel =
+    primaryMode === "explain"
+      ? copy.mentor.modeExplain
+      : primaryMode === "review"
+        ? copy.mentor.primaryReview
+        : copy.mentor.primaryStart;
+  const canAsk = !busy && !limitReached && !taskLimitReached && (hintsUsed === 0 || hasNewAttempt);
 
   function resolveError(errorKey?: string) {
     if (!errorKey) {
@@ -146,7 +144,7 @@ export function LessonAiHint({
       return;
     }
 
-    if (mode !== "start" && !hasEffort) {
+    if (mode !== "start" && !hasMentorEffort(effort)) {
       setLocalError("effort_required");
       return;
     }
@@ -159,21 +157,14 @@ export function LessonAiHint({
     const hintLevel = Math.min(hintsUsed + 1, MAX_HINT_LEVEL) as MentorHintLevel;
     setLocalError(null);
     clearError();
-    setActiveMode(mode);
     pendingEffort.current = effort.trim();
-
-    const modeTitle =
-      mode === "start"
-        ? copy.mentor.modeStart
-        : mode === "review"
-          ? copy.mentor.modeReview
-          : copy.mentor.modeExplain;
+    setOpen(true);
 
     await sendMessage(
-      { text: modeTitle },
+      { text: primaryLabel },
       {
         body: {
-          lessonId,
+          assignmentId,
           language,
           mode,
           hintLevel,
@@ -183,29 +174,13 @@ export function LessonAiHint({
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <section className="rounded-xl border border-ink/10 bg-ink/[0.03] p-4">
-        <div className="flex items-center gap-2 text-sm font-bold text-ink">
-          <Bot className="size-4 text-violet" />
-          {copy.mentor.title}
-        </div>
-        <p className="mt-2 text-sm leading-6 text-ink/65">{copy.mentor.guestMessage}</p>
-        <Link
-          className="mt-3 inline-flex rounded-lg bg-ink px-4 py-2 text-sm font-bold text-paper"
-          href="/register"
-        >
-          {copy.mentor.guestCta}
-        </Link>
-      </section>
-    );
-  }
-
   const displayedError = localError ?? (error ? getErrorKey(error.message) : null);
   let guidance: string | null = null;
   if (!limitReached && !taskLimitReached) {
     if (hintsUsed > 0 && !hasNewAttempt) {
       guidance = copy.mentor.tryBeforeNext;
+    } else if (status === "needs_changes") {
+      guidance = copy.mentor.guidanceReturned;
     } else if (primaryMode === "review") {
       guidance = copy.mentor.guidanceReviewReady;
     } else {
@@ -214,64 +189,54 @@ export function LessonAiHint({
   }
 
   return (
-    <section className="rounded-xl border border-violet/20 bg-violet/5 p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-sm font-bold text-ink">
-            <Sparkles className="size-4 text-violet" />
-            {copy.mentor.title}
-          </div>
-          <p className="mt-1 text-sm leading-6 text-ink/65">{copy.mentor.subtitle}</p>
-        </div>
+    <section className="mt-4 rounded-xl border border-violet/20 bg-violet/5 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <button
+          className="flex min-h-11 flex-1 items-center gap-2 text-left text-sm font-bold text-ink sm:pointer-events-none"
+          onClick={() => setOpen((value) => !value)}
+          type="button"
+        >
+          <Sparkles className="size-4 shrink-0 text-violet" />
+          <span>{copy.mentor.title}</span>
+          <span className="font-semibold text-ink/45 sm:hidden">{open ? copy.mentor.close : copy.mentor.open}</span>
+        </button>
         {usageLoading ? (
-          <p className="shrink-0 text-xs font-semibold text-ink/50">{copy.mentor.usageLoading}</p>
+          <p className="shrink-0 pt-3 text-xs font-semibold text-ink/50">{copy.mentor.usageLoading}</p>
         ) : remaining !== null ? (
-          <p className="shrink-0 text-xs font-semibold text-ink/50">
+          <p className="shrink-0 pt-3 text-xs font-semibold text-ink/50">
             {formatMessage(copy.mentor.remaining, { remaining })}
           </p>
         ) : null}
       </div>
 
-      <div className="mt-4 border-t border-violet/15 pt-4">
+      <div className={`${open ? "mt-3 block" : "hidden"} border-t border-violet/15 pt-3 sm:mt-3 sm:block`}>
+        <p className="text-sm leading-6 text-ink/65">{copy.mentor.subtitle}</p>
+
         {limitReached ? (
-          <p className="rounded-lg bg-coral/15 px-4 py-3 text-sm font-semibold text-ink">
+          <p className="mt-3 rounded-lg bg-coral/15 px-4 py-3 text-sm font-semibold text-ink">
             {copy.mentor.errors.daily_limit_reached}
           </p>
         ) : taskLimitReached ? (
-          <div className="rounded-lg border border-mint/30 bg-white px-4 py-3">
+          <div className="mt-3 rounded-lg border border-mint/30 bg-white px-4 py-3">
             <p className="text-sm font-bold text-ink">{copy.mentor.taskLimitTitle}</p>
             <p className="mt-1 text-sm leading-6 text-ink/65">{copy.mentor.taskLimitMessage}</p>
           </div>
         ) : (
           <>
-            {guidance ? <p className="text-sm leading-6 text-ink/60">{guidance}</p> : null}
+            {guidance ? <p className="mt-2 text-sm leading-6 text-ink/60">{guidance}</p> : null}
 
             <button
               className="focus-ring mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-bold text-paper transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"
-              disabled={!canAskPrimary}
+              disabled={!canAsk}
               onClick={() => void askMentor(primaryMode)}
               type="button"
             >
               <Sparkles className="size-4" />
               {primaryLabel}
             </button>
-
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-              <button
-                className="text-sm font-bold text-violet underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-45 disabled:no-underline"
-                disabled={!canAskExplain}
-                onClick={() => void askMentor("explain")}
-                type="button"
-              >
-                <span className="inline-flex items-center gap-1.5">
-                  <Bug className="size-3.5" />
-                  {copy.mentor.modeExplain}
-                </span>
-              </button>
-              {activeMode && busy ? (
-                <span className="text-xs font-semibold text-ink/45">{copy.mentor.working}</span>
-              ) : null}
-            </div>
+            {busy ? (
+              <span className="ml-3 hidden text-xs font-semibold text-ink/45 sm:inline">{copy.mentor.working}</span>
+            ) : null}
           </>
         )}
 

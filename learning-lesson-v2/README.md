@@ -152,7 +152,7 @@ src/lib/
   supabase/          # Auth, progress, project submissions, mentor usage RPC
 src/app/api/mentor/  # AI hint API (GET quota, POST hint)
 src/components/
-  lesson-ai-hint.tsx # Lesson-scoped AI assistant UI
+  assignment-mentor-help.tsx # Student AI mentor on assigned missions
 ```
 
 ### Supabase security model

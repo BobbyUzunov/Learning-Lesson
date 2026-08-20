@@ -960,14 +960,15 @@ const dictionary = {
     },
     mentor: {
       title: "AI наставник",
-      subtitle: "Една малка насока, която ти помага да продължиш сам — без готово решение.",
-      open: "Нужда от насока?",
-      close: "Затвори",
+      subtitle: "Една малка насока по възложената мисия — без готово решение.",
+      open: "Покажи помощ",
+      close: "Скрий",
       chooseHelp: "Каква помощ ти трябва?",
       primaryStart: "Помогни ми да започна",
       primaryReview: "Провери опита ми",
       guidanceStartReady: "Напиши каквото можеш в полето горе — или поискай първа насока сега.",
       guidanceReviewReady: "Готов си: наставникът ще прегледа написаното и ще даде една конкретна насока.",
+      guidanceReturned: "Учителят върна работата. Наставникът ще ти помогне с една конкретна поправка.",
       modeStart: "Помогни ми да започна",
       modeStartDescription: "Ще получиш въпрос, който да те насочи към първата стъпка.",
       modeReview: "Провери опита ми",
@@ -998,7 +999,12 @@ const dictionary = {
         mentor_failed: "Наставникът не успя да подготви насока. Опитай отново след малко.",
         mentor_usage_unavailable: "Лимитът за AI насоки не е наличен. Опитай отново след малко.",
         unknown_lesson: "Непознат урок.",
-        lesson_required: "Липсва идентификатор на урока."
+        lesson_required: "Липсва идентификатор на урока.",
+        student_required: "AI наставникът е само за ученици при възложена мисия.",
+        assignment_required: "Липсва възложената мисия.",
+        assignment_not_found: "Мисията не е намерена.",
+        assignment_closed: "Тази мисия вече е предадена или одобрена.",
+        not_authorized: "Нямаш достъп до тази мисия."
       }
     },
     admin: {
@@ -1035,7 +1041,7 @@ const dictionary = {
       homeActionRoles: "Роли",
       homeActionRolesHint: "Корекция на учител/ученик",
       homeActionMentor: "AI наставник",
-      homeActionMentorHint: "Отвори урок и изпробвай насоките като ученик",
+      homeActionMentorHint: "Учениците го виждат при възложена мисия",
       homeActionMentorHintOffline: "Липсва OPENAI_API_KEY — добави го в средата",
       homeMentorStatus: "AI наставник",
       homeMentorStatusHint: "Задай OPENAI_API_KEY (и по желание OPENAI_MODEL) в .env / Vercel.",
@@ -2106,14 +2112,15 @@ const dictionary = {
     },
     mentor: {
       title: "AI mentor",
-      subtitle: "One small direction that helps you continue on your own — without a ready-made solution.",
-      open: "Need some direction?",
-      close: "Close",
+      subtitle: "One small direction on the assigned mission — never a finished answer.",
+      open: "Show help",
+      close: "Hide",
       chooseHelp: "What kind of help do you need?",
       primaryStart: "Help me get started",
       primaryReview: "Review my attempt",
       guidanceStartReady: "Write what you can in the box above — or ask for a first direction now.",
       guidanceReviewReady: "Ready: the mentor will review your draft and give one concrete direction.",
+      guidanceReturned: "Your teacher sent this back. The mentor will help with one concrete fix.",
       modeStart: "Help me get started",
       modeStartDescription: "Get a question that points you toward the first step.",
       modeReview: "Review my attempt",
@@ -2144,7 +2151,12 @@ const dictionary = {
         mentor_failed: "The mentor could not prepare a direction. Try again shortly.",
         mentor_usage_unavailable: "The AI direction limit is unavailable. Try again shortly.",
         unknown_lesson: "Unknown lesson.",
-        lesson_required: "Lesson ID is required."
+        lesson_required: "A lesson id is required.",
+        student_required: "The AI mentor is only for students on an assigned mission.",
+        assignment_required: "An assigned mission is required.",
+        assignment_not_found: "That mission was not found.",
+        assignment_closed: "This mission is already submitted or approved.",
+        not_authorized: "You cannot use the mentor on this mission."
       }
     },
     admin: {
@@ -2181,7 +2193,7 @@ const dictionary = {
       homeActionRoles: "Roles",
       homeActionRolesHint: "Fix teacher/student roles when needed",
       homeActionMentor: "AI mentor",
-      homeActionMentorHint: "Open a lesson and try directions as a learner",
+      homeActionMentorHint: "Students see it on an assigned mission",
       homeActionMentorHintOffline: "OPENAI_API_KEY is missing — add it to the environment",
       homeMentorStatus: "AI mentor",
       homeMentorStatusHint: "Set OPENAI_API_KEY (and optionally OPENAI_MODEL) in .env / Vercel.",

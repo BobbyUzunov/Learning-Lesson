@@ -12,7 +12,7 @@ import {
   Users
 } from "lucide-react";
 import { AdminSeedButton } from "@/components/admin-seed-button";
-import { getCourseCatalog, getFirstLesson } from "@/lib/catalog";
+import { getCourseCatalog } from "@/lib/catalog";
 import { localizeGameQuest, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getAdminKnowledgeCheckContent } from "@/lib/knowledge-check";
@@ -33,8 +33,6 @@ export default async function AdminPage() {
   const copy = t(language);
   const contentSeedEnabled = process.env.ENABLE_ADMIN_CONTENT_SEED === "1";
   const mentorConfigured = hasOpenAIEnv();
-  const firstLesson = getFirstLesson(catalog);
-  const mentorHref = firstLesson ? `/lesson/${firstLesson.id}` : "/paths?tab=labs";
   const quests = catalog.courses.map((quest) => localizeGameQuest(quest, language));
   const pendingCount = pendingReviews.length;
 
@@ -110,7 +108,7 @@ export default async function AdminPage() {
       icon: GraduationCap
     },
     {
-      href: mentorHref,
+      href: "/classes",
       title: copy.admin.homeActionMentor,
       hint: mentorConfigured
         ? copy.admin.homeActionMentorHint
@@ -203,7 +201,7 @@ export default async function AdminPage() {
         <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/55">{copy.admin.homeAccessSubtitle}</p>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {accessActions.map((action) => (
-            <li key={action.href}>
+            <li key={action.title}>
               <Link
                 className="group flex h-full flex-col rounded-2xl border border-ink/10 bg-white/75 px-5 py-4 transition hover:-translate-y-0.5 hover:border-ink/20 hover:bg-white"
                 href={action.href}

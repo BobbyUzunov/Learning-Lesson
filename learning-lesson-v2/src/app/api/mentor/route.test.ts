@@ -1,17 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET, POST } from "./route";
 
-const mockGetUser = vi.fn();
+const mockGetCurrentSession = vi.fn();
+const mockGetE2eAuthState = vi.fn();
+const mockGetAssignmentById = vi.fn();
+const mockGetMySubmissionForAssignment = vi.fn();
+const mockGetMyClassroomIds = vi.fn();
 const mockFetchMentorUsage = vi.fn();
 const mockReserveMentorHint = vi.fn();
-const mockGetCatalogLesson = vi.fn();
 const mockStreamMentorHint = vi.fn();
 const mockToUIMessageStreamResponse = vi.fn();
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
     auth: {
-      getUser: mockGetUser
+      getUser: vi.fn()
     }
   }))
 }));
@@ -24,27 +27,51 @@ vi.mock("@/lib/mentor/env", () => ({
   hasOpenAIEnv: vi.fn(() => true)
 }));
 
+vi.mock("@/lib/supabase/auth", () => ({
+  getCurrentSession: (...args: unknown[]) => mockGetCurrentSession(...args)
+}));
+
+vi.mock("@/lib/supabase/e2e-auth", () => ({
+  getE2eAuthState: (...args: unknown[]) => mockGetE2eAuthState(...args)
+}));
+
+vi.mock("@/lib/supabase/assignments", () => ({
+  getAssignmentById: (...args: unknown[]) => mockGetAssignmentById(...args),
+  getMySubmissionForAssignment: (...args: unknown[]) => mockGetMySubmissionForAssignment(...args)
+}));
+
+vi.mock("@/lib/supabase/memberships", () => ({
+  getMyClassroomIds: (...args: unknown[]) => mockGetMyClassroomIds(...args)
+}));
+
 vi.mock("@/lib/supabase/mentor-usage", () => ({
   fetchMentorUsage: (...args: unknown[]) => mockFetchMentorUsage(...args),
   reserveMentorHint: (...args: unknown[]) => mockReserveMentorHint(...args)
-}));
-
-vi.mock("@/lib/catalog", () => ({
-  getCatalogLesson: (...args: unknown[]) => mockGetCatalogLesson(...args)
 }));
 
 vi.mock("@/lib/mentor/openai", () => ({
   streamMentorHint: (...args: unknown[]) => mockStreamMentorHint(...args)
 }));
 
-const lesson = {
-  id: "1",
-  title: "Lesson 1",
-  explanation: "HTML basics",
-  mission: "Build a page",
-  codeExample: "<main></main>",
-  learningObjectives: ["HTML"],
-  keyConcepts: ["structure"]
+const studentSession = {
+  user: { id: "user-1", email: "learner@test.local" },
+  isTeacher: false,
+  isAdmin: false
+};
+
+const assignment = {
+  id: "asg-1",
+  classroomId: "class-1",
+  missionId: "mission-file-organization",
+  assignedBy: "teacher-1",
+  titleOverride: null,
+  instructions: "Write a folder plan.",
+  dueAt: null,
+  createdAt: "2026-08-18T10:00:00.000Z",
+  missionTitle: "Bring order to your files",
+  missionBrief: "Make a folder plan.",
+  missionDeliverable: "A short written plan",
+  submissionStatus: "missing"
 };
 
 function mentorRequest(overrides: Record<string, unknown> = {}) {
@@ -52,7 +79,7 @@ function mentorRequest(overrides: Record<string, unknown> = {}) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      lessonId: "1",
+      assignmentId: "asg-1",
       language: "en",
       mode: "start",
       hintLevel: 1,
@@ -66,10 +93,11 @@ function mentorRequest(overrides: Record<string, unknown> = {}) {
 describe("/api/mentor", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetUser.mockResolvedValue({
-      data: { user: { id: "user-1", email: "learner@test.local" } }
-    });
-    mockGetCatalogLesson.mockResolvedValue(lesson);
+    mockGetCurrentSession.mockResolvedValue(studentSession);
+    mockGetE2eAuthState.mockResolvedValue(null);
+    mockGetAssignmentById.mockResolvedValue(assignment);
+    mockGetMySubmissionForAssignment.mockResolvedValue(null);
+    mockGetMyClassroomIds.mockResolvedValue(["class-1"]);
     mockFetchMentorUsage.mockResolvedValue({ count: 1, remaining: 4, limit: 5 });
     mockReserveMentorHint.mockResolvedValue({ ok: true, count: 2, remaining: 3, limit: 5 });
     mockToUIMessageStreamResponse.mockImplementation(
@@ -81,7 +109,7 @@ describe("/api/mentor", () => {
   });
 
   it("GET returns 401 when user is not authenticated", async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+    mockGetCurrentSession.mockResolvedValue({ user: null, isTeacher: false });
 
     const response = await GET();
     const body = await response.json();
@@ -90,13 +118,50 @@ describe("/api/mentor", () => {
     expect(body.error).toBe("not_authenticated");
   });
 
-  it("GET returns mentor usage for authenticated users", async () => {
+  it("GET rejects teachers", async () => {
+    mockGetCurrentSession.mockResolvedValue({
+      user: { id: "teacher-1", email: "teacher@test.local" },
+      isTeacher: true
+    });
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body.error).toBe("student_required");
+    expect(mockFetchMentorUsage).not.toHaveBeenCalled();
+  });
+
+  it("GET returns mentor usage for authenticated students", async () => {
     const response = await GET();
     const body = await response.json();
 
     expect(response.status).toBe(200);
     expect(body).toEqual({ remaining: 4, limit: 5, count: 1 });
     expect(mockFetchMentorUsage).toHaveBeenCalledOnce();
+  });
+
+  it("POST rejects teachers before reserving quota", async () => {
+    mockGetCurrentSession.mockResolvedValue({
+      user: { id: "teacher-1", email: "teacher@test.local" },
+      isTeacher: true
+    });
+
+    const response = await POST(mentorRequest());
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body.error).toBe("student_required");
+    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+  });
+
+  it("POST requires an assignment id", async () => {
+    const response = await POST(mentorRequest({ assignmentId: "" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("assignment_required");
+    expect(mockReserveMentorHint).not.toHaveBeenCalled();
   });
 
   it("POST rejects an unknown help mode before reserving quota", async () => {
@@ -123,6 +188,39 @@ describe("/api/mentor", () => {
 
     expect(response.status).toBe(400);
     expect(body.error).toBe("invalid_hint_level");
+    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+  });
+
+  it("POST returns 404 when the assignment is missing", async () => {
+    mockGetAssignmentById.mockResolvedValue(null);
+
+    const response = await POST(mentorRequest());
+    const body = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(body.error).toBe("assignment_not_found");
+    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+  });
+
+  it("POST rejects students who are not in the assignment classroom", async () => {
+    mockGetMyClassroomIds.mockResolvedValue(["other-class"]);
+
+    const response = await POST(mentorRequest());
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body.error).toBe("not_authorized");
+    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+  });
+
+  it("POST rejects closed assignments", async () => {
+    mockGetMySubmissionForAssignment.mockResolvedValue({ status: "submitted" });
+
+    const response = await POST(mentorRequest());
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body.error).toBe("assignment_closed");
     expect(mockReserveMentorHint).not.toHaveBeenCalled();
   });
 
@@ -159,6 +257,7 @@ describe("/api/mentor", () => {
 
     const prompt = mockStreamMentorHint.mock.calls[0]?.[0] as { system: string; user: string };
     expect(prompt.system).toContain("Never provide the final answer");
+    expect(prompt.user).toContain("Assigned mission");
     expect(prompt.user).toContain("Help mode: review");
     expect(prompt.user).toContain("Which semantic element could hold the main content?");
   });

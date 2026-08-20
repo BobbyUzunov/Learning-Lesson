@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AssignmentMentorHelp } from "@/components/assignment-mentor-help";
 import type { AssignmentStatus } from "@/lib/assignments/types";
+import { isMentorOpenStatus } from "@/lib/mentor/access";
 import { t, type Language } from "@/lib/i18n";
 
 type SubmitAssignmentFormProps = {
@@ -10,6 +12,7 @@ type SubmitAssignmentFormProps = {
   initialText?: string | null;
   initialUrl?: string | null;
   language: Language;
+  showMentor?: boolean;
   status: AssignmentStatus;
   teacherNote?: string | null;
 };
@@ -19,6 +22,7 @@ export function SubmitAssignmentForm({
   initialText,
   initialUrl,
   language,
+  showMentor = false,
   status,
   teacherNote
 }: SubmitAssignmentFormProps) {
@@ -95,6 +99,15 @@ export function SubmitAssignmentForm({
           value={url}
         />
       </label>
+
+      {showMentor && isMentorOpenStatus(status) ? (
+        <AssignmentMentorHelp
+          assignmentId={assignmentId}
+          effort={[text, url].filter((value) => value.trim()).join("\n")}
+          language={language}
+          status={status}
+        />
+      ) : null}
 
       {error ? <p className="mt-3 text-sm font-semibold text-coral">{error}</p> : null}
       {success ? <p className="mt-3 text-sm font-semibold text-mint">{copy.submitSuccess}</p> : null}

@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { SubmitAssignmentForm } from "@/components/submit-assignment-form";
+import { E2E_ASSIGNMENT_ID, e2eStudentAssignment } from "@/lib/assignments/e2e-fixture";
 import { getAssignmentById, getMySubmissionForAssignment } from "@/lib/supabase/assignments";
 import { requireUser } from "@/lib/supabase/auth";
+import { getE2eAuthState } from "@/lib/supabase/e2e-auth";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 
@@ -24,13 +26,16 @@ function formatDue(value: string | null, language: string, fallback: string) {
 export default async function AssignmentPage({ params }: { params: Promise<{ id: string }> }) {
   const language = await getLanguage();
   const copy = t(language).classroom;
-  await requireUser();
+  const session = await requireUser();
   const { id } = await params;
+  const e2e = await getE2eAuthState();
 
-  const [assignment, submission] = await Promise.all([
+  const [loadedAssignment, submission] = await Promise.all([
     getAssignmentById(id),
     getMySubmissionForAssignment(id)
   ]);
+  const assignment =
+    loadedAssignment ?? (e2e?.role === "user" && id === E2E_ASSIGNMENT_ID ? e2eStudentAssignment() : null);
 
   if (!assignment) {
     notFound();
@@ -97,6 +102,7 @@ export default async function AssignmentPage({ params }: { params: Promise<{ id:
           initialText={submission?.deliverableText}
           initialUrl={submission?.deliverableUrl}
           language={language}
+          showMentor={!session.isTeacher}
           status={status}
           teacherNote={submission?.teacherNote}
         />

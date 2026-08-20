@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 export async function enableE2eAuth(page: Page, options: { role?: "user" | "teacher" | "admin" } = {}) {
   const cookies = [
@@ -76,4 +76,13 @@ export async function mockMentorApi(
 
     await route.continue();
   });
+}
+
+export async function openAssignmentMentor(page: Page) {
+  await page.goto("/assignments/e2e-assignment");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByRole("main").getByText(/AI mentor|AI наставник/i)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /help me get started|помогни ми да започна/i })
+  ).toBeVisible();
 }

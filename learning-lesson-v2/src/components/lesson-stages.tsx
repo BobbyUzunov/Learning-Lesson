@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
 import { ArrowRight, CheckCircle2, Lightbulb, Lock, ScrollText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { LessonKeyConcepts } from "@/components/lesson-key-concepts";
@@ -18,10 +17,6 @@ import type { LocalizedLessonStructure } from "@/lib/lesson-structure";
 import type { KnowledgeCheckAttempt, KnowledgeCheckContent } from "@/lib/knowledge-check/types";
 
 const MIN_EFFORT_CHARS = 12;
-
-const LessonAiHint = dynamic(() =>
-  import("@/components/lesson-ai-hint").then((module) => module.LessonAiHint)
-);
 
 type LessonStage = 1 | 2 | 3;
 
@@ -408,8 +403,6 @@ export function LessonStages({
               ) : null}
             </div>
           ) : null}
-
-          <LessonAiHint effort={solutionInput} isAuthenticated={isAuthenticated} language={language} lessonId={lesson.id} />
 
           {canViewSolution ? (
             <button
