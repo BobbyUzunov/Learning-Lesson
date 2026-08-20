@@ -15,6 +15,7 @@ import {
   type ClassroomTeacherRole,
   type StudentClassroom
 } from "@/lib/classrooms/types";
+import type { ClassroomLabCompletion } from "@/lib/classrooms/lab-progress";
 
 type ClassroomWithCountRow = ClassroomRow & {
   classroom_members: { count: number }[] | null;
@@ -113,6 +114,33 @@ export async function getClassroomReport(id: string): Promise<ClassroomReportRow
   }
 
   return ((data ?? []) as ClassroomReportRpcRow[]).map(mapClassroomReportRow);
+}
+
+type ClassroomLabProgressRpcRow = {
+  student_id: string;
+  lesson_id: string;
+  xp_earned: number;
+  completed_at: string | null;
+};
+
+export async function getClassroomLabProgress(id: string): Promise<ClassroomLabCompletion[]> {
+  if (!hasSupabaseDataEnv()) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_classroom_lab_progress", { p_classroom_id: id });
+
+  if (error) {
+    throwLoadError("teacher_classroom_lab_progress_unavailable", error);
+  }
+
+  return ((data ?? []) as ClassroomLabProgressRpcRow[]).map((row) => ({
+    studentId: row.student_id,
+    lessonId: row.lesson_id,
+    xpEarned: row.xp_earned,
+    completedAt: row.completed_at
+  }));
 }
 
 export async function getStudentClassrooms(): Promise<StudentClassroom[]> {

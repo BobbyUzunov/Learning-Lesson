@@ -17,6 +17,7 @@ import {
 } from "./assignments";
 import {
   getClassroomById,
+  getClassroomLabProgress,
   getClassroomReport,
   listClassroomTeachers,
   listCoTeacherCandidates,
@@ -104,6 +105,7 @@ describe("Supabase detail and report loader error semantics", () => {
   const errorCases = [
     ["classroom detail", "rpc", "get_teacher_classroom", "teacher_classroom_unavailable", () => getClassroomById("class-1")],
     ["classroom report", "rpc", "get_classroom_report", "teacher_classroom_report_unavailable", () => getClassroomReport("class-1")],
+    ["classroom lab progress", "rpc", "get_classroom_lab_progress", "teacher_classroom_lab_progress_unavailable", () => getClassroomLabProgress("class-1")],
     ["transfer candidates", "rpc", "list_classroom_transfer_candidates", "classroom_transfer_candidates_unavailable", () => listTransferCandidates("class-1")],
     ["classroom teachers", "rpc", "list_classroom_teachers", "classroom_teachers_unavailable", () => listClassroomTeachers("class-1")],
     ["co-teacher candidates", "rpc", "list_classroom_co_teacher_candidates", "classroom_co_teacher_candidates_unavailable", () => listCoTeacherCandidates("class-1")],

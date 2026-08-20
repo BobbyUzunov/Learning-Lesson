@@ -18,6 +18,7 @@ import {
 } from "./assignments";
 import {
   getClassroomById,
+  getClassroomLabProgress,
   getClassroomReport,
   getTeacherClassrooms,
   listClassroomTeachers,
@@ -64,6 +65,7 @@ describe("Supabase data fallbacks without usable public credentials", () => {
     ["teacher classrooms", () => getTeacherClassrooms(), []],
     ["classroom detail", () => getClassroomById("class-1"), null],
     ["classroom report", () => getClassroomReport("class-1"), []],
+    ["classroom lab progress", () => getClassroomLabProgress("class-1"), []],
     ["classroom transfer candidates", () => listTransferCandidates("class-1"), []],
     ["classroom teachers", () => listClassroomTeachers("class-1"), []],
     ["classroom co-teacher candidates", () => listCoTeacherCandidates("class-1"), []],
