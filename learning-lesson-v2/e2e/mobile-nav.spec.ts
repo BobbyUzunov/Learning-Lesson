@@ -8,6 +8,7 @@ async function expectMenuClosed(page: import("@playwright/test").Page) {
         () =>
           !document.body.classList.contains("mobile-menu-open") &&
           !document.documentElement.classList.contains("mobile-menu-open") &&
+          document.body.style.position !== "fixed" &&
           document.body.style.overflow === "" &&
           document.documentElement.style.overflow === ""
       )
@@ -31,8 +32,12 @@ test("mobile menu opens, locks scroll, and closes", async ({ page }) => {
   await expect(panel.getByRole("link", { name: /login|вход/i })).toBeVisible();
 
   await expect
-    .poll(async () => page.evaluate(() => document.body.classList.contains("mobile-menu-open")))
+    .poll(async () => page.evaluate(() => document.body.style.position === "fixed"))
     .toBe(true);
+
+  await page.mouse.wheel(0, 800);
+  await expect(panel).toBeVisible();
+  await expect(overlay).toBeVisible();
 
   await panel.locator('a[href="/for-teachers"]').click();
   await expectMenuClosed(page);

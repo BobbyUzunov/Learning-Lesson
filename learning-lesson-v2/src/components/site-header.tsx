@@ -19,7 +19,38 @@ const roleBadgeStyles = {
   student: "border-mint/35 bg-mint/15 text-ink"
 } as const;
 
+let activeLocks = 0;
+let lockedScrollY = 0;
+
+function lockScroll() {
+  const html = document.documentElement;
+  const body = document.body;
+  if (activeLocks === 0) {
+    lockedScrollY = window.scrollY;
+    html.classList.add("mobile-menu-open");
+    body.classList.add("mobile-menu-open");
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    html.style.overscrollBehavior = "none";
+    body.style.overscrollBehavior = "none";
+    body.style.position = "fixed";
+    body.style.top = `-${lockedScrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+  }
+  activeLocks += 1;
+}
+
 function unlockScroll() {
+  if (activeLocks === 0) {
+    return;
+  }
+  activeLocks -= 1;
+  if (activeLocks > 0) {
+    return;
+  }
+
   const html = document.documentElement;
   const body = document.body;
   html.classList.remove("mobile-menu-open");
@@ -28,17 +59,12 @@ function unlockScroll() {
   body.style.removeProperty("overflow");
   html.style.removeProperty("overscroll-behavior");
   body.style.removeProperty("overscroll-behavior");
-}
-
-function lockScroll() {
-  const html = document.documentElement;
-  const body = document.body;
-  html.classList.add("mobile-menu-open");
-  body.classList.add("mobile-menu-open");
-  html.style.overflow = "hidden";
-  body.style.overflow = "hidden";
-  html.style.overscrollBehavior = "none";
-  body.style.overscrollBehavior = "none";
+  body.style.removeProperty("position");
+  body.style.removeProperty("top");
+  body.style.removeProperty("left");
+  body.style.removeProperty("right");
+  body.style.removeProperty("width");
+  window.scrollTo(0, lockedScrollY);
 }
 
 export function SiteHeader({
@@ -128,7 +154,7 @@ export function SiteHeader({
       {open ? (
         <div
           aria-hidden
-          className="fixed inset-0 z-40 bg-ink/40 md:hidden"
+          className="fixed inset-0 z-40 bg-ink/50 md:hidden"
           data-testid="mobile-menu-overlay"
           onPointerDown={() => setOpen(false)}
         />
