@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Manrope, Syne } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { t } from "@/lib/i18n";
@@ -22,6 +22,12 @@ export const metadata: Metadata = {
   title: "Learning Lesson",
   description:
     "Практическа образователна платформа за професионални гимназии — мисии, уроци и измерим напредък за ученици и учители."
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover"
 };
 
 export default async function RootLayout({

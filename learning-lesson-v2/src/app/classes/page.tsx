@@ -109,7 +109,7 @@ export default async function ClassesPage() {
                     </p>
                   </div>
                   <Link
-                    className="focus-ring inline-flex min-h-10 shrink-0 items-center rounded-xl bg-ink px-3.5 py-2 text-sm font-bold text-paper"
+                    className="focus-ring inline-flex min-h-11 shrink-0 items-center rounded-xl bg-ink px-3.5 py-2 text-sm font-bold text-paper"
                     href={`/assignments/${assignment.id}`}
                   >
                     {copy.classroom.openAssignment}
@@ -161,7 +161,7 @@ export default async function ClassesPage() {
                     </p>
                   </div>
                   <Link
-                    className="focus-ring inline-flex min-h-10 shrink-0 items-center rounded-xl bg-ink px-3.5 py-2 text-sm font-bold text-paper"
+                    className="focus-ring inline-flex min-h-11 shrink-0 items-center rounded-xl bg-ink px-3.5 py-2 text-sm font-bold text-paper"
                     href={`/assessments/${assessment.id}`}
                   >
                     {copy.assessment.openAssessment}

@@ -53,7 +53,18 @@ export function SiteHeader({
     }
 
     document.body.classList.add("mobile-menu-open");
-    return () => document.body.classList.remove("mobile-menu-open");
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.classList.remove("mobile-menu-open");
+      window.removeEventListener("keydown", onKeyDown);
+    };
   }, [open]);
 
   const authControl = isAuthenticated ? (
@@ -69,105 +80,116 @@ export function SiteHeader({
   );
 
   return (
-    <header className="sticky top-0 z-30 border-b border-ink/10 bg-paper/90 backdrop-blur">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
-          <Link
-            className="flex min-w-0 items-center gap-2 font-bold tracking-normal"
-            href={brandHref}
-            onClick={() => setOpen(false)}
-          >
-            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-ink text-sm text-paper">LL</span>
-            <span className="truncate">{brand}</span>
-          </Link>
-          {roleLabel ? (
-            <span
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold leading-none tracking-wide sm:text-xs ${badgeTone}`}
-              data-testid="header-role-badge"
+    <>
+      <header className="sticky top-0 z-30 border-b border-ink/10 bg-paper/90 pt-[env(safe-area-inset-top)] backdrop-blur">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
+            <Link
+              className="flex min-w-0 items-center gap-2 font-bold tracking-normal"
+              href={brandHref}
+              onClick={() => setOpen(false)}
             >
+              <span className="grid size-9 shrink-0 place-items-center rounded-md bg-ink text-sm text-paper">LL</span>
+              <span className="truncate">{brand}</span>
+            </Link>
+            {roleLabel ? (
               <span
-                aria-hidden
-                className={`size-1.5 rounded-full ${
-                  role === "teacher" || role === "student"
-                    ? "bg-mint"
-                    : role === "admin"
-                      ? "bg-violet"
-                      : "bg-ink/40"
-                }`}
-              />
-              {roleLabel}
-            </span>
-          ) : null}
-        </div>
-
-        <div className="hidden items-center md:flex">
-          <div className="flex items-center gap-0.5 text-sm font-medium">
-            {navItems.map((item) => (
-              <Link
-                className="rounded-lg px-3 py-2 text-ink/70 transition hover:bg-ink/5 hover:text-ink"
-                href={item.href}
-                key={`${item.href}-${item.label}`}
-                onClick={() => setOpen(false)}
+                className={`hidden shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold leading-none tracking-wide min-[380px]:inline-flex sm:text-xs ${badgeTone}`}
+                data-testid="header-role-badge"
               >
-                {item.label}
-              </Link>
-            ))}
+                <span
+                  aria-hidden
+                  className={`size-1.5 rounded-full ${
+                    role === "teacher" || role === "student"
+                      ? "bg-mint"
+                      : role === "admin"
+                        ? "bg-violet"
+                        : "bg-ink/40"
+                  }`}
+                />
+                {roleLabel}
+              </span>
+            ) : null}
           </div>
 
-          <div className="ml-3 flex items-center gap-2 border-l border-ink/10 pl-3">
-            <LanguageSwitcher language={language} />
-            {authControl}
-          </div>
-        </div>
-
-        <button
-          aria-expanded={open}
-          aria-label={open ? closeMenuLabel : menuLabel}
-          className="focus-ring inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-ink/10 md:hidden"
-          data-testid="mobile-menu-button"
-          onClick={() => setOpen((value) => !value)}
-          type="button"
-        >
-          {open ? <X className="size-5" /> : <Menu className="size-5" />}
-        </button>
-      </nav>
-
-      {open ? (
-        <div
-          className="max-h-[calc(100dvh-4.5rem)] overflow-y-auto border-t border-ink/10 bg-paper px-4 py-4 md:hidden"
-          data-testid="mobile-menu-panel"
-        >
-          <div className="grid gap-1 text-sm font-bold">
-            {navItems.map((item) => (
-              <Link
-                className="inline-flex min-h-11 items-center rounded-lg px-3 py-3 text-ink/80 transition hover:bg-ink/5 hover:text-ink"
-                href={item.href}
-                key={`${item.href}-${item.label}`}
-                onClick={() => setOpen(false)}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="mt-4 flex items-center gap-2 border-t border-ink/10 pt-4">
-            <LanguageSwitcher className="w-full min-w-0 flex-1" language={language} />
-            <div className="shrink-0">
-              {isAuthenticated ? (
-                <LogoutButton label={logoutLabel} />
-              ) : (
+          <div className="hidden items-center md:flex">
+            <div className="flex items-center gap-0.5 text-sm font-medium">
+              {navItems.map((item) => (
                 <Link
-                  className="focus-ring inline-flex h-9 items-center rounded-lg bg-ink px-3 text-sm font-semibold text-paper"
-                  href="/login"
+                  className="rounded-lg px-3 py-2 text-ink/70 transition hover:bg-ink/5 hover:text-ink"
+                  href={item.href}
+                  key={`${item.href}-${item.label}`}
                   onClick={() => setOpen(false)}
                 >
-                  {loginLabel}
+                  {item.label}
                 </Link>
-              )}
+              ))}
+            </div>
+
+            <div className="ml-3 flex items-center gap-2 border-l border-ink/10 pl-3">
+              <LanguageSwitcher language={language} />
+              {authControl}
             </div>
           </div>
-        </div>
+
+          <button
+            aria-expanded={open}
+            aria-label={open ? closeMenuLabel : menuLabel}
+            className="focus-ring inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-ink/10 md:hidden"
+            data-testid="mobile-menu-button"
+            onClick={() => setOpen((value) => !value)}
+            type="button"
+          >
+            {open ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
+        </nav>
+
+        {open ? (
+          <div
+            className="max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain border-t border-ink/10 bg-paper px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:hidden"
+            data-testid="mobile-menu-panel"
+          >
+            <div className="grid gap-1 text-sm font-bold">
+              {navItems.map((item) => (
+                <Link
+                  className="inline-flex min-h-11 items-center rounded-lg px-3 py-3 text-ink/80 transition hover:bg-ink/5 hover:text-ink"
+                  href={item.href}
+                  key={`${item.href}-${item.label}`}
+                  onClick={() => setOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+
+            <div className="mt-4 flex items-center gap-2 border-t border-ink/10 pt-4">
+              <LanguageSwitcher className="h-11 min-h-11 w-full min-w-0 flex-1" language={language} />
+              <div className="shrink-0">
+                {isAuthenticated ? (
+                  <LogoutButton className="h-11" label={logoutLabel} />
+                ) : (
+                  <Link
+                    className="focus-ring inline-flex h-11 items-center rounded-lg bg-ink px-4 text-sm font-semibold text-paper"
+                    href="/login"
+                    onClick={() => setOpen(false)}
+                  >
+                    {loginLabel}
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </header>
+      {open ? (
+        <button
+          aria-label={closeMenuLabel}
+          className="fixed inset-0 z-20 bg-ink/40 md:hidden"
+          data-testid="mobile-menu-overlay"
+          onClick={() => setOpen(false)}
+          type="button"
+        />
       ) : null}
-    </header>
+    </>
   );
 }

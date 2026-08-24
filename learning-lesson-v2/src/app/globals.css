@@ -343,5 +343,4 @@ select {
 
 body.mobile-menu-open {
   overflow: hidden;
-  touch-action: none;
 }

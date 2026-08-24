@@ -34,11 +34,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <LoginForm labels={copy.login} redirectPath={redirectPath} />
       </div>
 
-      <p className="mx-auto mt-6 max-w-md text-center text-sm text-ink/55">
+      <p className="mx-auto mt-6 flex max-w-md flex-col items-center gap-2 text-center text-sm text-ink/55">
         <Link className="font-semibold text-ink/70 underline-offset-4 hover:text-ink hover:underline" href="/register">
           {copy.login.goToStudentRegister}
         </Link>
-        <span className="mx-2 text-ink/25">·</span>
         <Link
           className="font-semibold text-ink/70 underline-offset-4 hover:text-ink hover:underline"
           href="/register/teacher"

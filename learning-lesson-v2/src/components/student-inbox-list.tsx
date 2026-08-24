@@ -51,7 +51,7 @@ export function StudentInboxList({
               {item.note ? <p className="mt-1 line-clamp-2 text-sm leading-5 text-ink/70">{item.note}</p> : null}
             </div>
             <Link
-              className="focus-ring inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl bg-ink px-3.5 py-2 text-sm font-bold text-paper"
+              className="focus-ring inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl bg-ink px-3.5 py-2 text-sm font-bold text-paper"
               href={item.href}
             >
               {openLabel}

@@ -138,7 +138,7 @@ export function KnowledgeCheck({
           <p className="mt-2 text-sm text-ink/70">{copy.knowledgeCheck.subtitle}</p>
         </div>
         <button
-          className="focus-ring inline-flex items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-bold text-ink transition hover:bg-ink/5 disabled:opacity-60"
+          className="focus-ring inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-bold text-ink transition hover:bg-ink/5 disabled:opacity-60 sm:w-auto"
           disabled={knowledgeCheckUnavailable || grading}
           onClick={regenerate}
           type="button"

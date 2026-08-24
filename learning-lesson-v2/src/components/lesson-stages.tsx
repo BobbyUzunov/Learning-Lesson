@@ -293,14 +293,14 @@ export function LessonStages({
       <header className="rounded-2xl border border-ink/10 bg-white p-5 shadow-soft">
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-ink/45">{courseTitle}</p>
         <h1 className="mt-3 break-words font-display text-2xl font-bold sm:text-3xl">{lesson.title}</h1>
-        <nav aria-label={copy.lesson.stagesLabel} className="mt-5 flex gap-2">
+        <nav aria-label={copy.lesson.stagesLabel} className="mt-5 grid grid-cols-3 gap-2">
           {([1, 2, 3] as const).map((value) => {
             const isAvailable = value <= stage + 1;
 
             return (
               <button
                 aria-current={stage === value ? "step" : undefined}
-                className={`focus-ring rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                className={`focus-ring inline-flex min-h-11 items-center justify-center rounded-full px-2 py-2 text-center text-xs font-bold leading-tight transition sm:text-sm ${
                   stage === value ? "bg-ink text-paper" : "bg-ink/5 text-ink/50"
                 } disabled:cursor-not-allowed disabled:opacity-45`}
                 disabled={!isAvailable}

@@ -105,13 +105,13 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
         <h1 className="mt-2 break-words font-display text-3xl font-bold tracking-tight sm:text-4xl">
           {classroom.name}
         </h1>
-        <p className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-ink/60">
-          <Users className="size-4 text-ink/35" />
+        <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-ink/60">
+          <Users className="size-4 shrink-0 text-ink/35" />
           {classroom.memberCount ?? report.length} {copy.teacher.studentsCount}
           <span className="text-ink/25">·</span>
           {copy.teacher.gradeLabel} {classroom.gradeLevel}
           <span className="text-ink/25">·</span>
-          {specialtyTitle ?? copy.teacher.specialtyMissingShort}
+          <span className="min-w-0 break-words">{specialtyTitle ?? copy.teacher.specialtyMissingShort}</span>
         </p>
       </header>
 
@@ -122,7 +122,7 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
             {copy.teacher.joinCodeLabel}
           </p>
           <div className="relative mt-3 flex flex-wrap items-end justify-between gap-4">
-            <p className="font-mono text-[clamp(2rem,6vw,3rem)] font-black tracking-[0.22em] text-mint">
+            <p className="break-all font-mono text-[clamp(1.75rem,8vw,3rem)] font-black tracking-[0.12em] text-mint sm:tracking-[0.22em]">
               {classroom.joinCode}
             </p>
             <CopyCodeButton code={classroom.joinCode} language={language} tone="dark" />

@@ -85,7 +85,7 @@ export function DueDateField({ language, label, value, onChange }: DueDateFieldP
         <div className="mt-3 grid grid-cols-7 gap-1 sm:gap-1.5" role="grid" aria-label={label}>
           {weekdays.map((weekday) => (
             <div
-              className="py-1.5 text-center text-xs font-bold uppercase tracking-wide text-ink/45 sm:text-sm"
+              className="truncate py-1.5 text-center text-[11px] font-bold uppercase tracking-wide text-ink/45 sm:text-sm"
               key={weekday}
             >
               {weekday}

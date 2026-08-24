@@ -21,10 +21,11 @@ export function LanguageSwitcher({
     <div
       aria-label="Language"
       className={`inline-grid h-9 grid-cols-2 items-stretch rounded-lg border border-ink/10 bg-ink/[0.04] p-0.5 text-xs font-bold ${className}`}
+      role="group"
     >
       {(["bg", "en"] as const).map((item) => (
         <button
-          className={`focus-ring rounded-md px-2.5 uppercase transition ${
+          className={`focus-ring min-h-0 rounded-md px-2.5 uppercase transition ${
             language === item ? "bg-white text-ink shadow-sm" : "text-ink/45 hover:text-ink/70"
           }`}
           key={item}

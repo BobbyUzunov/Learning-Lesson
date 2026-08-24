@@ -79,9 +79,11 @@ export function ResetPasswordForm({ labels }: { labels: ResetPasswordLabels }) {
         {labels.newPassword}
       </label>
       <input
+        autoComplete="new-password"
         className="focus-ring mt-2 w-full rounded-md border border-ink/15 bg-white px-3 py-3"
         id="new-password"
         minLength={6}
+        name="new-password"
         onChange={(event) => setPassword(event.target.value)}
         required
         type="password"
@@ -91,9 +93,11 @@ export function ResetPasswordForm({ labels }: { labels: ResetPasswordLabels }) {
         {labels.confirmPassword}
       </label>
       <input
+        autoComplete="new-password"
         className="focus-ring mt-2 w-full rounded-md border border-ink/15 bg-white px-3 py-3"
         id="confirm-password"
         minLength={6}
+        name="confirm-password"
         onChange={(event) => setConfirmPassword(event.target.value)}
         required
         type="password"

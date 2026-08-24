@@ -97,10 +97,10 @@ export default async function PathsPage({ searchParams }: PathsPageProps) {
           </p>
         </div>
 
-        <div className="inline-flex rounded-xl border border-ink/10 bg-white/70 p-1 text-sm font-bold">
+        <div className="grid w-full grid-cols-2 rounded-xl border border-ink/10 bg-white/70 p-1 text-sm font-bold sm:inline-flex sm:w-auto">
           <Link
             aria-current={tab === "program" ? "page" : undefined}
-            className={`rounded-lg px-3.5 py-2 transition ${
+            className={`rounded-lg px-3 py-2.5 text-center transition sm:px-3.5 ${
               tab === "program" ? "bg-ink text-paper" : "text-ink/55 hover:bg-ink/5 hover:text-ink"
             }`}
             href={programHref}
@@ -109,7 +109,7 @@ export default async function PathsPage({ searchParams }: PathsPageProps) {
           </Link>
           <Link
             aria-current={tab === "labs" ? "page" : undefined}
-            className={`rounded-lg px-3.5 py-2 transition ${
+            className={`rounded-lg px-3 py-2.5 text-center transition sm:px-3.5 ${
               tab === "labs" ? "bg-ink text-paper" : "text-ink/55 hover:bg-ink/5 hover:text-ink"
             }`}
             href={labsHref}

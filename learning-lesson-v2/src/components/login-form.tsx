@@ -206,8 +206,10 @@ export function LoginForm({
             {labels.displayName}
           </label>
           <input
+            autoComplete="name"
             className="focus-ring mt-2 w-full rounded-xl border border-ink/15 bg-white px-3 py-3"
             id="displayName"
+            name="name"
             onChange={(event) => setDisplayName(event.target.value)}
             placeholder={labels.displayNamePlaceholder}
             type="text"
@@ -219,8 +221,11 @@ export function LoginForm({
         {labels.email}
       </label>
       <input
+        autoComplete="email"
         className="focus-ring mt-2 w-full rounded-xl border border-ink/15 bg-white px-3 py-3"
         id="email"
+        inputMode="email"
+        name="email"
         onChange={(event) => setEmail(event.target.value)}
         placeholder={labels.emailPlaceholder}
         required
@@ -231,9 +236,11 @@ export function LoginForm({
         {labels.password}
       </label>
       <input
+        autoComplete={mode === "login" ? "current-password" : "new-password"}
         className="focus-ring mt-2 w-full rounded-xl border border-ink/15 bg-white px-3 py-3"
         id="password"
         minLength={6}
+        name="password"
         onChange={(event) => setPassword(event.target.value)}
         required
         type="password"

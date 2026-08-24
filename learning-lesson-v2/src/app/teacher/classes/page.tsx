@@ -84,7 +84,7 @@ export default async function TeacherClassesPage({
                   <div className="mt-4 flex flex-wrap items-center gap-2">
                     <CopyCodeButton code={classroom.joinCode} language={language} />
                     <Link
-                      className="focus-ring inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-bold text-paper transition hover:bg-ink/90"
+                      className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-bold text-paper transition hover:bg-ink/90"
                       href={`/teacher/classes/${classroom.id}`}
                     >
                       {copy.teacher.openClass}

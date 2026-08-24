@@ -95,7 +95,7 @@ export default async function HomePage() {
                   }}
                 />
               ))}
-              <p className="home-brand font-display text-[clamp(2.75rem,8vw,5.25rem)] font-bold leading-[1.08] tracking-tight">
+              <p className="home-brand break-words font-display text-[clamp(2.15rem,12vw,5.25rem)] font-bold leading-[1.08] tracking-tight">
                 {copy.brand}
               </p>
             </div>

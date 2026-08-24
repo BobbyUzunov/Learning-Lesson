@@ -69,11 +69,11 @@ export default async function CertificatePage({ params }: CertificatePageProps) 
         ) : null}
       </section>
       <CertificateActions language={language} />
-      <div className="no-print mt-6 flex justify-center gap-3">
-        <Link className="rounded-md bg-ink px-4 py-3 font-bold text-paper" href="/profile">
+      <div className="no-print mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <Link className="rounded-md bg-ink px-4 py-3 text-center font-bold text-paper" href="/profile">
           {copy.nav.profile}
         </Link>
-        <Link className="rounded-md border border-ink/15 px-4 py-3 font-bold" href="/paths">
+        <Link className="rounded-md border border-ink/15 px-4 py-3 text-center font-bold" href="/paths">
           {copy.nav.paths}
         </Link>
       </div>

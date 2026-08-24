@@ -28,8 +28,8 @@ export function CopyCodeButton({
 
   const className =
     tone === "dark"
-      ? "focus-ring inline-flex items-center gap-2 rounded-xl border border-paper/20 bg-paper/10 px-3.5 py-2.5 text-sm font-bold text-paper transition hover:bg-paper/15"
-      : "focus-ring inline-flex items-center gap-2 rounded-xl border border-ink/15 bg-white px-3.5 py-2.5 text-sm font-bold text-ink transition hover:bg-ink/5";
+      ? "focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl border border-paper/20 bg-paper/10 px-3.5 py-2.5 text-sm font-bold text-paper transition hover:bg-paper/15"
+      : "focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink/15 bg-white px-3.5 py-2.5 text-sm font-bold text-ink transition hover:bg-ink/5";
 
   return (
     <button className={className} onClick={handleCopy} type="button">

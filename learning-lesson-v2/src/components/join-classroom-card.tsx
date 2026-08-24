@@ -53,10 +53,14 @@ export function JoinClassroomCard({ language }: { language: Language }) {
       <div className="mt-4 flex flex-col gap-3 sm:flex-row">
         <input
           aria-label={copy.classroom.joinTitle}
-          className="focus-ring w-full rounded-md border border-ink/15 bg-white px-3 py-3 font-mono text-lg uppercase tracking-[0.3em]"
+          autoCapitalize="characters"
+          autoComplete="off"
+          className="focus-ring w-full rounded-md border border-ink/15 bg-white px-3 py-3 font-mono text-lg uppercase tracking-[0.18em] sm:tracking-[0.3em]"
+          inputMode="text"
           maxLength={6}
           onChange={(event) => setCode(event.target.value.toUpperCase())}
           placeholder={copy.classroom.joinPlaceholder}
+          spellCheck={false}
           value={code}
         />
         <button

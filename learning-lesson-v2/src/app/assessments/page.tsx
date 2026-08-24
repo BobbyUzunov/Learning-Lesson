@@ -59,7 +59,7 @@ export default async function AssessmentsPage() {
                     ) : null}
                   </div>
                   <Link
-                    className="inline-flex min-h-10 items-center rounded-lg bg-ink px-4 py-2 text-sm font-bold text-paper"
+                    className="inline-flex min-h-11 items-center rounded-lg bg-ink px-4 py-2 text-sm font-bold text-paper"
                     href={`/assessments/${assessment.id}`}
                   >
                     {copy.openAssessment}

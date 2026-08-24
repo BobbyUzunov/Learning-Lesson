@@ -47,8 +47,11 @@ export function ForgotPasswordForm({ labels }: { labels: ForgotPasswordLabels })
         {labels.email}
       </label>
       <input
+        autoComplete="email"
         className="focus-ring mt-2 w-full rounded-md border border-ink/15 bg-white px-3 py-3"
         id="reset-email"
+        inputMode="email"
+        name="email"
         onChange={(event) => setEmail(event.target.value)}
         placeholder={labels.emailPlaceholder}
         required

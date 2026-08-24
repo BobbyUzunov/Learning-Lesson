@@ -190,7 +190,7 @@ export function AssignmentMentorHelp({
 
   return (
     <section className="mt-4 rounded-xl border border-violet/20 bg-violet/5 p-4">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
         <button
           className="flex min-h-11 flex-1 items-center gap-2 text-left text-sm font-bold text-ink sm:pointer-events-none"
           onClick={() => setOpen((value) => !value)}
@@ -201,9 +201,11 @@ export function AssignmentMentorHelp({
           <span className="font-semibold text-ink/45 sm:hidden">{open ? copy.mentor.close : copy.mentor.open}</span>
         </button>
         {usageLoading ? (
-          <p className="shrink-0 pt-3 text-xs font-semibold text-ink/50">{copy.mentor.usageLoading}</p>
+          <p className="min-w-0 text-xs font-semibold leading-5 text-ink/50 sm:max-w-[14rem] sm:pt-3 sm:text-right">
+            {copy.mentor.usageLoading}
+          </p>
         ) : remaining !== null ? (
-          <p className="shrink-0 pt-3 text-xs font-semibold text-ink/50">
+          <p className="min-w-0 text-xs font-semibold leading-5 text-ink/50 sm:max-w-[14rem] sm:pt-3 sm:text-right">
             {formatMessage(copy.mentor.remaining, { remaining })}
           </p>
         ) : null}

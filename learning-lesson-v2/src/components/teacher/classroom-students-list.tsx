@@ -74,7 +74,7 @@ export function ClassroomStudentsList({
 
           return (
             <li
-              className={`flex items-center justify-between gap-3 px-4 py-3 ${
+              className={`flex flex-wrap items-center justify-between gap-3 px-4 py-3 ${
                 index > 0 ? "border-t border-ink/8" : ""
               }`}
               key={row.studentId}
@@ -85,7 +85,7 @@ export function ClassroomStudentsList({
                     <input
                       aria-label={copy.teacher.renameStudentLabel}
                       autoFocus
-                      className="focus-ring min-w-0 flex-1 rounded-xl border border-ink/15 bg-white px-3 py-1.5 text-sm font-semibold text-ink"
+                      className="focus-ring min-h-11 min-w-0 flex-1 rounded-xl border border-ink/15 bg-white px-3 py-2 font-semibold text-ink"
                       disabled={loading}
                       maxLength={80}
                       onChange={(event) => setDraftName(event.target.value)}
@@ -102,7 +102,7 @@ export function ClassroomStudentsList({
                       value={draftName}
                     />
                     <button
-                      className="focus-ring inline-flex size-8 items-center justify-center rounded-lg bg-mint text-ink disabled:opacity-60"
+                      className="focus-ring inline-flex size-11 items-center justify-center rounded-lg bg-mint text-ink disabled:opacity-60"
                       disabled={loading}
                       onClick={() => void saveName(row.studentId)}
                       title={copy.teacher.renameStudentSave}
@@ -111,7 +111,7 @@ export function ClassroomStudentsList({
                       <Check className="size-4" />
                     </button>
                     <button
-                      className="focus-ring inline-flex size-8 items-center justify-center rounded-lg border border-ink/12 text-ink/60 disabled:opacity-60"
+                      className="focus-ring inline-flex size-11 items-center justify-center rounded-lg border border-ink/12 text-ink/60 disabled:opacity-60"
                       disabled={loading}
                       onClick={cancelEdit}
                       title={copy.teacher.renameStudentCancel}
@@ -133,7 +133,7 @@ export function ClassroomStudentsList({
               <div className="flex shrink-0 items-center gap-2">
                 {!isEditing ? (
                   <button
-                    className="focus-ring inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-ink/45 transition hover:bg-ink/5 hover:text-ink/70"
+                    className="focus-ring inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-ink/45 transition hover:bg-ink/5 hover:text-ink/70"
                     onClick={() => startEdit(row)}
                     type="button"
                   >
