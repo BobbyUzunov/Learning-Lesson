@@ -162,21 +162,19 @@ export function SiteHeader({
               ))}
             </div>
 
-            <div className="mt-4 flex items-center gap-2 border-t border-ink/10 pt-4">
-              <LanguageSwitcher className="h-11 min-h-11 w-full min-w-0 flex-1" language={language} />
-              <div className="shrink-0">
-                {isAuthenticated ? (
-                  <LogoutButton className="h-11" label={logoutLabel} />
-                ) : (
-                  <Link
-                    className="focus-ring inline-flex h-11 items-center rounded-lg bg-ink px-4 text-sm font-semibold text-paper"
-                    href="/login"
-                    onClick={() => setOpen(false)}
-                  >
-                    {loginLabel}
-                  </Link>
-                )}
-              </div>
+            <div className="mt-4 flex flex-col gap-3 border-t border-ink/10 pt-4">
+              <LanguageSwitcher className="h-11 min-h-11 w-full" language={language} />
+              {isAuthenticated ? (
+                <LogoutButton className="h-11 w-full justify-center" label={logoutLabel} />
+              ) : (
+                <Link
+                  className="focus-ring inline-flex h-11 w-full items-center justify-center rounded-lg bg-ink px-4 text-sm font-semibold text-paper"
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                >
+                  {loginLabel}
+                </Link>
+              )}
             </div>
           </div>
         ) : null}

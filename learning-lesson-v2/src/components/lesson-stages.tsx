@@ -326,7 +326,7 @@ export function LessonStages({
 
           <h2 className="mt-8 text-xl font-bold">{copy.syllabus.sectionExample}</h2>
           <div className="mt-3 rounded-xl border border-ink/10 bg-ink p-4 text-paper">
-            <pre className="overflow-x-auto rounded-md bg-black/20 p-4 text-sm leading-6">
+            <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-md bg-black/20 p-4 text-sm leading-6 sm:whitespace-pre sm:break-normal">
               <code>{lesson.codeExample}</code>
             </pre>
           </div>
@@ -416,7 +416,7 @@ export function LessonStages({
           ) : null}
 
           {showSolution ? (
-            <pre className="max-h-[40vh] overflow-auto rounded-xl bg-ink p-4 text-sm leading-6 text-paper">
+            <pre className="max-h-[40vh] overflow-auto whitespace-pre-wrap break-all rounded-xl bg-ink p-4 text-sm leading-6 text-paper sm:whitespace-pre sm:break-normal">
               <code>{lesson.solution}</code>
             </pre>
           ) : null}
