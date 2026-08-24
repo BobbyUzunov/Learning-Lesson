@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useId, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutButton } from "@/components/logout-button";
@@ -17,6 +18,28 @@ const roleBadgeStyles = {
   admin: "border-violet/30 bg-violet/10 text-ink",
   student: "border-mint/35 bg-mint/15 text-ink"
 } as const;
+
+function unlockScroll() {
+  const html = document.documentElement;
+  const body = document.body;
+  html.classList.remove("mobile-menu-open");
+  body.classList.remove("mobile-menu-open");
+  html.style.removeProperty("overflow");
+  body.style.removeProperty("overflow");
+  html.style.removeProperty("overscroll-behavior");
+  body.style.removeProperty("overscroll-behavior");
+}
+
+function lockScroll() {
+  const html = document.documentElement;
+  const body = document.body;
+  html.classList.add("mobile-menu-open");
+  body.classList.add("mobile-menu-open");
+  html.style.overflow = "hidden";
+  body.style.overflow = "hidden";
+  html.style.overscrollBehavior = "none";
+  body.style.overscrollBehavior = "none";
+}
 
 export function SiteHeader({
   brand,
@@ -44,15 +67,34 @@ export function SiteHeader({
   role?: "teacher" | "admin" | "student" | null;
 }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const panelId = useId();
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const badgeTone = role ? roleBadgeStyles[role] : "border-ink/15 bg-ink/5 text-ink/75";
 
   useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
     if (!open) {
-      document.body.classList.remove("mobile-menu-open");
+      unlockScroll();
       return;
     }
 
-    document.body.classList.add("mobile-menu-open");
+    lockScroll();
+
+    function onPointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (!(target instanceof Node)) {
+        return;
+      }
+      if (panelRef.current?.contains(target) || toggleRef.current?.contains(target)) {
+        return;
+      }
+      setOpen(false);
+    }
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -60,9 +102,11 @@ export function SiteHeader({
       }
     }
 
+    document.addEventListener("pointerdown", onPointerDown, true);
     window.addEventListener("keydown", onKeyDown);
     return () => {
-      document.body.classList.remove("mobile-menu-open");
+      unlockScroll();
+      document.removeEventListener("pointerdown", onPointerDown, true);
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
@@ -81,7 +125,15 @@ export function SiteHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-ink/10 bg-paper/90 pt-[env(safe-area-inset-top)] backdrop-blur">
+      {open ? (
+        <div
+          aria-hidden
+          className="fixed inset-0 z-40 bg-ink/40 md:hidden"
+          data-testid="mobile-menu-overlay"
+          onPointerDown={() => setOpen(false)}
+        />
+      ) : null}
+      <header className="sticky top-0 z-50 border-b border-ink/10 bg-paper/90 pt-[env(safe-area-inset-top)] backdrop-blur">
         <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
             <Link
@@ -133,11 +185,13 @@ export function SiteHeader({
           </div>
 
           <button
+            aria-controls={panelId}
             aria-expanded={open}
             aria-label={open ? closeMenuLabel : menuLabel}
             className="focus-ring inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-ink/10 md:hidden"
             data-testid="mobile-menu-button"
             onClick={() => setOpen((value) => !value)}
+            ref={toggleRef}
             type="button"
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -146,8 +200,10 @@ export function SiteHeader({
 
         {open ? (
           <div
-            className="max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain border-t border-ink/10 bg-paper px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:hidden"
+            className="max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain border-t border-ink/10 bg-paper px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] touch-pan-y md:hidden"
             data-testid="mobile-menu-panel"
+            id={panelId}
+            ref={panelRef}
           >
             <div className="grid gap-1 text-sm font-bold">
               {navItems.map((item) => (
@@ -179,15 +235,6 @@ export function SiteHeader({
           </div>
         ) : null}
       </header>
-      {open ? (
-        <button
-          aria-label={closeMenuLabel}
-          className="fixed inset-0 z-20 bg-ink/40 md:hidden"
-          data-testid="mobile-menu-overlay"
-          onClick={() => setOpen(false)}
-          type="button"
-        />
-      ) : null}
     </>
   );
 }

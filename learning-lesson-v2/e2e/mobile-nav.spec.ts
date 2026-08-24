@@ -1,5 +1,20 @@
 import { test, expect } from "@playwright/test";
 
+async function expectMenuClosed(page: import("@playwright/test").Page) {
+  await expect(page.getByTestId("mobile-menu-panel")).toHaveCount(0);
+  await expect
+    .poll(async () =>
+      page.evaluate(
+        () =>
+          !document.body.classList.contains("mobile-menu-open") &&
+          !document.documentElement.classList.contains("mobile-menu-open") &&
+          document.body.style.overflow === "" &&
+          document.documentElement.style.overflow === ""
+      )
+    )
+    .toBe(true);
+}
+
 test("mobile menu opens, locks scroll, and closes", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
@@ -20,13 +35,10 @@ test("mobile menu opens, locks scroll, and closes", async ({ page }) => {
     .toBe(true);
 
   await panel.locator('a[href="/for-teachers"]').click();
-  await expect(panel).toHaveCount(0);
-  await expect
-    .poll(async () => page.evaluate(() => document.body.classList.contains("mobile-menu-open")))
-    .toBe(false);
+  await expectMenuClosed(page);
 });
 
-test("mobile menu closes from overlay and Escape", async ({ page }) => {
+test("mobile menu closes from overlay, page click, and Escape", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
@@ -38,10 +50,15 @@ test("mobile menu closes from overlay and Escape", async ({ page }) => {
   const box = await overlay.boundingBox();
   expect(box).toBeTruthy();
   await overlay.click({ position: { x: 24, y: Math.max(24, (box?.height ?? 48) - 24) } });
-  await expect(page.getByTestId("mobile-menu-panel")).toHaveCount(0);
+  await expectMenuClosed(page);
+
+  await page.getByTestId("mobile-menu-button").click();
+  await expect(page.getByTestId("mobile-menu-panel")).toBeVisible();
+  await page.locator("main").click({ position: { x: 40, y: 120 }, force: true });
+  await expectMenuClosed(page);
 
   await page.getByTestId("mobile-menu-button").click();
   await expect(page.getByTestId("mobile-menu-panel")).toBeVisible();
   await page.keyboard.press("Escape");
-  await expect(page.getByTestId("mobile-menu-panel")).toHaveCount(0);
+  await expectMenuClosed(page);
 });
