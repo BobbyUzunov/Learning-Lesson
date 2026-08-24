@@ -3,10 +3,11 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { KeyRound } from "lucide-react";
+import { mapAuthErrorMessage, type AuthErrorLabels } from "@/lib/auth-error";
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
-type ResetPasswordLabels = {
+type ResetPasswordLabels = AuthErrorLabels & {
   newPassword: string;
   confirmPassword: string;
   updatePassword: string;
@@ -15,6 +16,7 @@ type ResetPasswordLabels = {
   mismatch: string;
   resetSuccess: string;
   sessionRequired: string;
+  passwordHint: string;
 };
 
 export function ResetPasswordForm({ labels }: { labels: ResetPasswordLabels }) {
@@ -62,7 +64,7 @@ export function ResetPasswordForm({ labels }: { labels: ResetPasswordLabels }) {
     setLoading(false);
 
     if (error) {
-      setMessage(error.message);
+      setMessage(mapAuthErrorMessage(error.message, labels));
       return;
     }
 
@@ -87,6 +89,7 @@ export function ResetPasswordForm({ labels }: { labels: ResetPasswordLabels }) {
         type="password"
         value={password}
       />
+      <p className="mt-2 text-sm text-ink/55">{labels.passwordHint}</p>
       <label className="mt-4 block text-sm font-bold" htmlFor="confirm-password">
         {labels.confirmPassword}
       </label>

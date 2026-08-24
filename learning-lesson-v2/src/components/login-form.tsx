@@ -4,12 +4,13 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogIn, UserPlus } from "lucide-react";
+import { mapAuthErrorMessage, type AuthErrorLabels } from "@/lib/auth-error";
 import { clearStoredProgress, getStoredProgress, guestContinueKey } from "@/lib/game-progress-storage";
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { ensureUserProfile } from "@/lib/supabase/profile";
 
-type LoginLabels = {
+type LoginLabels = AuthErrorLabels & {
   login: string;
   register: string;
   email: string;
@@ -23,6 +24,7 @@ type LoginLabels = {
   loggedIn: string;
   registered: string;
   forgotPassword: string;
+  passwordHint: string;
   guestProgressError: string;
 };
 
@@ -118,7 +120,7 @@ export function LoginForm({
 
     if (result.error) {
       setLoading(false);
-      setMessage(result.error.message);
+      setMessage(mapAuthErrorMessage(result.error.message, labels));
       return;
     }
 
@@ -239,6 +241,7 @@ export function LoginForm({
         type="password"
         value={password}
       />
+      {mode === "register" ? <p className="mt-2 text-sm text-ink/55">{labels.passwordHint}</p> : null}
       {mode === "login" ? (
         <Link className="mt-2 inline-block text-sm font-bold text-ink/55 hover:text-ink" href="/forgot-password">
           {labels.forgotPassword}
