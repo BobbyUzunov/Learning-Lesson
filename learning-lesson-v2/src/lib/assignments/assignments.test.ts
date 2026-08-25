@@ -27,9 +27,30 @@ describe("assignments helpers", () => {
       id: "a1",
       classroomId: "c1",
       missionId: "mission-school-poster",
+      customQuestions: [],
       instructions: "Due Friday",
       missionTitle: "Poster mission",
       classroomName: "8A"
+    });
+  });
+
+  it("maps a teacher-authored mission without a catalog id", () => {
+    const mapped = mapClassroomAssignmentRow({
+      id: "a2",
+      classroom_id: "c1",
+      mission_id: null,
+      assigned_by: "t1",
+      title_override: "Interview five people",
+      custom_questions: ["Who has the problem?", "What would they pay?"],
+      instructions: null,
+      due_at: null,
+      created_at: "2026-08-20T12:00:00.000Z"
+    });
+
+    expect(mapped).toMatchObject({
+      missionId: null,
+      titleOverride: "Interview five people",
+      customQuestions: ["Who has the problem?", "What would they pay?"]
     });
   });
 

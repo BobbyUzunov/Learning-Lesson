@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { SubmitAssignmentForm } from "@/components/submit-assignment-form";
+import { assignmentDisplayTitle, isCustomAssignment } from "@/lib/assignments/title";
 import { E2E_ASSIGNMENT_ID, e2eStudentAssignment } from "@/lib/assignments/e2e-fixture";
 import { getAssignmentById, getMySubmissionForAssignment } from "@/lib/supabase/assignments";
 import { requireUser } from "@/lib/supabase/auth";
@@ -41,14 +42,14 @@ export default async function AssignmentPage({ params }: { params: Promise<{ id:
     notFound();
   }
 
-  const title =
-    language === "bg"
-      ? assignment.titleOverride || assignment.missionTitleBg || assignment.missionTitle || assignment.missionId
-      : assignment.titleOverride || assignment.missionTitle || assignment.missionId;
+  const title = assignmentDisplayTitle(assignment, language);
+  const questions = assignment.customQuestions ?? [];
+  const custom = isCustomAssignment(assignment);
   const brief =
     language === "bg" ? assignment.missionBriefBg || assignment.missionBrief : assignment.missionBrief;
-  const deliverable =
-    language === "bg"
+  const deliverable = custom
+    ? copy.customDeliverable
+    : language === "bg"
       ? assignment.missionDeliverableBg || assignment.missionDeliverable
       : assignment.missionDeliverable;
 
@@ -67,10 +68,23 @@ export default async function AssignmentPage({ params }: { params: Promise<{ id:
             {copy.classroomLabel}: {assignment.classroomName}
           </p>
         ) : null}
+        {custom ? (
+          <p className="mt-2 text-xs font-bold uppercase tracking-[0.12em] text-violet">{copy.customMissionBadge}</p>
+        ) : null}
         <h1 className="mt-2 break-words text-3xl font-black">{title}</h1>
         <p className="mt-2 text-sm text-ink/60">
           {copy.dueLabel}: {formatDue(assignment.dueAt, language, copy.noDueDate)}
         </p>
+        {questions.length > 0 ? (
+          <div className="mt-4">
+            <p className="text-xs font-bold uppercase text-ink/45">{copy.teacherQuestions}</p>
+            <ol className="mt-2 list-decimal space-y-2 pl-5 text-base leading-7 text-ink/75">
+              {questions.map((question, index) => (
+                <li key={`${index}-${question}`}>{question}</li>
+              ))}
+            </ol>
+          </div>
+        ) : null}
         {brief ? (
           <div className="mt-4">
             <p className="text-xs font-bold uppercase text-ink/45">{copy.missionBrief}</p>
@@ -88,12 +102,14 @@ export default async function AssignmentPage({ params }: { params: Promise<{ id:
             {assignment.instructions}
           </p>
         ) : null}
-        <Link
-          className="mt-4 inline-flex items-center gap-2 text-sm font-black text-violet hover:underline"
-          href={`/missions/${assignment.missionId}`}
-        >
-          {copy.openMissionGuide}
-        </Link>
+        {assignment.missionId ? (
+          <Link
+            className="mt-4 inline-flex items-center gap-2 text-sm font-black text-violet hover:underline"
+            href={`/missions/${assignment.missionId}`}
+          >
+            {copy.openMissionGuide}
+          </Link>
+        ) : null}
       </div>
 
       <div className="mt-6">

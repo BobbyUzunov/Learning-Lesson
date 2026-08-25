@@ -1,11 +1,14 @@
+import { mapStoredCustomQuestions } from "./custom";
+
 export type AssignmentStatus = "draft" | "submitted" | "approved" | "needs_changes" | "missing";
 
 export type ClassroomAssignment = {
   id: string;
   classroomId: string;
-  missionId: string;
+  missionId: string | null;
   assignedBy: string;
   titleOverride: string | null;
+  customQuestions?: string[];
   instructions: string | null;
   dueAt: string | null;
   createdAt: string;
@@ -52,9 +55,10 @@ export type AssignmentReportRow = {
 export type ClassroomAssignmentRow = {
   id: string;
   classroom_id: string;
-  mission_id: string;
+  mission_id: string | null;
   assigned_by: string;
   title_override: string | null;
+  custom_questions?: unknown;
   instructions: string | null;
   due_at: string | null;
   created_at: string;
@@ -96,6 +100,7 @@ export function mapClassroomAssignmentRow(
     missionId: row.mission_id,
     assignedBy: row.assigned_by,
     titleOverride: row.title_override,
+    customQuestions: mapStoredCustomQuestions(row.custom_questions),
     instructions: row.instructions,
     dueAt: row.due_at,
     createdAt: row.created_at,

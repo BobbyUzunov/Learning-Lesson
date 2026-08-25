@@ -5,6 +5,7 @@ import { getCourseCatalog, getGlobalNextLessonFromCourses } from "@/lib/catalog"
 import { localizeGameLesson, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getMyAssignments } from "@/lib/supabase/assignments";
+import { assignmentDisplayTitle } from "@/lib/assignments/title";
 import { getMyAssessments } from "@/lib/supabase/assessments";
 import { isAssessmentExpired } from "@/lib/assessments/types";
 import { buildStudentInbox } from "@/lib/inbox/build-student-inbox";
@@ -75,9 +76,7 @@ export default async function DashboardPage({
     kind === "assessment"
       ? activeAssessment!.title
       : kind === "assignment"
-        ? language === "bg"
-          ? activeAssignment!.missionTitleBg || activeAssignment!.missionTitle || activeAssignment!.missionId
-          : activeAssignment!.missionTitle || activeAssignment!.missionId
+        ? assignmentDisplayTitle(activeAssignment!, language)
         : kind === "lesson"
           ? localizedNext!.title
           : copy.dashboard.noCurrentMission;

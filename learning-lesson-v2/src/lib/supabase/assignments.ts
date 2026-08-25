@@ -17,7 +17,7 @@ import {
 } from "@/lib/assignments/types";
 
 const assignmentColumns =
-  "id, classroom_id, mission_id, assigned_by, title_override, instructions, due_at, created_at";
+  "id, classroom_id, mission_id, assigned_by, title_override, custom_questions, instructions, due_at, created_at";
 
 type MissionJoin = {
   title: string;

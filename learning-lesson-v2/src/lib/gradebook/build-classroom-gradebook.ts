@@ -1,4 +1,5 @@
 import type { Assessment, AssessmentReportRow } from "@/lib/assessments/types";
+import { assignmentDisplayTitle } from "@/lib/assignments/title";
 import type { AssignmentReportRow, ClassroomAssignment } from "@/lib/assignments/types";
 import { shortStudentId, type ClassroomReportRow } from "@/lib/classrooms/types";
 import type { Language } from "@/lib/language";
@@ -6,14 +7,6 @@ import type { ClassroomGradebook, GradebookCell, GradebookStatusLabels } from ".
 
 function studentName(row: ClassroomReportRow) {
   return row.rosterName?.trim() || row.displayName?.trim() || shortStudentId(row.studentId);
-}
-
-function assignmentTitle(assignment: ClassroomAssignment, language: Language) {
-  if (language === "bg") {
-    return assignment.titleOverride || assignment.missionTitleBg || assignment.missionTitle || assignment.missionId;
-  }
-
-  return assignment.titleOverride || assignment.missionTitle || assignment.missionId;
 }
 
 function assignmentCell(row: AssignmentReportRow | undefined, labels: GradebookStatusLabels): GradebookCell {
@@ -66,7 +59,7 @@ export function buildClassroomGradebook({
     ...assignments.map((assignment) => ({
       id: `assignment:${assignment.id}`,
       kind: "assignment" as const,
-      label: assignmentTitle(assignment, language),
+      label: assignmentDisplayTitle(assignment, language),
       href: `/teacher/classes/${classroomId}/assignments/${assignment.id}`
     })),
     ...assessments.map((assessment) => ({

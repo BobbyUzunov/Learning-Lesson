@@ -77,10 +77,56 @@ describe("POST /api/teacher/classrooms/[id]/assignments", () => {
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/dashboard");
   });
 
+  it("assigns a teacher-authored mission with open questions", async () => {
+    mocks.single.mockResolvedValue({
+      data: {
+        id: "assignment-2",
+        classroom_id: "class-1",
+        mission_id: null,
+        title_override: "Interview five people",
+        custom_questions: ["Who has the problem?", "What would they pay?"],
+        due_at: null,
+        instructions: "Write short answers.",
+        created_at: "2026-08-20T09:00:00.000Z"
+      },
+      error: null
+    });
+
+    const response = await POST(
+      request({
+        title: "  Interview five people  ",
+        questions: ["  Who has the problem?  ", "What would they pay?"],
+        instructions: "  Write short answers.  "
+      }),
+      context
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      ok: true,
+      assignment: {
+        id: "assignment-2",
+        classroomId: "class-1",
+        missionId: null,
+        titleOverride: "Interview five people",
+        customQuestions: ["Who has the problem?", "What would they pay?"]
+      }
+    });
+    expect(mocks.rpc).toHaveBeenCalledWith("create_custom_classroom_assignment", {
+      p_classroom_id: "class-1",
+      p_title: "Interview five people",
+      p_questions: ["Who has the problem?", "What would they pay?"],
+      p_due_at: null,
+      p_instructions: "Write short answers."
+    });
+  });
+
   it.each([
     [{ missionId: "" }, "invalid_mission"],
     [{ missionId: "mission-1", dueAt: "not-a-date" }, "invalid_due_at"],
-    [{ missionId: "mission-1", instructions: "x".repeat(2001) }, "invalid_instructions"]
+    [{ missionId: "mission-1", instructions: "x".repeat(2001) }, "invalid_instructions"],
+    [{ title: "ab", questions: ["What did you learn today?"] }, "invalid_title"],
+    [{ title: "Interview five people", questions: ["no"] }, "invalid_questions"]
   ])("rejects invalid assignment input before the RPC", async (body, error) => {
     const response = await POST(request(body), context);
 
@@ -95,7 +141,9 @@ describe("POST /api/teacher/classrooms/[id]/assignments", () => {
     ["not_authorized", 403],
     ["assignment_exists", 409],
     ["unknown_mission", 400],
-    ["invalid_instructions", 400]
+    ["invalid_instructions", 400],
+    ["invalid_title", 400],
+    ["invalid_questions", 400]
   ])("maps %s to a stable public response", async (message, status) => {
     mocks.single.mockResolvedValue({ data: null, error: { message } });
 

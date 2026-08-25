@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readJsonObject } from "@/lib/http";
+import { assignmentDisplayTitle, assignmentMentorBrief, isCustomAssignment } from "@/lib/assignments/title";
 import { E2E_ASSIGNMENT_ID, e2eStudentAssignment } from "@/lib/assignments/e2e-fixture";
 import { isMentorOpenStatus } from "@/lib/mentor/access";
 import { hasOpenAIEnv } from "@/lib/mentor/env";
@@ -164,15 +165,13 @@ export async function POST(request: Request) {
   }
 
   try {
-    const title =
-      language === "bg"
-        ? assignment.titleOverride || assignment.missionTitleBg || assignment.missionTitle || assignment.missionId
-        : assignment.titleOverride || assignment.missionTitle || assignment.missionId;
+    const title = assignmentDisplayTitle(assignment, language);
     const messages = buildMentorMessages({
       title,
-      brief: language === "bg" ? assignment.missionBriefBg || assignment.missionBrief : assignment.missionBrief,
-      deliverable:
-        language === "bg"
+      brief: assignmentMentorBrief(assignment, language),
+      deliverable: isCustomAssignment(assignment)
+        ? undefined
+        : language === "bg"
           ? assignment.missionDeliverableBg || assignment.missionDeliverable
           : assignment.missionDeliverable,
       instructions: assignment.instructions,

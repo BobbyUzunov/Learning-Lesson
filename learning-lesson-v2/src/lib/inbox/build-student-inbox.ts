@@ -1,4 +1,5 @@
 import { isAssessmentExpired, type Assessment } from "@/lib/assessments/types";
+import { assignmentDisplayTitle } from "@/lib/assignments/title";
 import type { ClassroomAssignment } from "@/lib/assignments/types";
 import type { Language } from "@/lib/language";
 import { INBOX_DUE_SOON_MS, INBOX_LIMIT, type InboxKind, type InboxUrgency, type StudentInboxItem } from "./types";
@@ -18,14 +19,6 @@ const URGENCY_RANK: Record<InboxUrgency, number> = {
   soon: 1,
   info: 2
 };
-
-function assignmentTitle(assignment: ClassroomAssignment, language: Language) {
-  if (language === "bg") {
-    return assignment.titleOverride || assignment.missionTitleBg || assignment.missionTitle || assignment.missionId;
-  }
-
-  return assignment.titleOverride || assignment.missionTitle || assignment.missionId;
-}
 
 function dueTime(value: string | null | undefined) {
   if (!value) {
@@ -52,7 +45,7 @@ export function buildStudentInbox({
 
   for (const assignment of assignments) {
     const href = `/assignments/${assignment.id}`;
-    const title = assignmentTitle(assignment, language);
+    const title = assignmentDisplayTitle(assignment, language);
     const dueMs = dueTime(assignment.dueAt);
     const overdue = dueMs !== null && dueMs < nowMs;
     const dueSoon = dueMs !== null && dueMs >= nowMs && dueMs - nowMs <= INBOX_DUE_SOON_MS;

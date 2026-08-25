@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ClipboardCheck, GraduationCap } from "lucide-react";
 import { JoinClassroomCard } from "@/components/join-classroom-card";
 import type { AssignmentStatus } from "@/lib/assignments/types";
+import { assignmentDisplayTitle } from "@/lib/assignments/title";
 import { isAssessmentExpired, type AssessmentType } from "@/lib/assessments/types";
 import { getMyAssignments } from "@/lib/supabase/assignments";
 import { getMyAssessments } from "@/lib/supabase/assessments";
@@ -83,13 +84,7 @@ export default async function ClassesPage() {
         ) : (
           <ul className="mt-4 overflow-hidden rounded-2xl border border-ink/10 bg-white/75">
             {assignments.map((assignment, index) => {
-              const title =
-                language === "bg"
-                  ? assignment.titleOverride ||
-                    assignment.missionTitleBg ||
-                    assignment.missionTitle ||
-                    assignment.missionId
-                  : assignment.titleOverride || assignment.missionTitle || assignment.missionId;
+              const title = assignmentDisplayTitle(assignment, language);
 
               return (
                 <li

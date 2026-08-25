@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { AssignmentReportTable } from "@/components/teacher/assignment-report-table";
 import { summarizeAssignmentReport } from "@/lib/assignments/types";
+import { assignmentDisplayTitle, isCustomAssignment } from "@/lib/assignments/title";
 import { getAssignmentById, getAssignmentReport } from "@/lib/supabase/assignments";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
@@ -37,10 +38,8 @@ export default async function TeacherAssignmentPage({
 
   const report = await getAssignmentReport(assignmentId);
   const summary = summarizeAssignmentReport(report);
-  const title =
-    language === "bg"
-      ? assignment.titleOverride || assignment.missionTitleBg || assignment.missionTitle || assignment.missionId
-      : assignment.titleOverride || assignment.missionTitle || assignment.missionId;
+  const title = assignmentDisplayTitle(assignment, language);
+  const questions = assignment.customQuestions ?? [];
   const statusLine =
     summary.submitted > 0
       ? copy.waitingReview.replace("{count}", String(summary.submitted))
@@ -62,10 +61,21 @@ export default async function TeacherAssignmentPage({
           {title}
         </h1>
         <p className="mt-2 text-sm text-ink/55">
+          {isCustomAssignment(assignment) ? `${copy.customMissionBadge} · ` : ""}
           {copy.dueLabel}: {formatDue(assignment.dueAt, language, copy.noDueDate)}
           <span className="px-2 text-ink/25">·</span>
           {statusLine}
         </p>
+        {questions.length > 0 ? (
+          <div className="mt-4 max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.12em] text-ink/40">{copy.customQuestionsLabel}</p>
+            <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm leading-6 text-ink/70">
+              {questions.map((question, index) => (
+                <li key={`${index}-${question}`}>{question}</li>
+              ))}
+            </ol>
+          </div>
+        ) : null}
         {assignment.instructions ? (
           <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/65">{assignment.instructions}</p>
         ) : null}

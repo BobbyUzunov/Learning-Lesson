@@ -8,6 +8,7 @@ import { ClassroomStudentsList } from "@/components/teacher/classroom-students-l
 import { CopyCodeButton } from "@/components/teacher/copy-code-button";
 import { getSchoolCurriculum, localizeCurriculumText } from "@/lib/curriculum";
 import { getAssignableModules, getMissionsForModule } from "@/lib/curriculum/helpers";
+import { assignmentDisplayTitle, isCustomAssignment } from "@/lib/assignments/title";
 import { getClassroomAssignments } from "@/lib/supabase/assignments";
 import { getClassroomAssessments } from "@/lib/supabase/assessments";
 import {
@@ -70,7 +71,9 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
     title: localizeCurriculumText(item.title, language)
   }));
 
-  const assignedMissionIds = new Set(assignments.map((item) => item.missionId));
+  const assignedMissionIds = new Set(
+    assignments.flatMap((item) => (item.missionId ? [item.missionId] : []))
+  );
   const missionOptions = modules.flatMap((module) => {
     const moduleTitle = localizeCurriculumText(module.title, language);
     const moduleSpecialty = module.specialtyId
@@ -231,11 +234,10 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
                 >
                   <span className="min-w-0">
                     <span className="block font-bold">
-                      {language === "bg"
-                        ? assignment.missionTitleBg || assignment.missionTitle || assignment.missionId
-                        : assignment.missionTitle || assignment.missionId}
+                      {assignmentDisplayTitle(assignment, language)}
                     </span>
                     <span className="mt-0.5 block text-sm text-ink/50">
+                      {isCustomAssignment(assignment) ? `${copy.teacher.customMissionBadge} · ` : ""}
                       {copy.teacher.dueLabel}: {formatDue(assignment.dueAt, language, copy.teacher.noDueDate)}
                     </span>
                   </span>
