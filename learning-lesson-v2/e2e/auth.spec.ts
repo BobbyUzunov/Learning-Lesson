@@ -7,11 +7,11 @@ test("login page shows forgot password link", async ({ page }) => {
   await expect(page.getByRole("link", { name: /forgot password|забравена парола/i })).toBeVisible();
 });
 
-test("register page renders signup form", async ({ page }) => {
+test("register page explains password rules without listing every character", async ({ page }) => {
   await page.goto("/register");
 
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.getByRole("button", { name: /create account|създай (акаунт|профил)/i })).toBeVisible();
+  await expect(page.getByText(/малка буква|lowercase letter/i)).toBeVisible();
+  await expect(page.getByText("abcdefghijklmnopqrstuvwxyz")).toHaveCount(0);
 });
 
 test("dashboard requires login", async ({ page }) => {

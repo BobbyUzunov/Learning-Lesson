@@ -3,10 +3,11 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { Mail } from "lucide-react";
+import { mapAuthErrorMessage, type AuthErrorLabels } from "@/lib/auth-error";
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
-type ForgotPasswordLabels = {
+type ForgotPasswordLabels = AuthErrorLabels & {
   email: string;
   emailPlaceholder: string;
   sendLink: string;
@@ -38,7 +39,7 @@ export function ForgotPasswordForm({ labels }: { labels: ForgotPasswordLabels })
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
 
     setLoading(false);
-    setMessage(error ? error.message : labels.sentMessage);
+    setMessage(error ? mapAuthErrorMessage(error.message, labels) : labels.sentMessage);
   }
 
   return (
