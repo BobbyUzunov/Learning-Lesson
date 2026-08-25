@@ -36,7 +36,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 
   const auth = await requireAdminUser();
-  if ("error" in auth) {
+  if ("error" in auth && auth.error) {
     return auth.error;
   }
 
@@ -56,12 +56,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .rpc("set_user_role", { p_user_id: id, p_role: role, p_actor_id: auth.user.id })
     .single<SetRoleRow>();
 
-  if (error) {
-    const code = resolvePublicErrorCode(error.message, setUserRoleErrors, "set_user_role_failed");
+  if (error || !data) {
+    const code = resolvePublicErrorCode(error?.message ?? "", setUserRoleErrors, "set_user_role_failed");
     if (code === "set_user_role_failed") {
       logServerError("admin_set_user_role_failed", {
         userId: id,
-        detail: error.message.slice(0, 200)
+        detail: (error?.message ?? "missing_row").slice(0, 200)
       });
     }
     return NextResponse.json({ error: code }, { status: setUserRoleErrorStatus(code) });
