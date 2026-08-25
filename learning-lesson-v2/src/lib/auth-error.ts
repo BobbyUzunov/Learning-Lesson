@@ -40,7 +40,12 @@ export function mapAuthErrorMessage(message: string, labels: AuthErrorLabels): s
     return labels.invalidEmail;
   }
 
-  if (normalized.includes("for security purposes") || normalized.includes("you can only request this after")) {
+  if (
+    normalized.includes("email rate limit") ||
+    normalized.includes("over_email_send_rate_limit") ||
+    normalized.includes("for security purposes") ||
+    normalized.includes("you can only request this after")
+  ) {
     return labels.rateLimited;
   }
 

@@ -7,6 +7,15 @@ test("login page shows forgot password link", async ({ page }) => {
   await expect(page.getByRole("link", { name: /forgot password|забравена парола/i })).toBeVisible();
 });
 
+test("login register tab opens the student signup page", async ({ page }) => {
+  await page.goto("/login");
+
+  await page.locator("form").getByRole("link", { name: /register|регистрация/i }).click();
+  await expect(page).toHaveURL(/\/register$/);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(/create a student account|създай ученически профил/i);
+  await expect(page.getByRole("button", { name: /create account|създай профил/i })).toBeVisible();
+});
+
 test("register page explains password rules without listing every character", async ({ page }) => {
   await page.goto("/register");
 

@@ -29,6 +29,7 @@ test("mobile menu opens, locks scroll, and closes", async ({ page }) => {
   await expect(panel).toBeVisible();
   await expect(overlay).toBeVisible();
   await expect(panel.locator('a[href="/for-teachers"]')).toBeVisible();
+  await expect(panel.locator('a[href="/register"]')).toBeVisible();
   await expect(panel.getByRole("link", { name: /login|вход/i })).toBeVisible();
 
   await expect

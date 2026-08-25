@@ -73,6 +73,7 @@ export function SiteHeader({
   isAuthenticated,
   language,
   loginLabel,
+  registerLabel,
   logoutLabel,
   menuLabel,
   closeMenuLabel,
@@ -85,6 +86,7 @@ export function SiteHeader({
   isAuthenticated: boolean;
   language: Language;
   loginLabel: string;
+  registerLabel: string;
   logoutLabel: string;
   menuLabel: string;
   closeMenuLabel: string;
@@ -140,13 +142,22 @@ export function SiteHeader({
   const authControl = isAuthenticated ? (
     <LogoutButton label={logoutLabel} />
   ) : (
-    <Link
-      className="focus-ring inline-flex h-9 items-center rounded-lg bg-ink px-3 text-sm font-semibold text-paper transition hover:bg-ink/90"
-      href="/login"
-      onClick={() => setOpen(false)}
-    >
-      {loginLabel}
-    </Link>
+    <div className="flex items-center gap-2">
+      <Link
+        className="focus-ring inline-flex h-9 items-center rounded-lg px-3 text-sm font-semibold text-ink/70 transition hover:bg-ink/5 hover:text-ink"
+        href="/register"
+        onClick={() => setOpen(false)}
+      >
+        {registerLabel}
+      </Link>
+      <Link
+        className="focus-ring inline-flex h-9 items-center rounded-lg bg-ink px-3 text-sm font-semibold text-paper transition hover:bg-ink/90"
+        href="/login"
+        onClick={() => setOpen(false)}
+      >
+        {loginLabel}
+      </Link>
+    </div>
   );
 
   return (
@@ -249,13 +260,22 @@ export function SiteHeader({
               {isAuthenticated ? (
                 <LogoutButton className="h-11 w-full justify-center" label={logoutLabel} />
               ) : (
-                <Link
-                  className="focus-ring inline-flex h-11 w-full items-center justify-center rounded-lg bg-ink px-4 text-sm font-semibold text-paper"
-                  href="/login"
-                  onClick={() => setOpen(false)}
-                >
-                  {loginLabel}
-                </Link>
+                <>
+                  <Link
+                    className="focus-ring inline-flex h-11 w-full items-center justify-center rounded-lg border border-ink/15 bg-white px-4 text-sm font-semibold text-ink"
+                    href="/register"
+                    onClick={() => setOpen(false)}
+                  >
+                    {registerLabel}
+                  </Link>
+                  <Link
+                    className="focus-ring inline-flex h-11 w-full items-center justify-center rounded-lg bg-ink px-4 text-sm font-semibold text-paper"
+                    href="/login"
+                    onClick={() => setOpen(false)}
+                  >
+                    {loginLabel}
+                  </Link>
+                </>
               )}
             </div>
           </div>

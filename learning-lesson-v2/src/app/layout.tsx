@@ -89,6 +89,7 @@ export default async function RootLayout({
           isAuthenticated={Boolean(session.user)}
           language={language}
           loginLabel={copy.nav.login}
+          registerLabel={copy.nav.register}
           logoutLabel={copy.nav.logout}
           menuLabel={copy.nav.openMenu}
           navItems={navItems}
