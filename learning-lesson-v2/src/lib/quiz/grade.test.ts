@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { gradeKnowledgeCheckAnswers, parseKnowledgeCheckAnswers } from "./grade";
+import { gradeKnowledgeCheckAnswers, parseKnowledgeCheckAnswers, toPublicKnowledgeCheckGrade } from "./grade";
 import { getFallbackKnowledgeCheckContent, toPublicKnowledgeCheckContent } from "./index";
 
 describe("knowledge-check grading", () => {
@@ -37,6 +37,16 @@ describe("knowledge-check grading", () => {
     expect(graded?.passed).toBe(true);
     expect(graded?.correct).toBe(3);
     expect(graded?.results.every((item) => item.isCorrect)).toBe(true);
+    expect(graded?.results.every((item) => item.correctIndex !== undefined)).toBe(true);
+
+    const publicGrade = toPublicKnowledgeCheckGrade(graded!);
+    expect(publicGrade.passed).toBe(true);
+    expect(publicGrade.results.every((item) => item.isCorrect)).toBe(true);
+    expect(
+      JSON.parse(JSON.stringify(publicGrade)).results.every(
+        (item: { correctIndex?: number }) => !("correctIndex" in item)
+      )
+    ).toBe(true);
   });
 
   it("strips secrets from learner-facing content", () => {

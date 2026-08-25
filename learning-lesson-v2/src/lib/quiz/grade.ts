@@ -7,7 +7,7 @@ import type {
 export type KnowledgeCheckGradeResultItem = {
   questionId: string;
   selectedIndex: number;
-  correctIndex: number;
+  correctIndex?: number;
   isCorrect: boolean;
   explanation: string;
   explanationBg: string;
@@ -92,5 +92,21 @@ export function gradeKnowledgeCheckAnswers(
     total,
     passed: total > 0 && correct * 3 >= total * 2,
     results
+  };
+}
+
+/** Learner-facing grade payload: keep verdicts and explanations, never answer keys. */
+export function toPublicKnowledgeCheckGrade(
+  graded: KnowledgeCheckGradeResult
+): KnowledgeCheckGradeResult {
+  return {
+    ...graded,
+    results: graded.results.map((item) => ({
+      questionId: item.questionId,
+      selectedIndex: item.selectedIndex,
+      isCorrect: item.isCorrect,
+      explanation: item.explanation,
+      explanationBg: item.explanationBg
+    }))
   };
 }

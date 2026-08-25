@@ -216,6 +216,7 @@ export {
 export {
   gradeKnowledgeCheckAnswers,
   parseKnowledgeCheckAnswers,
+  toPublicKnowledgeCheckGrade,
   type KnowledgeCheckGradeResult,
   type KnowledgeCheckGradeResultItem
 } from "./grade";

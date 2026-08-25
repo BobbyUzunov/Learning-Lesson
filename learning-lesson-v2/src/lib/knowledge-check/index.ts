@@ -12,7 +12,8 @@ export {
   localizeKnowledgeCheckQuestion,
   toPublicKnowledgeCheckContent,
   gradeKnowledgeCheckAnswers,
-  parseKnowledgeCheckAnswers
+  parseKnowledgeCheckAnswers,
+  toPublicKnowledgeCheckGrade
 } from "@/lib/quiz";
 
 export type {

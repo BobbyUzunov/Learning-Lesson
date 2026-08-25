@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { readJsonObject, resolvePublicErrorCode } from "@/lib/http";
 import { logServerError } from "@/lib/observability";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdminUser } from "@/lib/supabase/admin-auth";
+import { hasSupabaseAdminEnv } from "@/lib/supabase/admin-env";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
 type SetRoleRow = {
@@ -34,7 +36,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 
   const auth = await requireAdminUser();
-  if ("error" in auth && auth.error) {
+  if ("error" in auth) {
     return auth.error;
   }
 
@@ -46,8 +48,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "invalid_role" }, { status: 400 });
   }
 
-  const { data, error } = await auth
-    .supabase!.rpc("set_user_role", { p_user_id: id, p_role: role })
+  if (!hasSupabaseAdminEnv()) {
+    return NextResponse.json({ error: "Supabase env is not configured." }, { status: 503 });
+  }
+
+  const { data, error } = await createAdminClient()
+    .rpc("set_user_role", { p_user_id: id, p_role: role, p_actor_id: auth.user.id })
     .single<SetRoleRow>();
 
   if (error) {

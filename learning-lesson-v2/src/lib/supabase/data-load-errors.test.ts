@@ -24,6 +24,7 @@ import {
   listTransferCandidates
 } from "./classrooms";
 import { getMyClassroomIds } from "./memberships";
+import { getCurrentUserProgress } from "./progress";
 import {
   getAdminSubmissionById,
   getPendingReviewSubmissions,
@@ -124,7 +125,8 @@ describe("Supabase detail and report loader error semantics", () => {
     ["student memberships", "table", "classroom_members", "student_classroom_memberships_unavailable", () => getMyClassroomIds()],
     ["student project submissions", "table", "project_submissions", "student_project_submissions_unavailable", () => getUserProjectSubmissions("student-1")],
     ["admin pending project reviews", "table", "project_submissions", "admin_pending_reviews_unavailable", () => getPendingReviewSubmissions()],
-    ["admin project submission detail", "table", "project_submissions", "admin_submission_unavailable", () => getAdminSubmissionById("submission-1")]
+    ["admin project submission detail", "table", "project_submissions", "admin_submission_unavailable", () => getAdminSubmissionById("submission-1")],
+    ["user progress", "table", "user_progress", "user_progress_unavailable", () => getCurrentUserProgress()]
   ] as const;
 
   it.each(errorCases)(

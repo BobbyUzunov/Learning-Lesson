@@ -247,9 +247,8 @@ function KnowledgeCheckQuestionCard({
       <div aria-labelledby={questionHeadingId} className="mt-3 grid gap-2" role="radiogroup">
         {localized.options.map((option, optionIndex) => {
           const isSelected = selected === optionIndex;
-          const originalIndex = question.originalOptionIndexes[optionIndex];
-          const isCorrect = submitted && grade !== null && grade.correctIndex === originalIndex;
-          const isWrong = submitted && isSelected && grade !== null && !grade.isCorrect && !isCorrect;
+          const isCorrect = submitted && isSelected && grade !== null && grade.isCorrect;
+          const isWrong = submitted && isSelected && grade !== null && !grade.isCorrect;
 
           return (
             <button

@@ -1,8 +1,10 @@
 import type { ProgressRecord } from "@/lib/types";
 import { hasE2eAuthCookie } from "./e2e-auth";
 import { createClient } from "./server";
+import { hasSupabaseDataEnv } from "./data-env";
 import { hasSupabaseEnv } from "./env";
 import { getCurrentSession } from "./auth";
+import { throwLoadError } from "./load-error";
 
 export async function getCurrentUserProgress(): Promise<{
   progress: ProgressRecord[];
@@ -14,9 +16,13 @@ export async function getCurrentUserProgress(): Promise<{
     return { progress: [], userEmail: "e2e@test.local", isDemo: false, streakCount: 0 };
   }
 
-  if (!hasSupabaseEnv()) {
-    const { demoProgress } = await import("@/lib/progress");
-    return { progress: demoProgress, userEmail: null, isDemo: true, streakCount: 1 };
+  if (!hasSupabaseDataEnv()) {
+    if (!hasSupabaseEnv()) {
+      const { demoProgress } = await import("@/lib/progress");
+      return { progress: demoProgress, userEmail: null, isDemo: true, streakCount: 1 };
+    }
+
+    return { progress: [], userEmail: null, isDemo: false, streakCount: 0 };
   }
 
   const session = await getCurrentSession();
@@ -31,7 +37,7 @@ export async function getCurrentUserProgress(): Promise<{
     .eq("user_id", session.user.id);
 
   if (error) {
-    throw new Error(error.message);
+    throwLoadError("user_progress_unavailable", error);
   }
 
   return {

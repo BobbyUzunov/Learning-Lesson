@@ -7,10 +7,12 @@ import { PATCH as patchSubmission } from "./submissions/[id]/route";
 import { POST as setUserRole } from "./users/[id]/role/route";
 
 const mocks = vi.hoisted(() => ({
+  createAdminClient: vi.fn(),
   createClient: vi.fn(),
   from: vi.fn(),
   getAdminSubmissionById: vi.fn(),
   getCourseProjects: vi.fn(),
+  hasSupabaseAdminEnv: vi.fn(() => true),
   logServerError: vi.fn(),
   requireAdminUser: vi.fn(),
   revalidatePath: vi.fn(),
@@ -21,6 +23,12 @@ const mocks = vi.hoisted(() => ({
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
 vi.mock("@/lib/observability", () => ({ logServerError: mocks.logServerError }));
 vi.mock("@/lib/supabase/env", () => ({ hasSupabaseEnv: vi.fn(() => true) }));
+vi.mock("@/lib/supabase/admin-env", () => ({
+  hasSupabaseAdminEnv: mocks.hasSupabaseAdminEnv
+}));
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: mocks.createAdminClient
+}));
 vi.mock("@/lib/supabase/admin-auth", () => ({
   requireAdminUser: mocks.requireAdminUser
 }));
@@ -64,6 +72,8 @@ describe("admin API database errors", () => {
       supabase: { from: mocks.from, rpc: mocks.rpc }
     });
     mocks.createClient.mockResolvedValue({ from: mocks.from });
+    mocks.hasSupabaseAdminEnv.mockReturnValue(true);
+    mocks.createAdminClient.mockReturnValue({ rpc: mocks.rpc });
     mocks.getAdminSubmissionById.mockResolvedValue({
       id: "submission-1",
       project_id: "project-1"
@@ -228,5 +238,39 @@ describe("admin API database errors", () => {
 
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ error: "set_user_role_failed" });
+  });
+
+  it("promotes a user through the service-role client with the admin actor id", async () => {
+    mocks.single.mockResolvedValue({
+      data: { user_id: "user-1", role: "teacher" },
+      error: null
+    });
+
+    const response = await setUserRole(
+      request("/api/admin/users/user-1/role", { role: "teacher" }),
+      context("user-1")
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, userId: "user-1", role: "teacher" });
+    expect(mocks.createAdminClient).toHaveBeenCalled();
+    expect(mocks.rpc).toHaveBeenCalledWith("set_user_role", {
+      p_user_id: "user-1",
+      p_role: "teacher",
+      p_actor_id: "admin-1"
+    });
+  });
+
+  it("does not change roles when the service-role key is missing", async () => {
+    mocks.hasSupabaseAdminEnv.mockReturnValue(false);
+
+    const response = await setUserRole(
+      request("/api/admin/users/user-1/role", { role: "teacher" }),
+      context("user-1")
+    );
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "Supabase env is not configured." });
+    expect(mocks.createAdminClient).not.toHaveBeenCalled();
   });
 });

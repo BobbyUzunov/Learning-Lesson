@@ -27,6 +27,7 @@ import {
 } from "./classrooms";
 import { getClassroomGradebook } from "./gradebook";
 import { getMyClassroomIds } from "./memberships";
+import { getCurrentUserProgress } from "./progress";
 import {
   getAdminSubmissionById,
   getCurrentUserProjectSubmissions,
@@ -93,6 +94,13 @@ describe("Supabase data fallbacks without usable public credentials", () => {
 
   it("returns an empty classroom gradebook without creating a client", async () => {
     await expect(getClassroomGradebook("class-1", "bg")).resolves.toEqual({ columns: [], rows: [] });
+    expect(mocks.createClient).not.toHaveBeenCalled();
+  });
+
+  it("returns demo progress without creating a client when public credentials are placeholders", async () => {
+    const result = await getCurrentUserProgress();
+    expect(result.isDemo).toBe(true);
+    expect(result.progress).toHaveLength(1);
     expect(mocks.createClient).not.toHaveBeenCalled();
   });
 });

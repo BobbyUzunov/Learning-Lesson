@@ -46,6 +46,9 @@ describe("/api/knowledge-check/grade", () => {
     expect(body.passed).toBe(true);
     expect(body.correct).toBe(3);
     expect(body.results).toHaveLength(3);
+    expect(
+      body.results.every((item: { correctIndex?: number }) => !("correctIndex" in item))
+    ).toBe(true);
     expect(mockRpc).not.toHaveBeenCalled();
   });
 });

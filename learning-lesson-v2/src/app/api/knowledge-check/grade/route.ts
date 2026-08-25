@@ -4,6 +4,7 @@ import {
   getSecretKnowledgeCheckBank,
   gradeKnowledgeCheckAnswers,
   parseKnowledgeCheckAnswers,
+  toPublicKnowledgeCheckGrade,
   type KnowledgeCheckGradeResult
 } from "@/lib/knowledge-check";
 import { isE2eAuthEnabled } from "@/lib/supabase/e2e-auth";
@@ -14,7 +15,7 @@ import { logServerError } from "@/lib/observability";
 type RpcGradeRow = {
   question_id: string;
   selected_index: number;
-  correct_index: number;
+  correct_index?: number;
   is_correct: boolean;
   explanation: string;
   explanation_bg: string;
@@ -27,7 +28,6 @@ function fromRpcRows(
   const results = rows.map((row) => ({
     questionId: row.question_id,
     selectedIndex: row.selected_index,
-    correctIndex: row.correct_index,
     isCorrect: row.is_correct,
     explanation: row.explanation,
     explanationBg: row.explanation_bg
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     if (!graded) {
       return NextResponse.json({ error: "quiz_not_passed" }, { status: 403 });
     }
-    return NextResponse.json(graded);
+    return NextResponse.json(toPublicKnowledgeCheckGrade(graded));
   }
 
   const supabase = await createClient();
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     if (rows.length === 0) {
       return NextResponse.json({ error: "quiz_not_passed" }, { status: 403 });
     }
-    return NextResponse.json(fromRpcRows(rows, answers));
+    return NextResponse.json(toPublicKnowledgeCheckGrade(fromRpcRows(rows, answers)));
   }
 
   const message = error.message ?? "";
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
   // Compatibility window before the RPC migration is applied: grade from a readable bank.
   const graded = await gradeLocally(answers);
   if (graded) {
-    return NextResponse.json(graded);
+    return NextResponse.json(toPublicKnowledgeCheckGrade(graded));
   }
 
   console.error("grade_knowledge_check failed:", message);
