@@ -19,9 +19,11 @@ test("login register tab opens the student signup page", async ({ page }) => {
 test("register page explains password rules without listing every character", async ({ page }) => {
   await page.goto("/register");
 
+  await expect(page.getByText(/потвърждение|confirmation/i).first()).toBeVisible();
   await expect(page.getByText(/малка буква|lowercase letter/i)).toBeVisible();
   await expect(page.getByText(/поне 8|at least 8/i)).toBeVisible();
   await expect(page.locator("#password-requirements")).toBeVisible();
+  await expect(page.getByRole("button", { name: /покажи паролата|show password/i })).toBeVisible();
   await expect(page.getByText("abcdefghijklmnopqrstuvwxyz")).toHaveCount(0);
 });
 

@@ -11,6 +11,7 @@ import {
   PasswordRequirementsChecklist,
   type PasswordRequirementsLabels
 } from "@/components/password-requirements-checklist";
+import { PasswordInput } from "@/components/password-input";
 
 type ResetPasswordLabels = AuthErrorLabels & {
   newPassword: string;
@@ -21,6 +22,8 @@ type ResetPasswordLabels = AuthErrorLabels & {
   mismatch: string;
   resetSuccess: string;
   sessionRequired: string;
+  showPassword: string;
+  hidePassword: string;
   passwordRequirements: PasswordRequirementsLabels;
 };
 
@@ -90,32 +93,36 @@ export function ResetPasswordForm({ labels }: { labels: ResetPasswordLabels }) {
       <label className="block text-sm font-bold" htmlFor="new-password">
         {labels.newPassword}
       </label>
-      <input
+      <PasswordInput
         aria-describedby="password-requirements"
         autoComplete="new-password"
-        className="focus-ring mt-2 w-full rounded-md border border-ink/15 bg-white px-3 py-3"
+        hidePasswordLabel={labels.hidePassword}
         id="new-password"
+        inputClassName="focus-ring w-full rounded-md border border-ink/15 bg-white px-3 py-3 pr-12"
         minLength={MIN_SIGNUP_PASSWORD_LENGTH}
         name="new-password"
         onChange={(event) => setPassword(event.target.value)}
         required
-        type="password"
+        showPasswordLabel={labels.showPassword}
         value={password}
+        wrapperClassName="relative mt-2"
       />
       <PasswordRequirementsChecklist labels={labels.passwordRequirements} password={password} />
       <label className="mt-4 block text-sm font-bold" htmlFor="confirm-password">
         {labels.confirmPassword}
       </label>
-      <input
+      <PasswordInput
         autoComplete="new-password"
-        className="focus-ring mt-2 w-full rounded-md border border-ink/15 bg-white px-3 py-3"
+        hidePasswordLabel={labels.hidePassword}
         id="confirm-password"
+        inputClassName="focus-ring w-full rounded-md border border-ink/15 bg-white px-3 py-3 pr-12"
         minLength={MIN_SIGNUP_PASSWORD_LENGTH}
         name="confirm-password"
         onChange={(event) => setConfirmPassword(event.target.value)}
         required
-        type="password"
+        showPasswordLabel={labels.showPassword}
         value={confirmPassword}
+        wrapperClassName="relative mt-2"
       />
       <button
         className="focus-ring mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-ink px-4 py-3 font-bold text-paper transition hover:bg-ink/90 disabled:opacity-60"

@@ -7,10 +7,12 @@ import { LogIn, UserPlus } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { mapAuthErrorMessage, type AuthErrorLabels } from "@/lib/auth-error";
 import { isSignupPasswordValid, MIN_SIGNUP_PASSWORD_LENGTH } from "@/lib/auth-password";
+import { formatMessage } from "@/lib/i18n";
 import {
   PasswordRequirementsChecklist,
   type PasswordRequirementsLabels
 } from "@/components/password-requirements-checklist";
+import { PasswordInput } from "@/components/password-input";
 import { clearStoredProgress, getStoredProgress, guestContinueKey } from "@/lib/game-progress-storage";
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
@@ -29,7 +31,11 @@ type LoginLabels = AuthErrorLabels & {
   missingConfig: string;
   loggedIn: string;
   registered: string;
+  registeredConfirmEmail: string;
+  registerEmailNotice: string;
   forgotPassword: string;
+  showPassword: string;
+  hidePassword: string;
   passwordRequirements: PasswordRequirementsLabels;
   guestProgressError: string;
   privacyConsentRequired: string;
@@ -190,7 +196,10 @@ export function LoginForm({
         }
 
         if (payload?.needsEmailConfirmation) {
-          setStatus({ kind: "success", text: labels.registered });
+          setStatus({
+            kind: "success",
+            text: formatMessage(labels.registeredConfirmEmail, { email })
+          });
           return;
         }
 
@@ -198,7 +207,13 @@ export function LoginForm({
       }
 
       if (!user) {
-        setStatus({ kind: "success", text: labels.registered });
+        setStatus({
+          kind: "success",
+          text:
+            mode === "register"
+              ? formatMessage(labels.registeredConfirmEmail, { email })
+              : labels.registered
+        });
         return;
       }
 
@@ -307,20 +322,26 @@ export function LoginForm({
       <label className="mt-4 block text-sm font-bold" htmlFor="password">
         {labels.password}
       </label>
-      <input
+      <PasswordInput
         aria-describedby={mode === "register" ? "password-requirements" : undefined}
         autoComplete={mode === "login" ? "current-password" : "new-password"}
-        className="focus-ring mt-2 w-full rounded-xl border border-ink/15 bg-white px-3 py-3 text-base"
+        hidePasswordLabel={labels.hidePassword}
         id="password"
         minLength={mode === "register" ? MIN_SIGNUP_PASSWORD_LENGTH : 1}
         name="password"
         onChange={(event) => setPassword(event.target.value)}
         required
-        type="password"
+        showPasswordLabel={labels.showPassword}
         value={password}
+        wrapperClassName="relative mt-2"
       />
       {mode === "register" ? (
         <PasswordRequirementsChecklist labels={labels.passwordRequirements} password={password} />
+      ) : null}
+      {mode === "register" ? (
+        <p className="mt-4 rounded-xl border border-violet/15 bg-violet/5 px-3 py-3 text-sm leading-6 text-ink/70">
+          {labels.registerEmailNotice}
+        </p>
       ) : null}
       {mode === "register" ? (
         <label className="mt-4 flex items-start gap-3 text-sm leading-6 text-ink/70">
