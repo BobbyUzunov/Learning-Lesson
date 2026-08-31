@@ -8,8 +8,8 @@ import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
 const SIGNUP_RATE_LIMIT = {
-  max: 8,
-  windowSeconds: 15 * 60
+  max: 10,
+  windowSeconds: 30 * 60
 } as const;
 
 function isAccountRole(value: unknown): value is "user" | "teacher" {

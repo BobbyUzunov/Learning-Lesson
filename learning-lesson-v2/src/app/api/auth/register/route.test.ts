@@ -53,7 +53,7 @@ describe("POST /api/auth/register", () => {
     expect(mocks.signUp).not.toHaveBeenCalled();
     expect(mocks.consumeRateLimit).toHaveBeenCalledWith(
       expect.stringMatching(/^auth-signup:/),
-      { max: 8, windowSeconds: 900 }
+      { max: 10, windowSeconds: 1800 }
     );
   });
 
