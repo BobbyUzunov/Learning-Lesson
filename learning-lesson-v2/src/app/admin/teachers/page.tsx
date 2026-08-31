@@ -1,5 +1,7 @@
+import { DeleteUserButton } from "@/components/admin/delete-user-button";
 import { PromoteTeacherButton } from "@/components/admin/promote-teacher-button";
 import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/supabase/auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
@@ -26,6 +28,8 @@ function roleLabel(role: string, copy: ReturnType<typeof t>) {
 export default async function AdminTeachersPage() {
   const language = await getLanguage();
   const copy = t(language);
+  const session = await getSession();
+  const currentAdminId = session.user?.id ?? null;
 
   let users: UserRow[] = [];
   if (hasSupabaseEnv()) {
@@ -63,7 +67,17 @@ export default async function AdminTeachersPage() {
                   {user.email ?? "—"} · {roleLabel(user.role, copy)}
                 </p>
               </div>
-              <PromoteTeacherButton language={language} role={user.role} userId={user.id} />
+              <div className="flex flex-wrap items-center gap-2">
+                <PromoteTeacherButton language={language} role={user.role} userId={user.id} />
+                <DeleteUserButton
+                  currentAdminId={currentAdminId}
+                  language={language}
+                  role={user.role}
+                  userEmail={user.email}
+                  userId={user.id}
+                  userName={user.display_name}
+                />
+              </div>
             </li>
           ))}
         </ul>
