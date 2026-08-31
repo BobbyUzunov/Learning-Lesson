@@ -120,4 +120,17 @@ describe("POST /api/auth/register", () => {
     expect(await response.json()).toEqual({ error: "invalid_password" });
     expect(mocks.registerUserWithAdmin).not.toHaveBeenCalled();
   });
+
+  it("rejects unsafe display names before calling Supabase", async () => {
+    const response = await POST(
+      request({
+        ...validSignup,
+        displayName: "<img src=x onerror=alert(1)>"
+      })
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid_display_name" });
+    expect(mocks.registerUserWithAdmin).not.toHaveBeenCalled();
+  });
 });

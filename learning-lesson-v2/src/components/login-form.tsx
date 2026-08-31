@@ -39,6 +39,7 @@ type LoginLabels = AuthErrorLabels & {
   passwordRequirements: PasswordRequirementsLabels;
   guestProgressError: string;
   privacyConsentRequired: string;
+  invalidDisplayName: string;
   privacyConsentPrefix: string;
   privacyConsentLink: string;
 };
@@ -185,6 +186,10 @@ export function LoginForm({
           }
           if (payload?.error === "invalid_password") {
             setStatus({ kind: "error", text: labels.passwordPolicy });
+            return;
+          }
+          if (payload?.error === "invalid_display_name") {
+            setStatus({ kind: "error", text: labels.invalidDisplayName });
             return;
           }
           if (payload?.message) {

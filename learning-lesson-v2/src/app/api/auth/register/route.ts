@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isSignupPasswordValid } from "@/lib/auth-password";
+import { isValidDisplayName } from "@/lib/display-name";
 import { registerUserWithAdmin } from "@/lib/auth/register-user";
 import { readJsonObject } from "@/lib/http";
 import { logServerError } from "@/lib/observability";
@@ -46,6 +47,10 @@ export async function POST(request: Request) {
 
   if (body?.acceptedPrivacy !== true) {
     return NextResponse.json({ error: "privacy_consent_required" }, { status: 400 });
+  }
+
+  if (displayName && !isValidDisplayName(displayName)) {
+    return NextResponse.json({ error: "invalid_display_name" }, { status: 400 });
   }
 
   const origin = new URL(request.url).origin;

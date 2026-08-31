@@ -1,4 +1,5 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
+import { sanitizeDisplayName } from "@/lib/display-name";
 
 export type ProfileRow = {
   id: string;
@@ -18,16 +19,23 @@ export function deriveDisplayName(user: Pick<User, "email" | "user_metadata">, f
   const metadata = user.user_metadata ?? {};
   const fromMetadata = metadata.display_name ?? metadata.full_name ?? metadata.name;
 
-  if (typeof fromMetadata === "string" && fromMetadata.trim()) {
-    return fromMetadata.trim();
+  if (typeof fromMetadata === "string") {
+    const safe = sanitizeDisplayName(fromMetadata);
+    if (safe) {
+      return safe;
+    }
   }
 
-  if (fallback?.trim()) {
-    return fallback.trim();
+  const safeFallback = sanitizeDisplayName(fallback);
+  if (safeFallback) {
+    return safeFallback;
   }
 
   if (user.email) {
-    return user.email.split("@")[0] ?? "Learner";
+    const fromEmail = sanitizeDisplayName(user.email.split("@")[0] ?? "");
+    if (fromEmail) {
+      return fromEmail;
+    }
   }
 
   return "Learner";

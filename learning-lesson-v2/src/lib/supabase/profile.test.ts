@@ -19,4 +19,13 @@ describe("deriveDisplayName", () => {
 
     expect(name).toBe("learner");
   });
+
+  it("ignores unsafe metadata and falls back safely", () => {
+    const name = deriveDisplayName({
+      email: "learner@example.com",
+      user_metadata: { display_name: "<img src=x onerror=alert(1)>" }
+    });
+
+    expect(name).toBe("learner");
+  });
 });

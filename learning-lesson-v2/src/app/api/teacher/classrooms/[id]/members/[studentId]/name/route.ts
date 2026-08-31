@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { isValidDisplayName } from "@/lib/display-name";
 import { readJsonObject, resolvePublicErrorCode } from "@/lib/http";
 import { requireTeacherUser } from "@/lib/supabase/teacher-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
@@ -38,7 +39,8 @@ export async function POST(
   const body = await readJsonObject(request);
   const rosterName = typeof body?.rosterName === "string" ? body.rosterName : "";
 
-  if (rosterName.trim().length > 80) {
+  const trimmedRosterName = rosterName.trim();
+  if (trimmedRosterName && !isValidDisplayName(trimmedRosterName)) {
     return NextResponse.json({ error: "invalid_name" }, { status: 400 });
   }
 
