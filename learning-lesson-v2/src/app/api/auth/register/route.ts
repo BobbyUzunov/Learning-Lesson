@@ -1,16 +1,9 @@
 import { NextResponse } from "next/server";
 import { isSignupPasswordValid } from "@/lib/auth-password";
-import { rateLimitBucketFromRequest } from "@/lib/http/client-ip";
 import { readJsonObject } from "@/lib/http";
-import { consumeRateLimit } from "@/lib/http/rate-limit";
 import { PILOT_STUDENT_GRADE } from "@/lib/pilot";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
-
-const SIGNUP_RATE_LIMIT = {
-  max: 10,
-  windowSeconds: 30 * 60
-} as const;
 
 function isAccountRole(value: unknown): value is "user" | "teacher" {
   return value === "user" || value === "teacher";
@@ -19,12 +12,6 @@ function isAccountRole(value: unknown): value is "user" | "teacher" {
 export async function POST(request: Request) {
   if (!hasSupabaseEnv()) {
     return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
-  }
-
-  const bucket = rateLimitBucketFromRequest(request, "auth-signup");
-  const allowed = await consumeRateLimit(bucket, SIGNUP_RATE_LIMIT);
-  if (!allowed) {
-    return NextResponse.json({ error: "signup_rate_limited" }, { status: 429 });
   }
 
   const body = await readJsonObject(request);
