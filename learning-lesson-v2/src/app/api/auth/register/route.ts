@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { isSignupPasswordValid } from "@/lib/auth-password";
+import { registerUserWithAdmin } from "@/lib/auth/register-user";
 import { readJsonObject } from "@/lib/http";
+import { logServerError } from "@/lib/observability";
 import { PILOT_STUDENT_GRADE } from "@/lib/pilot";
 import { hasSupabaseAdminEnv } from "@/lib/supabase/admin-env";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
@@ -48,30 +50,42 @@ export async function POST(request: Request) {
 
   const origin = new URL(request.url).origin;
   const metadata = buildSignupMetadata(email, displayName, accountRole);
+  const redirectTo = `${origin}/auth/callback?next=/verify-email`;
 
   if (hasSupabaseAdminEnv()) {
     const { createAdminClient } = await import("@/lib/supabase/admin");
     const admin = createAdminClient();
-    const { data, error } = await admin.auth.admin.createUser({
+    const result = await registerUserWithAdmin(admin, {
       email,
       password,
-      email_confirm: false,
-      user_metadata: metadata
+      metadata,
+      redirectTo
     });
 
-    if (error) {
-      return NextResponse.json({ error: "signup_failed", message: error.message }, { status: 400 });
+    if (result.error || !result.user) {
+      logServerError("signup_failed", {
+        channel: "admin",
+        detail: (result.error ?? "unknown").slice(0, 200)
+      });
+      return NextResponse.json(
+        { error: "signup_failed", message: result.error ?? "signup_failed" },
+        { status: 400 }
+      );
+    }
+
+    if (result.resendError) {
+      logServerError("signup_confirmation_email_failed", {
+        detail: result.resendError.slice(0, 200)
+      });
     }
 
     return NextResponse.json({
       ok: true,
-      needsEmailConfirmation: true,
-      user: data.user
-        ? {
-            id: data.user.id,
-            email: data.user.email
-          }
-        : null
+      needsEmailConfirmation: result.needsEmailConfirmation,
+      user: {
+        id: result.user.id,
+        email: result.user.email
+      }
     });
   }
 
@@ -80,12 +94,13 @@ export async function POST(request: Request) {
     email,
     password,
     options: {
-      emailRedirectTo: `${origin}/auth/callback?next=/verify-email`,
+      emailRedirectTo: redirectTo,
       data: metadata
     }
   });
 
   if (error) {
+    logServerError("signup_failed", { channel: "public", detail: error.message.slice(0, 200) });
     return NextResponse.json({ error: "signup_failed", message: error.message }, { status: 400 });
   }
 

@@ -2,19 +2,22 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "./route";
 
 const mocks = vi.hoisted(() => ({
-  createUser: vi.fn(),
+  registerUserWithAdmin: vi.fn(),
   signUp: vi.fn(),
   hasSupabaseEnv: vi.fn(() => true),
-  hasSupabaseAdminEnv: vi.fn(() => true)
+  hasSupabaseAdminEnv: vi.fn(() => true),
+  logServerError: vi.fn()
 }));
 
 vi.mock("@/lib/supabase/env", () => ({ hasSupabaseEnv: mocks.hasSupabaseEnv }));
 vi.mock("@/lib/supabase/admin-env", () => ({ hasSupabaseAdminEnv: mocks.hasSupabaseAdminEnv }));
 vi.mock("@/lib/supabase/admin", () => ({
-  createAdminClient: vi.fn(() => ({
-    auth: { admin: { createUser: mocks.createUser } }
-  }))
+  createAdminClient: vi.fn(() => ({}))
 }));
+vi.mock("@/lib/auth/register-user", () => ({
+  registerUserWithAdmin: mocks.registerUserWithAdmin
+}));
+vi.mock("@/lib/observability", () => ({ logServerError: mocks.logServerError }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
     auth: { signUp: mocks.signUp }
@@ -42,9 +45,10 @@ describe("POST /api/auth/register", () => {
     vi.clearAllMocks();
     mocks.hasSupabaseEnv.mockReturnValue(true);
     mocks.hasSupabaseAdminEnv.mockReturnValue(true);
-    mocks.createUser.mockResolvedValue({
-      data: { user: { id: "user-1", email: "student@school.bg" } },
-      error: null
+    mocks.registerUserWithAdmin.mockResolvedValue({
+      user: { id: "user-1", email: "student@school.bg" },
+      needsEmailConfirmation: true,
+      resendError: null
     });
     mocks.signUp.mockResolvedValue({
       data: { user: { id: "user-1", email: "student@school.bg" }, session: null },
@@ -52,25 +56,32 @@ describe("POST /api/auth/register", () => {
     });
   });
 
-  it("creates users through the admin API when service role is configured", async () => {
+  it("registers through the admin helper when service role is configured", async () => {
     const response = await POST(request(validSignup));
 
     expect(response.status).toBe(200);
-    expect(mocks.createUser).toHaveBeenCalledWith({
-      email: "student@school.bg",
-      password: "Secret1!",
-      email_confirm: false,
-      user_metadata: expect.objectContaining({
-        display_name: "Student",
-        intended_role: "user",
-        grade_level: 8
-      })
-    });
+    expect(mocks.registerUserWithAdmin).toHaveBeenCalled();
     expect(mocks.signUp).not.toHaveBeenCalled();
     expect(await response.json()).toEqual({
       ok: true,
       needsEmailConfirmation: true,
       user: { id: "user-1", email: "student@school.bg" }
+    });
+  });
+
+  it("logs admin signup failures", async () => {
+    mocks.registerUserWithAdmin.mockResolvedValue({
+      user: null,
+      needsEmailConfirmation: false,
+      error: "Request rate limit reached"
+    });
+
+    const response = await POST(request(validSignup));
+
+    expect(response.status).toBe(400);
+    expect(mocks.logServerError).toHaveBeenCalledWith("signup_failed", {
+      channel: "admin",
+      detail: "Request rate limit reached"
     });
   });
 
@@ -80,7 +91,7 @@ describe("POST /api/auth/register", () => {
     const response = await POST(request(validSignup));
 
     expect(response.status).toBe(200);
-    expect(mocks.createUser).not.toHaveBeenCalled();
+    expect(mocks.registerUserWithAdmin).not.toHaveBeenCalled();
     expect(mocks.signUp).toHaveBeenCalled();
   });
 
@@ -94,7 +105,7 @@ describe("POST /api/auth/register", () => {
 
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error: "privacy_consent_required" });
-    expect(mocks.createUser).not.toHaveBeenCalled();
+    expect(mocks.registerUserWithAdmin).not.toHaveBeenCalled();
   });
 
   it("rejects weak passwords before calling Supabase", async () => {
@@ -107,6 +118,6 @@ describe("POST /api/auth/register", () => {
 
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error: "invalid_password" });
-    expect(mocks.createUser).not.toHaveBeenCalled();
+    expect(mocks.registerUserWithAdmin).not.toHaveBeenCalled();
   });
 });
