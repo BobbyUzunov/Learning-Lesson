@@ -90,7 +90,7 @@ describe("school curriculum", () => {
       ...fallbackSchoolCurriculum,
       modules: fallbackSchoolCurriculum.modules.map((entry) => ({ ...entry, gradeLevel: 9 as const }))
     };
-    expect(getActiveGradeLevel(shifted)).toBe(9);
+    expect(getActiveGradeLevel(shifted)).toBe(8);
 
     expect(getActiveGradeLevel({ ...fallbackSchoolCurriculum, modules: [] })).toBe(8);
   });

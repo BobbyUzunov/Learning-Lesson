@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { CurriculumDetails } from "@/components/curriculum/curriculum-details";
 import { MissionList } from "@/components/curriculum/mission-list";
@@ -23,6 +24,7 @@ type SchoolCurriculumExplorerProps = {
   data: CurriculumExplorerData;
   isAuthenticated: boolean;
   lockedSpecialtyId?: string | null;
+  requireClassroomForProgram?: boolean;
 };
 
 const SPECIALTY_STORAGE_KEY = "ll-selected-specialty";
@@ -35,13 +37,18 @@ export function SchoolCurriculumExplorer({
   copy,
   data,
   isAuthenticated,
-  lockedSpecialtyId = null
+  lockedSpecialtyId = null,
+  requireClassroomForProgram = false
 }: SchoolCurriculumExplorerProps) {
-  const initial = resolveStudentProgramSpecialtyId(data.specialties, lockedSpecialtyId, null);
-  const fallbackSpecialtyId = initial.specialtyId || data.specialties[0]?.id || "software-development";
+  const initial = resolveStudentProgramSpecialtyId(data.specialties, lockedSpecialtyId, null, {
+    requireClassroom: requireClassroomForProgram && isAuthenticated
+  });
+  const awaitingClassroomProgram = initial.awaitingClassroom;
+  const fallbackSpecialtyId =
+    initial.specialtyId || (!awaitingClassroomProgram ? data.specialties[0]?.id : "") || "software-development";
   const [selection, setSelection] = useState(() => ({
-    specialtyId: fallbackSpecialtyId,
-    missionId: firstSpecialtyMissionId(data, fallbackSpecialtyId)
+    specialtyId: awaitingClassroomProgram ? "" : fallbackSpecialtyId,
+    missionId: awaitingClassroomProgram ? "" : firstSpecialtyMissionId(data, fallbackSpecialtyId)
   }));
   const [savedSpecialtyId, setSavedSpecialtyId] = useState<string | null>(
     initial.locked ? fallbackSpecialtyId : null
@@ -61,7 +68,16 @@ export function SchoolCurriculumExplorer({
   );
 
   useEffect(() => {
-    const locked = resolveStudentProgramSpecialtyId(data.specialties, lockedSpecialtyId, null);
+    const locked = resolveStudentProgramSpecialtyId(data.specialties, lockedSpecialtyId, null, {
+      requireClassroom: requireClassroomForProgram && isAuthenticated
+    });
+    if (locked.awaitingClassroom) {
+      setSelection({ specialtyId: "", missionId: "" });
+      setSavedSpecialtyId(null);
+      setChangingDirection(false);
+      return;
+    }
+
     if (locked.locked) {
       setSelection({
         specialtyId: locked.specialtyId,
@@ -82,7 +98,7 @@ export function SchoolCurriculumExplorer({
     } catch {
       // Ignore storage failures.
     }
-  }, [firstMissionBySpecialty, lockedSpecialtyId, data.specialties]);
+  }, [firstMissionBySpecialty, isAuthenticated, lockedSpecialtyId, requireClassroomForProgram, data.specialties]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -104,6 +120,26 @@ export function SchoolCurriculumExplorer({
     [data, guestCompletedLessonIds, isAuthenticated]
   );
 
+  const programAccess = resolveStudentProgramSpecialtyId(data.specialties, lockedSpecialtyId, null, {
+    requireClassroom: requireClassroomForProgram && isAuthenticated
+  });
+  const awaitingClassroom = programAccess.awaitingClassroom;
+
+  if (awaitingClassroom) {
+    return (
+      <section className="rounded-2xl border border-ink/10 bg-white/80 p-6 shadow-soft">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-coral">{copy.pilotGradeOnly}</p>
+        <p className="mt-3 text-base leading-7 text-ink/70">{copy.joinClassForProgram}</p>
+        <Link
+          className="focus-ring mt-5 inline-flex min-h-11 items-center rounded-xl bg-ink px-4 py-2.5 text-sm font-bold text-paper transition hover:bg-ink/90"
+          href="/classes"
+        >
+          {copy.openMyClasses}
+        </Link>
+      </section>
+    );
+  }
+
   const selectedSpecialty =
     displayData.specialties.find((specialty) => specialty.id === selection.specialtyId) ??
     displayData.specialties[0];
@@ -119,7 +155,10 @@ export function SchoolCurriculumExplorer({
     specialtyMissions.find((mission) => mission.id === selection.missionId) ?? specialtyMissions[0] ?? null;
   const directionLocked = Boolean(lockedSpecialtyId);
   const hasSavedSpecialty = savedSpecialtyId === selectedSpecialty.id;
-  const showSpecialtyPicker = !directionLocked && (!isAuthenticated || !hasSavedSpecialty || changingDirection);
+  const showSpecialtyPicker =
+    !directionLocked &&
+    !requireClassroomForProgram &&
+    (!isAuthenticated || !hasSavedSpecialty || changingDirection);
 
   function selectSpecialty(specialtyId: string) {
     setSelection({

@@ -22,6 +22,7 @@ import { getCurrentSession } from "@/lib/supabase/auth";
 import { getCurrentUserProgress } from "@/lib/supabase/progress";
 import { getCurrentUserProjectSubmissions } from "@/lib/supabase/project-submissions";
 import { getStudentClassrooms } from "@/lib/supabase/classrooms";
+import { hasSupabaseDataEnv } from "@/lib/supabase/data-env";
 
 export const dynamic = "force-dynamic";
 
@@ -137,6 +138,7 @@ export default async function PathsPage({ searchParams }: PathsPageProps) {
             data={explorerData}
             isAuthenticated={Boolean(session.user)}
             lockedSpecialtyId={classrooms.find((classroom) => classroom.specialtyId)?.specialtyId ?? null}
+            requireClassroomForProgram={hasSupabaseDataEnv()}
           />
         )}
       </div>

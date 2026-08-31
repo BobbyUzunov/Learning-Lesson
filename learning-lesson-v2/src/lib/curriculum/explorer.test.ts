@@ -111,11 +111,18 @@ describe("curriculum explorer payload", () => {
 
     expect(resolveStudentProgramSpecialtyId(specialties, "intelligent-systems", "cybersecurity")).toEqual({
       specialtyId: "intelligent-systems",
-      locked: true
+      locked: true,
+      awaitingClassroom: false
     });
     expect(resolveStudentProgramSpecialtyId(specialties, null, "cybersecurity")).toEqual({
       specialtyId: "cybersecurity",
-      locked: false
+      locked: false,
+      awaitingClassroom: false
+    });
+    expect(resolveStudentProgramSpecialtyId(specialties, null, "cybersecurity", { requireClassroom: true })).toEqual({
+      specialtyId: "",
+      locked: true,
+      awaitingClassroom: true
     });
   });
 });

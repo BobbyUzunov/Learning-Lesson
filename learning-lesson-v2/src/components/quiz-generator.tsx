@@ -101,7 +101,9 @@ export function KnowledgeCheck({
       let message: string = copy.lesson.saveError;
       try {
         const body = (await response.json()) as { error?: string };
-        if (body.error === "quiz_unavailable" || body.error === "knowledge_check_unavailable") {
+        if (body.error === "grade_rate_limited") {
+          message = copy.knowledgeCheck.rateLimited;
+        } else if (body.error === "quiz_unavailable" || body.error === "knowledge_check_unavailable") {
           message = copy.knowledgeCheck.unavailable;
         } else if (body.error === "quiz_not_passed" || body.error === "knowledge_check_not_passed") {
           message = copy.lesson.knowledgeCheckVerificationFailed;

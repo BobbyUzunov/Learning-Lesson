@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { getClientIp, hashClientIp } from "@/lib/http/client-ip";
 import { readJsonObject } from "@/lib/http";
+import { consumeRateLimit } from "@/lib/http/rate-limit";
 import {
   getSecretKnowledgeCheckBank,
   gradeKnowledgeCheckAnswers,
@@ -7,10 +9,10 @@ import {
   toPublicKnowledgeCheckGrade,
   type KnowledgeCheckGradeResult
 } from "@/lib/knowledge-check";
+import { logServerError } from "@/lib/observability";
+import { hasSupabaseAdminEnv } from "@/lib/supabase/admin-env";
 import { isE2eAuthEnabled } from "@/lib/supabase/e2e-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
-import { createClient } from "@/lib/supabase/server";
-import { logServerError } from "@/lib/observability";
 
 type RpcGradeRow = {
   question_id: string;
@@ -20,6 +22,11 @@ type RpcGradeRow = {
   explanation: string;
   explanation_bg: string;
 };
+
+const GRADE_RATE_LIMIT = {
+  max: 24,
+  windowSeconds: 60
+} as const;
 
 function fromRpcRows(
   rows: RpcGradeRow[],
@@ -68,8 +75,18 @@ export async function POST(request: Request) {
     return NextResponse.json(toPublicKnowledgeCheckGrade(graded));
   }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("grade_knowledge_check", {
+  const rateBucket = `kc-grade:${hashClientIp(getClientIp(request))}:${lessonId}`;
+  const allowed = await consumeRateLimit(rateBucket, GRADE_RATE_LIMIT);
+  if (!allowed) {
+    return NextResponse.json({ error: "grade_rate_limited" }, { status: 429 });
+  }
+
+  if (!hasSupabaseAdminEnv()) {
+    return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  }
+
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  const { data, error } = await createAdminClient().rpc("grade_knowledge_check", {
     p_lesson_id: lessonId,
     p_answers: answers
   });
@@ -88,12 +105,6 @@ export async function POST(request: Request) {
   }
   if (message.includes("quiz_not_passed") || message.includes("knowledge_check_not_passed")) {
     return NextResponse.json({ error: "quiz_not_passed" }, { status: 403 });
-  }
-
-  // Compatibility window before the RPC migration is applied: grade from a readable bank.
-  const graded = await gradeLocally(answers);
-  if (graded) {
-    return NextResponse.json(toPublicKnowledgeCheckGrade(graded));
   }
 
   console.error("grade_knowledge_check failed:", message);

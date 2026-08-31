@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { readJsonObject, resolvePublicErrorCode } from "@/lib/http";
+import { isPilotStudentGrade } from "@/lib/pilot";
 import { requireTeacherUser } from "@/lib/supabase/teacher-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_specialty" }, { status: 400 });
   }
 
-  if (gradeLevel < 8 || gradeLevel > 12) {
+  if (!isPilotStudentGrade(gradeLevel)) {
     return NextResponse.json({ error: "invalid_grade" }, { status: 400 });
   }
 

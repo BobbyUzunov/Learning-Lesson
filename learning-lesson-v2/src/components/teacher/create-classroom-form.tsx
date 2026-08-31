@@ -4,10 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Plus } from "lucide-react";
 import { t, type Language } from "@/lib/i18n";
+import { PILOT_STUDENT_GRADE } from "@/lib/pilot";
 
 type SpecialtyOption = { id: string; title: string };
 
-const gradeOptions = [8, 9, 10, 11, 12] as const;
 const academicYearOptions = ["2025/2026", "2026/2027", "2027/2028"] as const;
 const defaultAcademicYear = "2026/2027";
 
@@ -29,7 +29,6 @@ export function CreateClassroomForm({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [specialtyId, setSpecialtyId] = useState("");
-  const [gradeLevel, setGradeLevel] = useState(8);
   const [academicYear, setAcademicYear] = useState<string>(defaultAcademicYear);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +45,7 @@ export function CreateClassroomForm({
         name,
         description,
         specialtyId: specialtyId || null,
-        gradeLevel,
+        gradeLevel: PILOT_STUDENT_GRADE,
         academicYear
       })
     });
@@ -158,21 +157,11 @@ export function CreateClassroomForm({
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-bold text-ink/75" htmlFor="classroom-grade">
-                {copy.teacher.gradeLabel}
-              </label>
-              <select
-                className={fieldClass}
-                id="classroom-grade"
-                onChange={(event) => setGradeLevel(Number(event.target.value))}
-                value={gradeLevel}
-              >
-                {gradeOptions.map((grade) => (
-                  <option key={grade} value={grade}>
-                    {grade}
-                  </option>
-                ))}
-              </select>
+              <p className="block text-sm font-bold text-ink/75">{copy.teacher.gradeLabel}</p>
+              <p className={`${fieldClass} mt-2 font-semibold text-ink`} id="classroom-grade">
+                {PILOT_STUDENT_GRADE}
+              </p>
+              <p className="mt-1 text-xs text-ink/50">{copy.teacher.pilotGradeOnlyHint}</p>
             </div>
             <div>
               <label className="block text-sm font-bold text-ink/75" htmlFor="classroom-year">

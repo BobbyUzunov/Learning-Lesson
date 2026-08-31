@@ -182,6 +182,7 @@ const dictionary = {
       specialtySave: "Запази паралелката",
       specialtySaveError: "Не успях да запиша паралелката.",
       gradeLabel: "Клас",
+      pilotGradeOnlyHint: "Пилотът е само за VIII клас. По-горните класове ще се отворят по-късно.",
       academicYearLabel: "Учебна година",
       createButton: "Създай клас",
       creating: "Създаване...",
@@ -645,7 +646,7 @@ const dictionary = {
     paths: {
       badge: "Учебна програма",
       title: "Училищна програма за дигитални професии",
-      subtitle: "Избери професия и виж как теорията, практиката и проектите се подреждат от VIII до XII клас.",
+      subtitle: "Избери професия и виж как теорията, практиката и проектите се подреждат за VIII клас.",
       level: "Ниво",
       levels: "модула",
       missions: "урока",
@@ -687,9 +688,11 @@ const dictionary = {
       now: "Сега",
       chooseSpecialty: "Избери професия",
       choosePrompt: "Коя роля искаш да пробваш днес?",
-      chooseHint: "Изборът променя мисията. Можеш да превключваш свободно.",
+      chooseHint: "След регистрация влез в клас с кода от учителя си. Направлението идва от класа.",
       currentDirection: "Твоето направление",
       directionFromClass: "Направлението идва от твоя клас.",
+      joinClassForProgram: "За момента програмата е само за VIII клас. Влез в клас с кода от учителя си, за да видиш мисиите за твоето направление.",
+      pilotGradeOnly: "Пилот за VIII клас",
       changeDirection: "Смени направлението",
       professionCode: "Код на професията",
       selectedLabel: "Избрано",
@@ -858,6 +861,19 @@ const dictionary = {
       xp: "XP",
       lessons: "урока"
     },
+    accountDeletion: {
+      title: "Изтриване на акаунт",
+      subtitle:
+        "Това действие е необратимо. Ще изтрием профила, прогреса и личните ти данни от платформата.",
+      confirmLabel: "Напиши ИЗТРИЙ, за да потвърдиш",
+      confirmPhrase: "ИЗТРИЙ",
+      button: "Изтрий акаунта",
+      working: "Изтриване...",
+      error: "Неуспешно изтриване. Опитай отново.",
+      unavailable: "Изтриването временно не е налично. Свържи се с администратор.",
+      teacherBlocked: "Имаш активни класове. Свържи се с администратор, преди да изтриеш акаунта.",
+      adminBlocked: "Админ акаунтите не могат да се изтриват оттук."
+    },
     knowledgeCheck: {
       title: "Самопроверка",
       subtitle: "Отговори на 3 кратки въпроса по темата и провери какво си усвоил.",
@@ -871,7 +887,8 @@ const dictionary = {
       correctAnswer: "верен отговор",
       incorrectAnswer: "избран грешен отговор",
       notSelectedAnswer: "неизбран отговор",
-      unavailable: "Въпросите временно не могат да бъдат заредени. Опитай отново след малко."
+      unavailable: "Въпросите временно не могат да бъдат заредени. Опитай отново след малко.",
+      rateLimited: "Твърде много опити за проверка. Изчакай минута и опитай отново."
     },
     login: {
       badge: "Ученик",
@@ -1374,6 +1391,7 @@ const dictionary = {
       specialtySave: "Save parallel",
       specialtySaveError: "Could not save the parallel.",
       gradeLabel: "Grade",
+      pilotGradeOnlyHint: "The pilot is grade 8 only. Higher grades will open later.",
       academicYearLabel: "Academic year",
       createButton: "Create class",
       creating: "Creating...",
@@ -1836,7 +1854,7 @@ const dictionary = {
     paths: {
       badge: "Curriculum",
       title: "School curriculum for digital careers",
-      subtitle: "Choose a profession and see how theory, practice and projects progress from grade 8 to grade 12.",
+      subtitle: "Choose a profession and see how theory, practice, and projects fit together for grade 8.",
       level: "Level",
       levels: "modules",
       missions: "lessons",
@@ -1878,9 +1896,11 @@ const dictionary = {
       now: "Now",
       chooseSpecialty: "Choose a profession",
       choosePrompt: "Which role would you like to try today?",
-      chooseHint: "Your choice changes the mission. You can switch freely.",
+      chooseHint: "After signup, join a class with your teacher's code. Your direction comes from that class.",
       currentDirection: "Your direction",
       directionFromClass: "This direction comes from your class.",
+      joinClassForProgram: "For now the program is grade 8 only. Join a class with your teacher's code to see missions for your direction.",
+      pilotGradeOnly: "Grade 8 pilot",
       changeDirection: "Change direction",
       professionCode: "Profession code",
       selectedLabel: "Selected",
@@ -2049,6 +2069,19 @@ const dictionary = {
       xp: "XP",
       lessons: "lessons"
     },
+    accountDeletion: {
+      title: "Delete account",
+      subtitle:
+        "This action is permanent. We will remove your profile, progress, and personal data from the platform.",
+      confirmLabel: "Type DELETE to confirm",
+      confirmPhrase: "DELETE",
+      button: "Delete account",
+      working: "Deleting...",
+      error: "Could not delete the account. Try again.",
+      unavailable: "Account deletion is temporarily unavailable. Contact an administrator.",
+      teacherBlocked: "You still have active classrooms. Contact an administrator before deleting your account.",
+      adminBlocked: "Admin accounts cannot be deleted from here."
+    },
     knowledgeCheck: {
       title: "Knowledge check",
       subtitle: "Answer 3 short questions about the topic and check what you have learned.",
@@ -2062,7 +2095,8 @@ const dictionary = {
       correctAnswer: "correct answer",
       incorrectAnswer: "selected incorrect answer",
       notSelectedAnswer: "unselected answer",
-      unavailable: "The questions are temporarily unavailable. Try again in a moment."
+      unavailable: "The questions are temporarily unavailable. Try again in a moment.",
+      rateLimited: "Too many grading attempts. Wait a minute and try again."
     },
     login: {
       badge: "Student",

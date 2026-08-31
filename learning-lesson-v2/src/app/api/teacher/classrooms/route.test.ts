@@ -69,6 +69,7 @@ describe("POST /api/teacher/classrooms", () => {
     [{ name: "" }, "invalid_name"],
     [{ name: "Pilot" }, "invalid_specialty"],
     [{ name: "Pilot", specialtyId: "software-development", gradeLevel: 7 }, "invalid_grade"],
+    [{ name: "Pilot", specialtyId: "software-development", gradeLevel: 9 }, "invalid_grade"],
     [{ name: "Pilot", specialtyId: "software-development", academicYear: "2026" }, "invalid_academic_year"]
   ])("rejects invalid classroom input before calling the RPC", async (body, error) => {
     const response = await POST(request(body));

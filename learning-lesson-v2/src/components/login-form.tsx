@@ -8,6 +8,7 @@ import { mapAuthErrorMessage, type AuthErrorLabels } from "@/lib/auth-error";
 import { clearStoredProgress, getStoredProgress, guestContinueKey } from "@/lib/game-progress-storage";
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { PILOT_STUDENT_GRADE } from "@/lib/pilot";
 import { ensureUserProfile } from "@/lib/supabase/profile";
 
 type LoginLabels = AuthErrorLabels & {
@@ -128,7 +129,8 @@ export function LoginForm({
                 emailRedirectTo: `${window.location.origin}/auth/callback?next=/verify-email`,
                 data: {
                   display_name: displayName.trim() || email.split("@")[0],
-                  intended_role: accountRole
+                  intended_role: accountRole,
+                  grade_level: accountRole === "user" ? PILOT_STUDENT_GRADE : undefined
                 }
               }
             });

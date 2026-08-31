@@ -75,6 +75,9 @@ export type CurriculumExplorerCopy = {
   commonSubjectsHint: string;
   currentDirection: string;
   directionFromClass: string;
+  joinClassForProgram: string;
+  openMyClasses: string;
+  pilotGradeOnly: string;
   minutes: string;
   labAvailable: string;
   labCompleted: string;
@@ -174,16 +177,20 @@ export function getSpecialtyExplorerGroups(data: CurriculumExplorerData, special
 export function resolveStudentProgramSpecialtyId(
   specialties: Array<{ id: string }>,
   classroomSpecialtyId: string | null | undefined,
-  storedSpecialtyId: string | null | undefined
+  storedSpecialtyId: string | null | undefined,
+  options?: { requireClassroom?: boolean }
 ) {
   const allowed = new Set(specialties.map((specialty) => specialty.id));
   if (classroomSpecialtyId && allowed.has(classroomSpecialtyId)) {
-    return { specialtyId: classroomSpecialtyId, locked: true };
+    return { specialtyId: classroomSpecialtyId, locked: true, awaitingClassroom: false };
+  }
+  if (options?.requireClassroom) {
+    return { specialtyId: "", locked: true, awaitingClassroom: true };
   }
   if (storedSpecialtyId && allowed.has(storedSpecialtyId)) {
-    return { specialtyId: storedSpecialtyId, locked: false };
+    return { specialtyId: storedSpecialtyId, locked: false, awaitingClassroom: false };
   }
-  return { specialtyId: specialties[0]?.id ?? "", locked: false };
+  return { specialtyId: specialties[0]?.id ?? "", locked: false, awaitingClassroom: false };
 }
 
 function applyGuestProgressToMission(
@@ -246,6 +253,9 @@ export function pickCurriculumExplorerCopy(source: CurriculumExplorerCopy): Curr
     commonSubjectsHint: source.commonSubjectsHint,
     currentDirection: source.currentDirection,
     directionFromClass: source.directionFromClass,
+    joinClassForProgram: source.joinClassForProgram,
+    openMyClasses: source.openMyClasses,
+    pilotGradeOnly: source.pilotGradeOnly,
     minutes: source.minutes,
     labAvailable: source.labAvailable,
     labCompleted: source.labCompleted,

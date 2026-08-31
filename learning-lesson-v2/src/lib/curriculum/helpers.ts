@@ -1,4 +1,5 @@
 import type { Language } from "../i18n";
+import { PILOT_STUDENT_GRADE } from "../pilot";
 import type {
   CurriculumMissionRow,
   CurriculumModule,
@@ -18,11 +19,12 @@ export function getActiveGradeLevel(curriculum: SchoolCurriculum): number {
     .map((module) => module.gradeLevel);
 
   if (pilotGrades.length > 0) {
-    return Math.min(...pilotGrades);
+    return Math.min(...pilotGrades, PILOT_STUDENT_GRADE);
   }
 
   const allGrades = curriculum.modules.map((module) => module.gradeLevel);
-  return allGrades.length > 0 ? Math.min(...allGrades) : 8;
+  const computed = allGrades.length > 0 ? Math.min(...allGrades) : PILOT_STUDENT_GRADE;
+  return Math.min(computed, PILOT_STUDENT_GRADE);
 }
 
 export function getMissionMinutesRange(curriculum: SchoolCurriculum): string {
