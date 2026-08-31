@@ -1,7 +1,9 @@
 import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { getFallbackCatalog, getFirstLesson } from "@/lib/catalog";
+import { rateLimitBucketFromRequest } from "@/lib/http/client-ip";
 import { getKnownErrorCode, readJsonObject } from "@/lib/http";
+import { consumeRateLimit } from "@/lib/http/rate-limit";
 import {
   guestProgressClaimCookie,
   guestProgressClaimMaxAge,
@@ -28,6 +30,11 @@ const issueErrors = [
   "guest_claim_rate_limited",
   "guest_claim_capacity_reached"
 ] as const;
+
+const GUEST_CLAIM_RATE_LIMIT = {
+  max: 15,
+  windowSeconds: 60
+} as const;
 
 type GuestClaimResult = {
   ok: boolean;
@@ -87,6 +94,14 @@ export async function POST(request: Request) {
 
   if (!hasSupabaseAdminEnv()) {
     return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
+  }
+
+  const allowed = await consumeRateLimit(
+    rateLimitBucketFromRequest(request, "guest-claim"),
+    GUEST_CLAIM_RATE_LIMIT
+  );
+  if (!allowed) {
+    return NextResponse.json({ error: "guest_claim_rate_limited" }, { status: 429 });
   }
 
   const supabase = createAdminClient();

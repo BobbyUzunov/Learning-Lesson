@@ -102,6 +102,10 @@ const dictionary = {
       roleAdmin: "Админ",
       inbox: "Сигнали"
     },
+    footer: {
+      privacy: "Поверителност",
+      rights: "Learning Lesson — образователна платформа."
+    },
     dueDate: {
       timeLabel: "Час",
       clear: "Изчисти срока",
@@ -874,6 +878,54 @@ const dictionary = {
       teacherBlocked: "Имаш активни класове. Свържи се с администратор, преди да изтриеш акаунта.",
       adminBlocked: "Админ акаунтите не могат да се изтриват оттук."
     },
+    accountData: {
+      title: "Лични данни",
+      subtitle: "Изтегли копие от профила, прогреса и подадените работи. Можеш също да изтриеш акаунта по-долу.",
+      exportButton: "Изтегли моите данни",
+      exportWorking: "Подготвяне...",
+      exportError: "Експортът не успя. Опитай отново.",
+      privacyLink: "Политика за поверителност"
+    },
+    privacy: {
+      badge: "Поверителност",
+      title: "Политика за поверителност",
+      updated: "Последна актуализация: 31 август 2026",
+      intro:
+        "Learning Lesson обработва лични данни само за учене, оценяване и поддръжка на акаунта. Този документ обяснява какви данни събираме и какви права имаш по GDPR.",
+      actionsTitle: "Твоите права",
+      actionsBody: "От страницата „Профил“ можеш да изтеглиш копие от данните си или да изтриеш акаунта си.",
+      actionsLink: "Към профила",
+      sections: {
+        controller: {
+          title: "Администратор на данните",
+          body: "Администратор на платформата е екипът, поддържащ Learning Lesson за съответното училище или пилотен проект. За въпроси: свържи се с учителя или администратора, който ти е дал достъп."
+        },
+        dataCollected: {
+          title: "Какви данни събираме",
+          body: "Имейл, име за показване, роля (ученик/учител), прогрес по уроци, XP и streak, членство в клас, подадени задачи и проекти, резултати от проверки и ограничен дневен лог за AI наставника."
+        },
+        purposes: {
+          title: "Защо ги обработваме",
+          body: "За регистрация и вход, показване на учебната програма, проследяване на напредъка, оценяване от учител, сигурност на акаунта и подобряване на платформата."
+        },
+        mentor: {
+          title: "AI наставник и трети страни",
+          body: "Когато използваш AI наставника, изпращаме само текста на твоя опит и контекста на задачата към OpenAI за генериране на кратка насока. Не изпращаме имейл или парола. OpenAI действа като обработващ данни според своите условия."
+        },
+        retention: {
+          title: "Съхранение",
+          body: "Данните се пазят докато акаунтът е активен. След изтриване на акаунта свързаните записи се премахват или анонимизират, освен ако законът изисква по-дълго съхранение."
+        },
+        rights: {
+          title: "Права по GDPR",
+          body: "Имаш право на достъп, корекция, изтриване, ограничаване и преносимост на данните, както и право на възражение срещу обработка, когато е приложимо. За упражняване на правата използвай профила си или се свържи с администратора."
+        },
+        contact: {
+          title: "Контакт",
+          body: "При оплаквания първо се обърни към администратора на училището. Можеш също да подадеш сигнал до Комисията за защита на личните данни (КЗЛД)."
+        }
+      }
+    },
     knowledgeCheck: {
       title: "Самопроверка",
       subtitle: "Отговори на 3 кратки въпроса по темата и провери какво си усвоил.",
@@ -924,9 +976,20 @@ const dictionary = {
       emailPlaceholder: "ime@uchilishte.bg",
       displayNamePlaceholder: "напр. Иван Петров",
       forgotPassword: "Забравена парола?",
-      passwordHint: "Използвай малка буква, главна буква, цифра и специален символ.",
+      passwordRequirements: {
+        title: "Паролата трябва да",
+        progress: "{met} от {total}",
+        length: "Поне 8 знака",
+        lowercase: "Малка буква (a–z)",
+        uppercase: "Главна буква (A–Z)",
+        digit: "Цифра (0–9)",
+        special: "Специален символ (напр. ! или #)"
+      },
+      privacyConsentPrefix: "Прочетох и приемам",
+      privacyConsentLink: "политиката за поверителност",
+      privacyConsentRequired: "Приеми политиката за поверителност, за да създадеш профил.",
       passwordPolicy: "Паролата трябва да съдържа малка буква, главна буква, цифра и специален символ (например ! или #).",
-      passwordTooShort: "Паролата е твърде кратка. Избери по-дълга парола.",
+      passwordTooShort: "Паролата е твърде кратка. Използвай поне 8 знака.",
       alreadyRegistered: "Този имейл вече има профил. Влез или възстанови паролата.",
       invalidCredentials: "Грешен имейл или парола. Провери ги и опитай отново.",
       emailNotConfirmed: "Имейлът още не е потвърден. Провери входящата си поща.",
@@ -1017,6 +1080,8 @@ const dictionary = {
     mentor: {
       title: "AI наставник",
       subtitle: "Една малка насока по възложената мисия — без готово решение.",
+      privacyNote: "Текстът на опита ти се изпраща към OpenAI. Виж политиката за поверителност.",
+      privacyLink: "Поверителност",
       open: "Покажи помощ",
       close: "Скрий",
       chooseHelp: "Каква помощ ти трябва?",
@@ -1310,6 +1375,10 @@ const dictionary = {
       roleTeacher: "Teacher",
       roleAdmin: "Admin",
       inbox: "Alerts"
+    },
+    footer: {
+      privacy: "Privacy",
+      rights: "Learning Lesson — learning platform."
     },
     dueDate: {
       timeLabel: "Time",
@@ -2082,6 +2151,54 @@ const dictionary = {
       teacherBlocked: "You still have active classrooms. Contact an administrator before deleting your account.",
       adminBlocked: "Admin accounts cannot be deleted from here."
     },
+    accountData: {
+      title: "Personal data",
+      subtitle: "Download a copy of your profile, progress, and submissions. You can also delete your account below.",
+      exportButton: "Download my data",
+      exportWorking: "Preparing...",
+      exportError: "Export failed. Try again.",
+      privacyLink: "Privacy policy"
+    },
+    privacy: {
+      badge: "Privacy",
+      title: "Privacy policy",
+      updated: "Last updated: 31 August 2026",
+      intro:
+        "Learning Lesson processes personal data only for learning, assessment, and account support. This page explains what we collect and your GDPR rights.",
+      actionsTitle: "Your rights",
+      actionsBody: "From your profile you can download your data or delete your account.",
+      actionsLink: "Go to profile",
+      sections: {
+        controller: {
+          title: "Data controller",
+          body: "The platform is operated by the team supporting Learning Lesson for your school or pilot project. For questions, contact the teacher or administrator who gave you access."
+        },
+        dataCollected: {
+          title: "What we collect",
+          body: "Email, display name, role (student/teacher), lesson progress, XP and streak, class membership, submitted assignments and projects, assessment results, and a limited daily log for the AI mentor."
+        },
+        purposes: {
+          title: "Why we process it",
+          body: "For sign-in, showing the curriculum, tracking progress, teacher assessment, account security, and platform improvement."
+        },
+        mentor: {
+          title: "AI mentor and third parties",
+          body: "When you use the AI mentor, we send only your attempt text and assignment context to OpenAI to generate a short direction. We do not send email or password. OpenAI acts as a processor under its own terms."
+        },
+        retention: {
+          title: "Retention",
+          body: "Data is kept while the account is active. After account deletion, related records are removed or anonymized unless law requires longer retention."
+        },
+        rights: {
+          title: "GDPR rights",
+          body: "You have the right to access, rectify, erase, restrict, and port your data, and to object where applicable. Use your profile or contact the administrator to exercise these rights."
+        },
+        contact: {
+          title: "Contact",
+          body: "For complaints, contact your school administrator first. You may also lodge a complaint with your local data protection authority."
+        }
+      }
+    },
     knowledgeCheck: {
       title: "Knowledge check",
       subtitle: "Answer 3 short questions about the topic and check what you have learned.",
@@ -2132,9 +2249,20 @@ const dictionary = {
       emailPlaceholder: "name@school.edu",
       displayNamePlaceholder: "e.g. Ivan Petrov",
       forgotPassword: "Forgot password?",
-      passwordHint: "Use a lowercase letter, an uppercase letter, a number, and a special character.",
+      passwordRequirements: {
+        title: "Your password must",
+        progress: "{met} of {total}",
+        length: "At least 8 characters",
+        lowercase: "Lowercase letter (a–z)",
+        uppercase: "Uppercase letter (A–Z)",
+        digit: "Number (0–9)",
+        special: "Special character (e.g. ! or #)"
+      },
+      privacyConsentPrefix: "I have read and accept the",
+      privacyConsentLink: "privacy policy",
+      privacyConsentRequired: "Accept the privacy policy to create an account.",
       passwordPolicy: "Password must include a lowercase letter, an uppercase letter, a number, and a special character (for example ! or #).",
-      passwordTooShort: "That password is too short. Choose a longer one.",
+      passwordTooShort: "That password is too short. Use at least 8 characters.",
       alreadyRegistered: "This email already has an account. Sign in or reset your password.",
       invalidCredentials: "Wrong email or password. Check them and try again.",
       emailNotConfirmed: "This email is not confirmed yet. Check your inbox.",
@@ -2225,6 +2353,8 @@ const dictionary = {
     mentor: {
       title: "AI mentor",
       subtitle: "One small direction on the assigned mission — never a finished answer.",
+      privacyNote: "Your attempt text is sent to OpenAI. See the privacy policy.",
+      privacyLink: "Privacy",
       open: "Show help",
       close: "Hide",
       chooseHelp: "What kind of help do you need?",

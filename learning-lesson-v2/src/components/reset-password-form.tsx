@@ -4,8 +4,13 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { KeyRound } from "lucide-react";
 import { mapAuthErrorMessage, type AuthErrorLabels } from "@/lib/auth-error";
+import { isSignupPasswordValid, MIN_SIGNUP_PASSWORD_LENGTH } from "@/lib/auth-password";
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import {
+  PasswordRequirementsChecklist,
+  type PasswordRequirementsLabels
+} from "@/components/password-requirements-checklist";
 
 type ResetPasswordLabels = AuthErrorLabels & {
   newPassword: string;
@@ -16,7 +21,7 @@ type ResetPasswordLabels = AuthErrorLabels & {
   mismatch: string;
   resetSuccess: string;
   sessionRequired: string;
-  passwordHint: string;
+  passwordRequirements: PasswordRequirementsLabels;
 };
 
 export function ResetPasswordForm({ labels }: { labels: ResetPasswordLabels }) {
@@ -55,6 +60,11 @@ export function ResetPasswordForm({ labels }: { labels: ResetPasswordLabels }) {
       return;
     }
 
+    if (!isSignupPasswordValid(password)) {
+      setMessage(labels.passwordPolicy);
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
 
@@ -81,17 +91,18 @@ export function ResetPasswordForm({ labels }: { labels: ResetPasswordLabels }) {
         {labels.newPassword}
       </label>
       <input
+        aria-describedby="password-requirements"
         autoComplete="new-password"
         className="focus-ring mt-2 w-full rounded-md border border-ink/15 bg-white px-3 py-3"
         id="new-password"
-        minLength={6}
+        minLength={MIN_SIGNUP_PASSWORD_LENGTH}
         name="new-password"
         onChange={(event) => setPassword(event.target.value)}
         required
         type="password"
         value={password}
       />
-      <p className="mt-2 text-sm text-ink/55">{labels.passwordHint}</p>
+      <PasswordRequirementsChecklist labels={labels.passwordRequirements} password={password} />
       <label className="mt-4 block text-sm font-bold" htmlFor="confirm-password">
         {labels.confirmPassword}
       </label>
@@ -99,7 +110,7 @@ export function ResetPasswordForm({ labels }: { labels: ResetPasswordLabels }) {
         autoComplete="new-password"
         className="focus-ring mt-2 w-full rounded-md border border-ink/15 bg-white px-3 py-3"
         id="confirm-password"
-        minLength={6}
+        minLength={MIN_SIGNUP_PASSWORD_LENGTH}
         name="confirm-password"
         onChange={(event) => setConfirmPassword(event.target.value)}
         required
@@ -108,7 +119,7 @@ export function ResetPasswordForm({ labels }: { labels: ResetPasswordLabels }) {
       />
       <button
         className="focus-ring mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-ink px-4 py-3 font-bold text-paper transition hover:bg-ink/90 disabled:opacity-60"
-        disabled={loading || !ready}
+        disabled={loading || !ready || !isSignupPasswordValid(password) || password !== confirmPassword}
         type="submit"
       >
         <KeyRound className="size-5" />

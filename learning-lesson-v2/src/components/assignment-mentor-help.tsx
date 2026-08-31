@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
@@ -213,6 +214,12 @@ export function AssignmentMentorHelp({
 
       <div className={`${open ? "mt-3 block" : "hidden"} border-t border-violet/15 pt-3 sm:mt-3 sm:block`}>
         <p className="text-sm leading-6 text-ink/65">{copy.mentor.subtitle}</p>
+        <p className="mt-2 text-xs leading-5 text-ink/50">
+          {copy.mentor.privacyNote}{" "}
+          <Link className="font-semibold text-ink/70 underline-offset-4 hover:text-ink hover:underline" href="/privacy">
+            {copy.mentor.privacyLink}
+          </Link>
+        </p>
 
         {limitReached ? (
           <p className="mt-3 rounded-lg bg-coral/15 px-4 py-3 text-sm font-semibold text-ink">

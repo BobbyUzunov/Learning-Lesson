@@ -2,11 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { guestProgressClaimCookie, guestProgressClaimPath } from "@/lib/guest-progress-claim";
 import { POST } from "./route";
 
-const { mockCreateAdminClient, mockHasSupabaseAdminEnv, mockRpc, mockSingle } = vi.hoisted(() => ({
+const { mockCreateAdminClient, mockHasSupabaseAdminEnv, mockRpc, mockSingle, mockConsumeRateLimit } = vi.hoisted(() => ({
   mockCreateAdminClient: vi.fn(),
   mockHasSupabaseAdminEnv: vi.fn(() => true),
   mockRpc: vi.fn(),
-  mockSingle: vi.fn()
+  mockSingle: vi.fn(),
+  mockConsumeRateLimit: vi.fn(() => Promise.resolve(true))
 }));
 
 vi.mock("@/lib/supabase/admin-env", () => ({
@@ -14,6 +15,9 @@ vi.mock("@/lib/supabase/admin-env", () => ({
 }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: mockCreateAdminClient
+}));
+vi.mock("@/lib/http/rate-limit", () => ({
+  consumeRateLimit: mockConsumeRateLimit
 }));
 vi.mock("@/lib/observability", () => ({ logServerError: vi.fn() }));
 

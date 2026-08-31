@@ -1,15 +1,28 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { isAdminEmailAllowed, parseAdminEmailAllowlist } from "./admin-allowlist";
+import {
+  isAdminAllowlistRequired,
+  isAdminEmailAllowed,
+  parseAdminEmailAllowlist
+} from "./admin-allowlist";
 
 describe("admin email allowlist", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
   });
 
-  it("treats an empty allowlist as open", () => {
+  it("treats an empty allowlist as open outside production", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("VERCEL_ENV", "development");
     expect(parseAdminEmailAllowlist("")).toEqual([]);
-    expect(parseAdminEmailAllowlist("  , ")).toEqual([]);
+    expect(isAdminAllowlistRequired()).toBe(false);
     expect(isAdminEmailAllowed("anyone@school.bg", [])).toBe(true);
+  });
+
+  it("requires an allowlist in production when it would otherwise be open", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "production");
+    expect(isAdminAllowlistRequired()).toBe(true);
+    expect(isAdminEmailAllowed("anyone@school.bg", [])).toBe(false);
   });
 
   it("matches emails case-insensitively", () => {

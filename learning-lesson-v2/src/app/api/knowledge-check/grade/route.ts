@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getClientIp, hashClientIp } from "@/lib/http/client-ip";
+import { rateLimitBucketFromRequest } from "@/lib/http/client-ip";
 import { readJsonObject } from "@/lib/http";
 import { consumeRateLimit } from "@/lib/http/rate-limit";
 import {
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     return NextResponse.json(toPublicKnowledgeCheckGrade(graded));
   }
 
-  const rateBucket = `kc-grade:${hashClientIp(getClientIp(request))}:${lessonId}`;
+  const rateBucket = `${rateLimitBucketFromRequest(request, "kc-grade")}:${lessonId}`;
   const allowed = await consumeRateLimit(rateBucket, GRADE_RATE_LIMIT);
   if (!allowed) {
     return NextResponse.json({ error: "grade_rate_limited" }, { status: 429 });

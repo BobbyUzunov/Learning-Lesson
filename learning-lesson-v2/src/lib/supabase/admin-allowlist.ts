@@ -1,4 +1,4 @@
-/** Optional comma-separated admin emails. Empty = role=admin is enough. */
+/** Optional comma-separated admin emails. Required in production — see isAdminAllowlistRequired(). */
 export function parseAdminEmailAllowlist(value: string | undefined = process.env.ADMIN_EMAIL_ALLOWLIST) {
   return (value ?? "")
     .split(",")
@@ -6,12 +6,16 @@ export function parseAdminEmailAllowlist(value: string | undefined = process.env
     .filter(Boolean);
 }
 
+export function isAdminAllowlistRequired() {
+  return process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
+}
+
 export function isAdminEmailAllowed(
   email: string | null | undefined,
   allowlist: string[] = parseAdminEmailAllowlist()
 ) {
   if (allowlist.length === 0) {
-    return true;
+    return !isAdminAllowlistRequired();
   }
 
   const normalized = email?.trim().toLowerCase() ?? "";

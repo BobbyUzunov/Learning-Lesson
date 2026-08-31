@@ -4,11 +4,16 @@ import { FormEvent, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogIn, UserPlus } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
 import { mapAuthErrorMessage, type AuthErrorLabels } from "@/lib/auth-error";
+import { isSignupPasswordValid, MIN_SIGNUP_PASSWORD_LENGTH } from "@/lib/auth-password";
+import {
+  PasswordRequirementsChecklist,
+  type PasswordRequirementsLabels
+} from "@/components/password-requirements-checklist";
 import { clearStoredProgress, getStoredProgress, guestContinueKey } from "@/lib/game-progress-storage";
 import { createClient } from "@/lib/supabase/client";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
-import { PILOT_STUDENT_GRADE } from "@/lib/pilot";
 import { ensureUserProfile } from "@/lib/supabase/profile";
 
 type LoginLabels = AuthErrorLabels & {
@@ -25,8 +30,11 @@ type LoginLabels = AuthErrorLabels & {
   loggedIn: string;
   registered: string;
   forgotPassword: string;
-  passwordHint: string;
+  passwordRequirements: PasswordRequirementsLabels;
   guestProgressError: string;
+  privacyConsentRequired: string;
+  privacyConsentPrefix: string;
+  privacyConsentLink: string;
 };
 
 export function isGuestMergeSettled(response: Pick<Response, "ok" | "status">) {
@@ -74,6 +82,7 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [status, setStatus] = useState<{ kind: "error" | "success"; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const submittingRef = useRef(false);
@@ -113,39 +122,81 @@ export function LoginForm({
       return;
     }
 
+    if (mode === "register" && !acceptedPrivacy) {
+      setStatus({ kind: "error", text: labels.privacyConsentRequired });
+      return;
+    }
+
+    if (mode === "register" && !isSignupPasswordValid(password)) {
+      setStatus({ kind: "error", text: labels.passwordPolicy });
+      return;
+    }
+
     submittingRef.current = true;
     setLoading(true);
     setStatus(null);
 
     try {
       const supabase = createClient();
-      const result =
-        mode === "login"
-          ? await supabase.auth.signInWithPassword({ email, password })
-          : await supabase.auth.signUp({
-              email,
-              password,
-              options: {
-                emailRedirectTo: `${window.location.origin}/auth/callback?next=/verify-email`,
-                data: {
-                  display_name: displayName.trim() || email.split("@")[0],
-                  intended_role: accountRole,
-                  grade_level: accountRole === "user" ? PILOT_STUDENT_GRADE : undefined
-                }
-              }
-            });
+      let user: User | null = null;
 
-      if (result.error) {
-        setStatus({ kind: "error", text: mapAuthErrorMessage(result.error.message, labels) });
-        return;
+      if (mode === "login") {
+        const result = await supabase.auth.signInWithPassword({ email, password });
+        if (result.error) {
+          setStatus({ kind: "error", text: mapAuthErrorMessage(result.error.message, labels) });
+          return;
+        }
+
+        user = result.data.user ?? result.data.session?.user ?? null;
+      } else {
+        const response = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            displayName: displayName.trim() || email.split("@")[0],
+            accountRole,
+            acceptedPrivacy
+          })
+        });
+
+        const payload = (await response.json().catch(() => null)) as {
+          error?: string;
+          message?: string;
+          needsEmailConfirmation?: boolean;
+          user?: { id: string; email: string | null };
+        } | null;
+
+        if (!response.ok) {
+          if (payload?.error === "signup_rate_limited") {
+            setStatus({ kind: "error", text: labels.rateLimited });
+            return;
+          }
+          if (payload?.error === "privacy_consent_required") {
+            setStatus({ kind: "error", text: labels.privacyConsentRequired });
+            return;
+          }
+          if (payload?.error === "invalid_password") {
+            setStatus({ kind: "error", text: labels.passwordPolicy });
+            return;
+          }
+          if (payload?.message) {
+            setStatus({ kind: "error", text: mapAuthErrorMessage(payload.message, labels) });
+            return;
+          }
+          setStatus({ kind: "error", text: labels.missingConfig });
+          return;
+        }
+
+        if (payload?.needsEmailConfirmation) {
+          setStatus({ kind: "success", text: labels.registered });
+          return;
+        }
+
+        user = (await supabase.auth.getUser()).data.user ?? null;
       }
 
-      if (mode === "register" && !result.data.session) {
-        setStatus({ kind: "success", text: labels.registered });
-        return;
-      }
-
-      const user = result.data.user ?? result.data.session?.user;
       if (!user) {
         setStatus({ kind: "success", text: labels.registered });
         return;
@@ -257,17 +308,37 @@ export function LoginForm({
         {labels.password}
       </label>
       <input
+        aria-describedby={mode === "register" ? "password-requirements" : undefined}
         autoComplete={mode === "login" ? "current-password" : "new-password"}
         className="focus-ring mt-2 w-full rounded-xl border border-ink/15 bg-white px-3 py-3 text-base"
         id="password"
-        minLength={6}
+        minLength={mode === "register" ? MIN_SIGNUP_PASSWORD_LENGTH : 1}
         name="password"
         onChange={(event) => setPassword(event.target.value)}
         required
         type="password"
         value={password}
       />
-      {mode === "register" ? <p className="mt-2 text-sm text-ink/55">{labels.passwordHint}</p> : null}
+      {mode === "register" ? (
+        <PasswordRequirementsChecklist labels={labels.passwordRequirements} password={password} />
+      ) : null}
+      {mode === "register" ? (
+        <label className="mt-4 flex items-start gap-3 text-sm leading-6 text-ink/70">
+          <input
+            checked={acceptedPrivacy}
+            className="focus-ring mt-1 size-4 rounded border-ink/20"
+            onChange={(event) => setAcceptedPrivacy(event.target.checked)}
+            type="checkbox"
+          />
+          <span>
+            {labels.privacyConsentPrefix}{" "}
+            <Link className="font-bold text-ink underline-offset-4 hover:underline" href="/privacy">
+              {labels.privacyConsentLink}
+            </Link>
+            .
+          </span>
+        </label>
+      ) : null}
       {mode === "login" ? (
         <Link className="mt-2 inline-block text-sm font-bold text-ink/55 hover:text-ink" href="/forgot-password">
           {labels.forgotPassword}
@@ -275,7 +346,7 @@ export function LoginForm({
       ) : null}
       <button
         className="focus-ring mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-mint px-4 py-3 font-bold text-ink transition hover:bg-mint/90 disabled:opacity-60"
-        disabled={loading}
+        disabled={loading || (mode === "register" && !isSignupPasswordValid(password))}
         type="submit"
       >
         {mode === "login" ? <LogIn className="size-5" /> : <UserPlus className="size-5" />}

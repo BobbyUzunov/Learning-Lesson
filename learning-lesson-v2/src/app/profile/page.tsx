@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Award, Route, UserCircle } from "lucide-react";
+import { AccountDataSection } from "@/components/account-data-section";
 import { DeleteAccountSection } from "@/components/delete-account-section";
 import { DailyChallengeCard } from "@/components/daily-challenge-card";
 import { DailyStreakCard } from "@/components/daily-streak-card";
@@ -129,6 +130,7 @@ export default async function ProfilePage() {
             {copy.nav.paths}
           </Link>
         </div>
+        <AccountDataSection language={language} />
         <DeleteAccountSection language={language} />
       </section>
     </main>

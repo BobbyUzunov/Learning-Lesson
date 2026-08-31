@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Syne } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getCurrentSession } from "@/lib/supabase/auth";
@@ -97,6 +98,7 @@ export default async function RootLayout({
           roleLabel={roleLabel}
         />
         {children}
+        <SiteFooter language={language} />
       </body>
     </html>
   );

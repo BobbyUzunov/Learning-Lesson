@@ -20,6 +20,8 @@ test("register page explains password rules without listing every character", as
   await page.goto("/register");
 
   await expect(page.getByText(/малка буква|lowercase letter/i)).toBeVisible();
+  await expect(page.getByText(/поне 8|at least 8/i)).toBeVisible();
+  await expect(page.locator("#password-requirements")).toBeVisible();
   await expect(page.getByText("abcdefghijklmnopqrstuvwxyz")).toHaveCount(0);
 });
 
