@@ -2,11 +2,25 @@ import { NextResponse } from "next/server";
 import { isSignupPasswordValid } from "@/lib/auth-password";
 import { readJsonObject } from "@/lib/http";
 import { PILOT_STUDENT_GRADE } from "@/lib/pilot";
+import { hasSupabaseAdminEnv } from "@/lib/supabase/admin-env";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
 function isAccountRole(value: unknown): value is "user" | "teacher" {
   return value === "user" || value === "teacher";
+}
+
+function buildSignupMetadata(
+  email: string,
+  displayName: string,
+  accountRole: "user" | "teacher"
+) {
+  return {
+    display_name: displayName || email.split("@")[0],
+    intended_role: accountRole,
+    grade_level: accountRole === "user" ? PILOT_STUDENT_GRADE : undefined,
+    privacy_accepted_at: new Date().toISOString()
+  };
 }
 
 export async function POST(request: Request) {
@@ -32,19 +46,42 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "privacy_consent_required" }, { status: 400 });
   }
 
-  const supabase = await createClient();
   const origin = new URL(request.url).origin;
+  const metadata = buildSignupMetadata(email, displayName, accountRole);
+
+  if (hasSupabaseAdminEnv()) {
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const admin = createAdminClient();
+    const { data, error } = await admin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: false,
+      user_metadata: metadata
+    });
+
+    if (error) {
+      return NextResponse.json({ error: "signup_failed", message: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({
+      ok: true,
+      needsEmailConfirmation: true,
+      user: data.user
+        ? {
+            id: data.user.id,
+            email: data.user.email
+          }
+        : null
+    });
+  }
+
+  const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       emailRedirectTo: `${origin}/auth/callback?next=/verify-email`,
-      data: {
-        display_name: displayName || email.split("@")[0],
-        intended_role: accountRole,
-        grade_level: accountRole === "user" ? PILOT_STUDENT_GRADE : undefined,
-        privacy_accepted_at: new Date().toISOString()
-      }
+      data: metadata
     }
   });
 

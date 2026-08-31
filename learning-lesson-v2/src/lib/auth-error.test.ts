@@ -35,6 +35,7 @@ describe("mapAuthErrorMessage", () => {
     ).toBe("friendly-rate-limited");
     expect(mapAuthErrorMessage("email rate limit exceeded", labels)).toBe("friendly-rate-limited");
     expect(mapAuthErrorMessage("over_email_send_rate_limit", labels)).toBe("friendly-rate-limited");
+    expect(mapAuthErrorMessage("Request rate limit reached", labels)).toBe("friendly-rate-limited");
     expect(mapAuthErrorMessage("New password should be different from the old password.", labels)).toBe(
       "friendly-password-same-as-old"
     );
