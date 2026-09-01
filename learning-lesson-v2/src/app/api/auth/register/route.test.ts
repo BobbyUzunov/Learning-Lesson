@@ -69,20 +69,37 @@ describe("POST /api/auth/register", () => {
     });
   });
 
-  it("logs admin signup failures", async () => {
+  it("logs admin signup failures without leaking the raw message to the client", async () => {
     mocks.registerUserWithAdmin.mockResolvedValue({
       user: null,
       needsEmailConfirmation: false,
-      error: "Request rate limit reached"
+      error: "Request rate limit reached",
+      errorCode: "signup_failed"
     });
 
     const response = await POST(request(validSignup));
 
     expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "signup_failed" });
     expect(mocks.logServerError).toHaveBeenCalledWith("signup_failed", {
       channel: "admin",
       detail: "Request rate limit reached"
     });
+  });
+
+  it("maps a confirmed duplicate email to already_registered", async () => {
+    mocks.registerUserWithAdmin.mockResolvedValue({
+      user: null,
+      needsEmailConfirmation: false,
+      error: "already_registered",
+      errorCode: "already_registered"
+    });
+
+    const response = await POST(request(validSignup));
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "already_registered" });
+    expect(mocks.logServerError).not.toHaveBeenCalled();
   });
 
   it("falls back to public signUp when admin credentials are missing", async () => {

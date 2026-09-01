@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAdminEmailAllowed } from "./admin-allowlist";
 import { createE2eUser, getE2eAuthState } from "./e2e-auth";
 import { createClient } from "./server";
 
@@ -23,7 +24,7 @@ export async function requireTeacherUser() {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, email")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -31,9 +32,13 @@ export async function requireTeacherUser() {
     return { error: NextResponse.json({ error: "not_authenticated" }, { status: 401 }) };
   }
 
-  if (profile?.role !== "teacher" && profile?.role !== "admin") {
-    return { error: NextResponse.json({ error: "teacher_required" }, { status: 403 }) };
+  if (profile?.role === "teacher") {
+    return { supabase, user };
   }
 
-  return { supabase, user };
+  if (profile?.role === "admin" && isAdminEmailAllowed(profile.email ?? user.email)) {
+    return { supabase, user };
+  }
+
+  return { error: NextResponse.json({ error: "teacher_required" }, { status: 403 }) };
 }

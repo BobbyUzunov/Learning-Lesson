@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { requireTeacherUser } from "./teacher-auth";
 
 const mocks = vi.hoisted(() => ({
@@ -27,6 +27,10 @@ const supabase = {
 };
 
 describe("requireTeacherUser", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.createClient.mockResolvedValue(supabase);
@@ -87,8 +91,43 @@ describe("requireTeacherUser", () => {
 
     expect(result).toEqual({ supabase, user });
     expect(mocks.from).toHaveBeenCalledWith("profiles");
-    expect(mocks.select).toHaveBeenCalledWith("role");
+    expect(mocks.select).toHaveBeenCalledWith("role, email");
     expect(mocks.eq).toHaveBeenCalledWith("id", user.id);
+  });
+
+  it("does not treat a non-allowlisted admin as a teacher", async () => {
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("ADMIN_EMAIL_ALLOWLIST", "real-admin@school.bg");
+    mocks.getUser.mockResolvedValue({
+      data: { user: { id: "admin-1", email: "stale-admin@school.bg" } }
+    });
+    mocks.maybeSingle.mockResolvedValue({
+      data: { role: "admin", email: "stale-admin@school.bg" },
+      error: null
+    });
+
+    const result = await requireTeacherUser();
+
+    expect("error" in result).toBe(true);
+    if ("error" in result && result.error) {
+      expect(result.error.status).toBe(403);
+      expect(await result.error.json()).toEqual({ error: "teacher_required" });
+    }
+  });
+
+  it("still authorizes an allowlisted admin on teacher APIs", async () => {
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("ADMIN_EMAIL_ALLOWLIST", "real-admin@school.bg");
+    const user = { id: "admin-1", email: "real-admin@school.bg" };
+    mocks.getUser.mockResolvedValue({ data: { user } });
+    mocks.maybeSingle.mockResolvedValue({
+      data: { role: "admin", email: "real-admin@school.bg" },
+      error: null
+    });
+
+    const result = await requireTeacherUser();
+
+    expect(result).toEqual({ supabase, user });
   });
 
   it("does not treat a failed profile lookup as a missing teacher role", async () => {

@@ -57,7 +57,15 @@ export async function ensureUserProfile(
   }
 
   if (existing) {
-    return { profile: existing as ProfileRow, created: false, error: null };
+    const safeName = sanitizeDisplayName(existing.display_name);
+    return {
+      profile: {
+        ...(existing as ProfileRow),
+        display_name: safeName ?? "Learner"
+      },
+      created: false,
+      error: null
+    };
   }
 
   const row = {

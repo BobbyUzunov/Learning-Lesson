@@ -2,6 +2,14 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 type SignupMetadata = Record<string, unknown>;
 
+export type RegisterUserResult = {
+  user: User | null;
+  needsEmailConfirmation: boolean;
+  resendError?: string | null;
+  error?: string | null;
+  errorCode?: "already_registered" | "signup_failed";
+};
+
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
@@ -65,7 +73,7 @@ export async function registerUserWithAdmin(
     metadata: SignupMetadata;
     redirectTo: string;
   }
-) {
+): Promise<RegisterUserResult> {
   const { data, error } = await admin.auth.admin.createUser({
     email,
     password,
@@ -83,35 +91,39 @@ export async function registerUserWithAdmin(
   }
 
   if (!isDuplicateSignupError(error.message)) {
-    return { user: null, needsEmailConfirmation: false, error: error.message };
+    return { user: null, needsEmailConfirmation: false, error: error.message, errorCode: "signup_failed" };
   }
 
   const { user: existing, error: lookupError } = await findUserByEmail(admin, email);
   if (lookupError) {
-    return { user: null, needsEmailConfirmation: false, error: lookupError.message };
+    return {
+      user: null,
+      needsEmailConfirmation: false,
+      error: lookupError.message,
+      errorCode: "signup_failed"
+    };
   }
 
-  if (!existing) {
-    return { user: null, needsEmailConfirmation: false, error: error.message };
+  if (!existing || existing.email_confirmed_at) {
+    return {
+      user: null,
+      needsEmailConfirmation: false,
+      error: "already_registered",
+      errorCode: "already_registered"
+    };
   }
 
-  if (existing.email_confirmed_at) {
-    return { user: null, needsEmailConfirmation: false, error: error.message };
-  }
-
-  const { error: updateError } = await admin.auth.admin.updateUserById(existing.id, {
-    password,
-    user_metadata: { ...existing.user_metadata, ...metadata }
-  });
-
-  if (updateError) {
-    return { user: null, needsEmailConfirmation: false, error: updateError.message };
-  }
-
+  // Never overwrite the password or metadata of an unconfirmed account. A second
+  // person who types the same email must not take over the inbox before confirm.
   const resend = await sendSignupConfirmationEmail(admin, email, redirectTo);
   if (resend.error) {
-    return { user: existing, needsEmailConfirmation: true, error: resend.error.message };
+    return {
+      user: null,
+      needsEmailConfirmation: true,
+      error: resend.error.message,
+      errorCode: "signup_failed"
+    };
   }
 
-  return { user: existing, needsEmailConfirmation: true, resendError: null };
+  return { user: null, needsEmailConfirmation: true, resendError: null };
 }

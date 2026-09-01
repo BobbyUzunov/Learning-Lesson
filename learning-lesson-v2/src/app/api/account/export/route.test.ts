@@ -9,10 +9,12 @@ const mocks = vi.hoisted(() => ({
   assignmentEq: vi.fn(),
   membershipEq: vi.fn(),
   mentorOrder: vi.fn(),
-  hasSupabaseEnv: vi.fn(() => true)
+  hasSupabaseEnv: vi.fn(() => true),
+  consumeRateLimit: vi.fn(() => Promise.resolve(true))
 }));
 
 vi.mock("@/lib/supabase/env", () => ({ hasSupabaseEnv: mocks.hasSupabaseEnv }));
+vi.mock("@/lib/http/rate-limit", () => ({ consumeRateLimit: mocks.consumeRateLimit }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
@@ -67,16 +69,17 @@ describe("GET /api/account/export", () => {
     mocks.assignmentEq.mockResolvedValue({ data: [], error: null });
     mocks.membershipEq.mockResolvedValue({ data: [{ classroom_id: "class-1" }], error: null });
     mocks.mentorOrder.mockResolvedValue({ data: [], error: null });
+    mocks.consumeRateLimit.mockResolvedValue(true);
   });
 
   it("requires authentication", async () => {
     mocks.getUser.mockResolvedValue({ data: { user: null } });
-    const response = await GET();
+    const response = await GET(new Request("http://localhost/api/account/export"));
     expect(response.status).toBe(401);
   });
 
   it("returns a downloadable JSON export", async () => {
-    const response = await GET();
+    const response = await GET(new Request("http://localhost/api/account/export"));
     expect(response.status).toBe(200);
     expect(response.headers.get("Content-Disposition")).toContain("learning-lesson-export-user-1.json");
     const body = await response.json();

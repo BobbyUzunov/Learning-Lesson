@@ -12,7 +12,7 @@ describe("buildAccountExportPayload", () => {
       projectSubmissions: [],
       assignmentSubmissions: [{ status: "submitted" }],
       classroomMemberships: [{ classroom_id: "class-1" }],
-      mentorDailyUsage: [{ usage_date: "2026-08-31", hint_count: 1 }]
+      mentorDailyUsage: [{ usage_date: "2026-08-31", request_count: 1 }]
     });
 
     expect(payload.exportedAt).toBe("2026-08-31T12:00:00.000Z");

@@ -13,6 +13,7 @@ import { logServerError } from "@/lib/observability";
 import { hasSupabaseAdminEnv } from "@/lib/supabase/admin-env";
 import { isE2eAuthEnabled } from "@/lib/supabase/e2e-auth";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { createClient } from "@/lib/supabase/server";
 
 type RpcGradeRow = {
   question_id: string;
@@ -73,6 +74,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "quiz_not_passed" }, { status: 403 });
     }
     return NextResponse.json(toPublicKnowledgeCheckGrade(graded));
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
   }
 
   const rateBucket = `${rateLimitBucketFromRequest(request, "kc-grade")}:${lessonId}`;

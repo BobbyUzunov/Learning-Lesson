@@ -88,10 +88,6 @@ export async function requireUser(message = "Please login to continue your learn
 export async function requireAdmin() {
   const session = await requireUser();
 
-  if (session.profile?.role === "admin" && !isAdminEmailAllowed(session.profile.email ?? session.user.email)) {
-    redirect(`/login?message=${encodeURIComponent("admin_allowlist")}`);
-  }
-
   if (!session.isAdmin) {
     redirect("/dashboard");
   }

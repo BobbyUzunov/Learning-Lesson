@@ -8,11 +8,13 @@ const mocks = vi.hoisted(() => ({
   coTeachersLimit: vi.fn(),
   deleteUser: vi.fn(),
   hasSupabaseEnv: vi.fn(() => true),
-  hasSupabaseAdminEnv: vi.fn(() => true)
+  hasSupabaseAdminEnv: vi.fn(() => true),
+  consumeRateLimit: vi.fn(() => Promise.resolve(true))
 }));
 
 vi.mock("@/lib/supabase/env", () => ({ hasSupabaseEnv: mocks.hasSupabaseEnv }));
 vi.mock("@/lib/supabase/admin-env", () => ({ hasSupabaseAdminEnv: mocks.hasSupabaseAdminEnv }));
+vi.mock("@/lib/http/rate-limit", () => ({ consumeRateLimit: mocks.consumeRateLimit }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
     auth: { admin: { deleteUser: mocks.deleteUser } }
@@ -54,7 +56,7 @@ vi.mock("@/lib/supabase/server", () => ({
   }))
 }));
 
-function request(body: unknown = { confirm: true }) {
+function request(body: unknown = { confirm: true, confirmPhrase: "DELETE" }) {
   return new Request("http://localhost/api/account/delete", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -71,12 +73,20 @@ describe("/api/account/delete", () => {
     mocks.profileMaybeSingle.mockResolvedValue({ data: { role: "user" }, error: null });
     mocks.classroomsLimit.mockResolvedValue({ data: [], error: null });
     mocks.coTeachersLimit.mockResolvedValue({ data: [], error: null });
+    mocks.consumeRateLimit.mockResolvedValue(true);
     mocks.deleteUser.mockResolvedValue({ error: null });
   });
 
   it("requires confirmation", async () => {
     const response = await POST(request({ confirm: false }));
     expect(response.status).toBe(400);
+    expect(mocks.deleteUser).not.toHaveBeenCalled();
+  });
+
+  it("requires the typed confirmation phrase, not only confirm: true", async () => {
+    const response = await POST(request({ confirm: true }));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "confirmation_required" });
     expect(mocks.deleteUser).not.toHaveBeenCalled();
   });
 

@@ -192,6 +192,10 @@ export function LoginForm({
             setStatus({ kind: "error", text: labels.invalidDisplayName });
             return;
           }
+          if (payload?.error === "already_registered") {
+            setStatus({ kind: "error", text: labels.alreadyRegistered });
+            return;
+          }
           if (payload?.message) {
             setStatus({ kind: "error", text: mapAuthErrorMessage(payload.message, labels) });
             return;

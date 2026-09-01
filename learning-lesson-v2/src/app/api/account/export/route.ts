@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 import { accountExportFilename, buildAccountExportPayload } from "@/lib/account/build-export";
+import { rateLimitBucketFromRequest } from "@/lib/http/client-ip";
+import { consumeRateLimit } from "@/lib/http/rate-limit";
 import { logServerError } from "@/lib/observability";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 
-export async function GET() {
+const EXPORT_RATE_LIMIT = {
+  max: 10,
+  windowSeconds: 60 * 60
+} as const;
+
+export async function GET(request: Request) {
   if (!hasSupabaseEnv()) {
     return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
   }
@@ -16,6 +23,14 @@ export async function GET() {
 
   if (!user) {
     return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
+  }
+
+  const allowed = await consumeRateLimit(
+    `${rateLimitBucketFromRequest(request, "account-export")}:${user.id}`,
+    EXPORT_RATE_LIMIT
+  );
+  if (!allowed) {
+    return NextResponse.json({ error: "account_export_rate_limited" }, { status: 429 });
   }
 
   const [
@@ -51,7 +66,7 @@ export async function GET() {
       .eq("student_id", user.id),
     supabase
       .from("mentor_daily_usage")
-      .select("usage_date, hint_count, updated_at")
+      .select("usage_date, request_count, updated_at")
       .eq("user_id", user.id)
       .order("usage_date", { ascending: false })
   ]);

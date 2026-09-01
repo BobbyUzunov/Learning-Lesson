@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isSignupPasswordValid } from "@/lib/auth-password";
 import { isValidDisplayName } from "@/lib/display-name";
-import { registerUserWithAdmin } from "@/lib/auth/register-user";
+import { isDuplicateSignupError, registerUserWithAdmin } from "@/lib/auth/register-user";
 import { readJsonObject } from "@/lib/http";
 import { logServerError } from "@/lib/observability";
 import { PILOT_STUDENT_GRADE } from "@/lib/pilot";
@@ -67,15 +67,16 @@ export async function POST(request: Request) {
       redirectTo
     });
 
-    if (result.error || !result.user) {
+    if (result.error && result.errorCode === "already_registered") {
+      return NextResponse.json({ error: "already_registered" }, { status: 400 });
+    }
+
+    if (result.error) {
       logServerError("signup_failed", {
         channel: "admin",
-        detail: (result.error ?? "unknown").slice(0, 200)
+        detail: result.error.slice(0, 200)
       });
-      return NextResponse.json(
-        { error: "signup_failed", message: result.error ?? "signup_failed" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "signup_failed" }, { status: 400 });
     }
 
     if (result.resendError) {
@@ -87,10 +88,12 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       needsEmailConfirmation: result.needsEmailConfirmation,
-      user: {
-        id: result.user.id,
-        email: result.user.email
-      }
+      user: result.user
+        ? {
+            id: result.user.id,
+            email: result.user.email
+          }
+        : null
     });
   }
 
@@ -106,7 +109,10 @@ export async function POST(request: Request) {
 
   if (error) {
     logServerError("signup_failed", { channel: "public", detail: error.message.slice(0, 200) });
-    return NextResponse.json({ error: "signup_failed", message: error.message }, { status: 400 });
+    return NextResponse.json(
+      { error: isDuplicateSignupError(error.message) ? "already_registered" : "signup_failed" },
+      { status: 400 }
+    );
   }
 
   return NextResponse.json({
