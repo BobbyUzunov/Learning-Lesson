@@ -44,8 +44,9 @@ type LoginLabels = AuthErrorLabels & {
   privacyConsentLink: string;
 };
 
+/** Local guest progress may be discarded only after a successful merge (HTTP 200). */
 export function isGuestMergeSettled(response: Pick<Response, "ok" | "status">) {
-  return response.ok || response.status === 409;
+  return response.ok;
 }
 
 export function discardLocalGuestProgress(

@@ -13,13 +13,8 @@ describe("register user helpers", () => {
 
 describe("registerUserWithAdmin", () => {
   it("does not overwrite the password of an unconfirmed duplicate account", async () => {
-    const existing = {
-      id: "user-1",
-      email: "student@school.bg",
-      email_confirmed_at: null,
-      user_metadata: { display_name: "Original" }
-    };
     const updateUserById = vi.fn();
+    const listUsers = vi.fn();
     const resend = vi.fn().mockResolvedValue({ error: null });
     const admin = {
       auth: {
@@ -28,7 +23,7 @@ describe("registerUserWithAdmin", () => {
             data: { user: null },
             error: { message: "User already registered" }
           }),
-          listUsers: vi.fn().mockResolvedValue({ data: { users: [existing] }, error: null }),
+          listUsers,
           updateUserById
         },
         resend
@@ -43,6 +38,7 @@ describe("registerUserWithAdmin", () => {
     });
 
     expect(updateUserById).not.toHaveBeenCalled();
+    expect(listUsers).not.toHaveBeenCalled();
     expect(resend).toHaveBeenCalledWith({
       type: "signup",
       email: "student@school.bg",
@@ -55,14 +51,8 @@ describe("registerUserWithAdmin", () => {
     });
   });
 
-  it("returns already_registered when the email is confirmed", async () => {
-    const existing = {
-      id: "user-1",
-      email: "student@school.bg",
-      email_confirmed_at: "2026-08-01T00:00:00Z",
-      user_metadata: {}
-    };
-    const updateUserById = vi.fn();
+  it("returns the same generic confirmation shape for a confirmed duplicate email", async () => {
+    const listUsers = vi.fn();
     const admin = {
       auth: {
         admin: {
@@ -70,10 +60,10 @@ describe("registerUserWithAdmin", () => {
             data: { user: null },
             error: { message: "User already registered" }
           }),
-          listUsers: vi.fn().mockResolvedValue({ data: { users: [existing] }, error: null }),
-          updateUserById
+          listUsers,
+          updateUserById: vi.fn()
         },
-        resend: vi.fn()
+        resend: vi.fn().mockResolvedValue({ error: { message: "Email already confirmed" } })
       }
     };
 
@@ -84,8 +74,12 @@ describe("registerUserWithAdmin", () => {
       redirectTo: "https://example.com/auth/callback"
     });
 
-    expect(updateUserById).not.toHaveBeenCalled();
-    expect(result.errorCode).toBe("already_registered");
-    expect(result.user).toBeNull();
+    expect(listUsers).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      user: null,
+      needsEmailConfirmation: true,
+      resendError: "Email already confirmed"
+    });
+    expect(result.errorCode).toBeUndefined();
   });
 });

@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   hasSupabaseEnv: vi.fn(() => false),
   isE2eAuthEnabled: vi.fn(() => true),
   getUser: vi.fn(),
-  consumeRateLimit: vi.fn(() => Promise.resolve(true)),
+  consumeRateLimit: vi.fn(() => Promise.resolve("allowed")),
   rpc: vi.fn()
 }));
 
@@ -42,7 +42,7 @@ describe("/api/knowledge-check/grade", () => {
     mocks.hasSupabaseEnv.mockReturnValue(false);
     mocks.isE2eAuthEnabled.mockReturnValue(true);
     mocks.getUser.mockResolvedValue({ data: { user: null } });
-    mocks.consumeRateLimit.mockResolvedValue(true);
+    mocks.consumeRateLimit.mockResolvedValue("allowed");
   });
 
   it("rejects invalid payloads", async () => {

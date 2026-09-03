@@ -70,7 +70,7 @@ export function ClassroomStudentsList({
       <ul className="overflow-hidden rounded-2xl border border-ink/10 bg-white/75">
         {rows.map((row, index) => {
           const isEditing = editingId === row.studentId;
-          const label = row.displayName?.trim() || shortStudentId(row.studentId);
+          const label = row.rosterName?.trim() || row.displayName?.trim() || shortStudentId(row.studentId);
 
           return (
             <li
@@ -123,8 +123,10 @@ export function ClassroomStudentsList({
                 ) : (
                   <>
                     <p className="truncate font-semibold text-ink/85">{label}</p>
-                    {row.email ? (
-                      <p className="truncate text-xs text-ink/40">{row.email}</p>
+                    {row.rosterName?.trim() &&
+                    row.displayName?.trim() &&
+                    row.rosterName.trim() !== row.displayName.trim() ? (
+                      <p className="truncate text-xs text-ink/40">{row.displayName.trim()}</p>
                     ) : null}
                   </>
                 )}

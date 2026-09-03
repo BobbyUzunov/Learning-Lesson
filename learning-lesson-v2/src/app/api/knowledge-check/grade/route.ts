@@ -86,7 +86,10 @@ export async function POST(request: Request) {
 
   const rateBucket = `${rateLimitBucketFromRequest(request, "kc-grade")}:${lessonId}`;
   const allowed = await consumeRateLimit(rateBucket, GRADE_RATE_LIMIT);
-  if (!allowed) {
+  if (allowed === "unavailable") {
+    return NextResponse.json({ error: "grade_unavailable" }, { status: 503 });
+  }
+  if (allowed === "limited") {
     return NextResponse.json({ error: "grade_rate_limited" }, { status: 429 });
   }
 

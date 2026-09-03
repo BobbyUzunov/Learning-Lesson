@@ -34,8 +34,8 @@ describe("consumeRateLimit", () => {
     mocks.isE2eAuthEnabled.mockReturnValue(true);
     const { consumeRateLimit } = await import("./rate-limit");
 
-    expect(await consumeRateLimit("bucket", { max: 1, windowSeconds: 60 })).toBe(true);
-    expect(await consumeRateLimit("bucket", { max: 1, windowSeconds: 60 })).toBe(true);
+    expect(await consumeRateLimit("bucket", { max: 1, windowSeconds: 60 })).toBe("allowed");
+    expect(await consumeRateLimit("bucket", { max: 1, windowSeconds: 60 })).toBe("allowed");
   });
 
   it("uses the database bucket when admin env is configured", async () => {
@@ -45,8 +45,8 @@ describe("consumeRateLimit", () => {
 
     const { consumeRateLimit } = await import("./rate-limit");
 
-    expect(await consumeRateLimit("kc-grade:abc", { max: 20, windowSeconds: 60 })).toBe(true);
-    expect(await consumeRateLimit("kc-grade:abc", { max: 20, windowSeconds: 60 })).toBe(false);
+    expect(await consumeRateLimit("kc-grade:abc", { max: 20, windowSeconds: 60 })).toBe("allowed");
+    expect(await consumeRateLimit("kc-grade:abc", { max: 20, windowSeconds: 60 })).toBe("limited");
     expect(mocks.rpc).toHaveBeenCalledWith("consume_http_rate_limit", {
       p_bucket_key: "kc-grade:abc",
       p_max_events: 20,
@@ -54,16 +54,25 @@ describe("consumeRateLimit", () => {
     });
   });
 
+  it("returns unavailable when the rate-limit RPC fails", async () => {
+    mocks.hasSupabaseAdminEnv.mockReturnValue(true);
+    mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: "db down" } });
+
+    const { consumeRateLimit } = await import("./rate-limit");
+
+    expect(await consumeRateLimit("kc-grade:abc", { max: 20, windowSeconds: 60 })).toBe("unavailable");
+  });
+
   it("falls back to in-memory limits locally", async () => {
     vi.useFakeTimers();
     const { consumeRateLimit } = await import("./rate-limit");
 
-    expect(await consumeRateLimit("local-bucket", { max: 2, windowSeconds: 60 })).toBe(true);
-    expect(await consumeRateLimit("local-bucket", { max: 2, windowSeconds: 60 })).toBe(true);
-    expect(await consumeRateLimit("local-bucket", { max: 2, windowSeconds: 60 })).toBe(false);
+    expect(await consumeRateLimit("local-bucket", { max: 2, windowSeconds: 60 })).toBe("allowed");
+    expect(await consumeRateLimit("local-bucket", { max: 2, windowSeconds: 60 })).toBe("allowed");
+    expect(await consumeRateLimit("local-bucket", { max: 2, windowSeconds: 60 })).toBe("limited");
 
     vi.advanceTimersByTime(61_000);
 
-    expect(await consumeRateLimit("local-bucket", { max: 2, windowSeconds: 60 })).toBe(true);
+    expect(await consumeRateLimit("local-bucket", { max: 2, windowSeconds: 60 })).toBe("allowed");
   });
 });

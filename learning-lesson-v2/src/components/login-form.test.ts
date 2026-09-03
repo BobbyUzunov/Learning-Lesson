@@ -2,12 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 import { discardLocalGuestProgress, isGuestMergeSettled } from "./login-form";
 
 describe("guest progress login handoff", () => {
-  it("settles successful and terminal conflict responses", () => {
+  it("settles only a successful merge so local progress can be discarded", () => {
     expect(isGuestMergeSettled({ ok: true, status: 200 })).toBe(true);
-    expect(isGuestMergeSettled({ ok: false, status: 409 })).toBe(true);
   });
 
-  it("keeps retryable server failures unsettled", () => {
+  it("keeps local progress on claim conflicts and retryable failures", () => {
+    expect(isGuestMergeSettled({ ok: false, status: 409 })).toBe(false);
     expect(isGuestMergeSettled({ ok: false, status: 500 })).toBe(false);
     expect(isGuestMergeSettled({ ok: false, status: 503 })).toBe(false);
   });

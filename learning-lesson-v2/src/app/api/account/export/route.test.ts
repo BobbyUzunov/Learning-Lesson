@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   membershipEq: vi.fn(),
   mentorOrder: vi.fn(),
   hasSupabaseEnv: vi.fn(() => true),
-  consumeRateLimit: vi.fn(() => Promise.resolve(true))
+  consumeRateLimit: vi.fn(() => Promise.resolve("allowed"))
 }));
 
 vi.mock("@/lib/supabase/env", () => ({ hasSupabaseEnv: mocks.hasSupabaseEnv }));
@@ -69,7 +69,7 @@ describe("GET /api/account/export", () => {
     mocks.assignmentEq.mockResolvedValue({ data: [], error: null });
     mocks.membershipEq.mockResolvedValue({ data: [{ classroom_id: "class-1" }], error: null });
     mocks.mentorOrder.mockResolvedValue({ data: [], error: null });
-    mocks.consumeRateLimit.mockResolvedValue(true);
+    mocks.consumeRateLimit.mockResolvedValue("allowed");
   });
 
   it("requires authentication", async () => {

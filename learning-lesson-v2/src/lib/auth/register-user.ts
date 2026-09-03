@@ -7,12 +7,8 @@ export type RegisterUserResult = {
   needsEmailConfirmation: boolean;
   resendError?: string | null;
   error?: string | null;
-  errorCode?: "already_registered" | "signup_failed";
+  errorCode?: "signup_failed";
 };
-
-function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
-}
 
 export function isDuplicateSignupError(message: string) {
   const normalized = message.trim().toLowerCase();
@@ -21,31 +17,6 @@ export function isDuplicateSignupError(message: string) {
     normalized.includes("already registered") ||
     normalized.includes("user already registered")
   );
-}
-
-async function findUserByEmail(admin: SupabaseClient, email: string) {
-  const target = normalizeEmail(email);
-  let page = 1;
-
-  while (page <= 10) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
-    if (error) {
-      return { user: null as User | null, error };
-    }
-
-    const user = data.users.find((entry) => normalizeEmail(entry.email ?? "") === target) ?? null;
-    if (user) {
-      return { user, error: null };
-    }
-
-    if (data.users.length < 200) {
-      break;
-    }
-
-    page += 1;
-  }
-
-  return { user: null, error: null };
 }
 
 async function sendSignupConfirmationEmail(
@@ -60,6 +31,10 @@ async function sendSignupConfirmationEmail(
   });
 }
 
+/**
+ * Creates or resumes signup without revealing whether the email already exists.
+ * Duplicate confirmed/unconfirmed accounts all look like a fresh confirmation flow.
+ */
 export async function registerUserWithAdmin(
   admin: SupabaseClient,
   {
@@ -94,36 +69,12 @@ export async function registerUserWithAdmin(
     return { user: null, needsEmailConfirmation: false, error: error.message, errorCode: "signup_failed" };
   }
 
-  const { user: existing, error: lookupError } = await findUserByEmail(admin, email);
-  if (lookupError) {
-    return {
-      user: null,
-      needsEmailConfirmation: false,
-      error: lookupError.message,
-      errorCode: "signup_failed"
-    };
-  }
-
-  if (!existing || existing.email_confirmed_at) {
-    return {
-      user: null,
-      needsEmailConfirmation: false,
-      error: "already_registered",
-      errorCode: "already_registered"
-    };
-  }
-
-  // Never overwrite the password or metadata of an unconfirmed account. A second
-  // person who types the same email must not take over the inbox before confirm.
+  // Do not call listUsers / probe confirmation state — that enables account enumeration.
+  // Best-effort resend helps unconfirmed owners; failures stay server-side only.
   const resend = await sendSignupConfirmationEmail(admin, email, redirectTo);
-  if (resend.error) {
-    return {
-      user: null,
-      needsEmailConfirmation: true,
-      error: resend.error.message,
-      errorCode: "signup_failed"
-    };
-  }
-
-  return { user: null, needsEmailConfirmation: true, resendError: null };
+  return {
+    user: null,
+    needsEmailConfirmation: true,
+    resendError: resend.error?.message ?? null
+  };
 }

@@ -90,7 +90,8 @@ describe("POST /api/assignments/[id]/submit", () => {
     ["assignment_not_found", 404],
     ["deliverable_required", 400],
     ["invalid_deliverable_text", 400],
-    ["invalid_deliverable_url", 400]
+    ["invalid_deliverable_url", 400],
+    ["assignment_closed", 409]
   ])("preserves the expected %s RPC code", async (message, status) => {
     mocks.single.mockResolvedValue({ data: null, error: { message } });
 

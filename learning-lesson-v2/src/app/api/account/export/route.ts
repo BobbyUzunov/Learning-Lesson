@@ -29,7 +29,10 @@ export async function GET(request: Request) {
     `${rateLimitBucketFromRequest(request, "account-export")}:${user.id}`,
     EXPORT_RATE_LIMIT
   );
-  if (!allowed) {
+  if (allowed === "unavailable") {
+    return NextResponse.json({ error: "account_export_unavailable" }, { status: 503 });
+  }
+  if (allowed === "limited") {
     return NextResponse.json({ error: "account_export_rate_limited" }, { status: 429 });
   }
 

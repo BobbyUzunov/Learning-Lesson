@@ -3,27 +3,25 @@ import type { User } from "@supabase/supabase-js";
 export const E2E_USER_ID = "00000000-0000-4000-8000-000000000001";
 export type E2eRole = "user" | "teacher" | "admin";
 
+function isVercelDeployment() {
+  return process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV?.trim());
+}
+
 /**
- * E2E fake auth is allowed only for local/CI test runs.
- * It is always disabled on Vercel production, and on other Vercel
- * deployments unless ALLOW_E2E_FAKE_AUTH=1 is set explicitly.
+ * E2E fake auth is local/CI only.
+ * It is never enabled on any Vercel deployment (production or preview),
+ * even if ALLOW_E2E_FAKE_AUTH or CI is set.
  */
 export function isE2eAuthEnabled() {
   if (process.env.E2E_FAKE_AUTH !== "1") {
     return false;
   }
 
-  if (process.env.VERCEL_ENV === "production") {
+  if (isVercelDeployment()) {
     return false;
   }
 
-  // Local machine (not deployed on Vercel): Playwright `next start` is fine.
-  if (!process.env.VERCEL_ENV) {
-    return true;
-  }
-
-  // Vercel preview/development: require an explicit second switch.
-  return process.env.CI === "true" || process.env.ALLOW_E2E_FAKE_AUTH === "1";
+  return true;
 }
 
 export function parseE2eRole(value: string | undefined): E2eRole {

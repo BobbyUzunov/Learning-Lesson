@@ -36,7 +36,6 @@ const backend: GameQuest = {
 const ada: ClassroomReportRow = {
   studentId: "ada",
   displayName: "Ada",
-  email: "ada@school.bg",
   rosterName: "Ада Ловлейс",
   completedLessons: 3,
   xp: 300,
@@ -48,7 +47,6 @@ const ada: ClassroomReportRow = {
 const bob: ClassroomReportRow = {
   studentId: "bob",
   displayName: "Bob",
-  email: "bob@school.bg",
   rosterName: null,
   completedLessons: 0,
   xp: 0,

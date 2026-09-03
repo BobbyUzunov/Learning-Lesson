@@ -5,14 +5,18 @@ function isProductionRuntime() {
   return process.env.VERCEL_ENV === "production" || process.env.NODE_ENV === "production";
 }
 
-/** Fail fast when production is misconfigured. No-op outside production. */
+function isVercelDeployment() {
+  return process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV?.trim());
+}
+
+/** Fail fast when deployed/production env is misconfigured. */
 export function assertProductionEnv() {
-  if (!isProductionRuntime()) {
-    return;
+  if (isVercelDeployment() && process.env.E2E_FAKE_AUTH === "1") {
+    throw new Error("E2E_FAKE_AUTH must not be enabled on Vercel deployments");
   }
 
-  if (process.env.E2E_FAKE_AUTH === "1") {
-    throw new Error("E2E_FAKE_AUTH must not be enabled in production");
+  if (!isProductionRuntime()) {
+    return;
   }
 
   if (!hasSupabaseAdminEnv()) {

@@ -21,13 +21,15 @@ const submitAssignmentErrors = [
   "not_authorized",
   "deliverable_required",
   "invalid_deliverable_text",
-  "invalid_deliverable_url"
+  "invalid_deliverable_url",
+  "assignment_closed"
 ] as const;
 
 function submitAssignmentErrorStatus(code: string) {
   if (code === "not_authenticated") return 401;
   if (code === "not_authorized") return 403;
   if (code === "assignment_not_found") return 404;
+  if (code === "assignment_closed") return 409;
   if (code === "submission_failed") return 500;
   return 400;
 }

@@ -100,7 +100,10 @@ export async function POST(request: Request) {
     rateLimitBucketFromRequest(request, "guest-claim"),
     GUEST_CLAIM_RATE_LIMIT
   );
-  if (!allowed) {
+  if (allowed === "unavailable") {
+    return NextResponse.json({ error: "guest_claim_unavailable" }, { status: 503 });
+  }
+  if (allowed === "limited") {
     return NextResponse.json({ error: "guest_claim_rate_limited" }, { status: 429 });
   }
 

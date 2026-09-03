@@ -42,7 +42,10 @@ export async function POST(request: Request) {
     `${rateLimitBucketFromRequest(request, "account-delete")}:${user.id}`,
     DELETE_RATE_LIMIT
   );
-  if (!allowed) {
+  if (allowed === "unavailable") {
+    return NextResponse.json({ error: "account_delete_unavailable" }, { status: 503 });
+  }
+  if (allowed === "limited") {
     return NextResponse.json({ error: "account_delete_rate_limited" }, { status: 429 });
   }
 

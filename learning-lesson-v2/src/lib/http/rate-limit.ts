@@ -10,9 +10,11 @@ type BucketState = {
   timestamps: number[];
 };
 
+export type RateLimitDecision = "allowed" | "limited" | "unavailable";
+
 const inMemoryBuckets = new Map<string, BucketState>();
 
-function consumeInMemoryRateLimit(bucket: string, max: number, windowSeconds: number) {
+function consumeInMemoryRateLimit(bucket: string, max: number, windowSeconds: number): RateLimitDecision {
   const now = Date.now();
   const windowMs = windowSeconds * 1000;
   const state = inMemoryBuckets.get(bucket) ?? { timestamps: [] };
@@ -20,21 +22,24 @@ function consumeInMemoryRateLimit(bucket: string, max: number, windowSeconds: nu
 
   if (state.timestamps.length >= max) {
     inMemoryBuckets.set(bucket, state);
-    return false;
+    return "limited";
   }
 
   state.timestamps.push(now);
   inMemoryBuckets.set(bucket, state);
-  return true;
+  return "allowed";
 }
 
-/** Returns true when the request is allowed, false when rate limited. */
-export async function consumeRateLimit(bucket: string, options: RateLimitOptions = {}) {
+/** Returns whether the request is allowed, rate limited, or the limiter backend failed. */
+export async function consumeRateLimit(
+  bucket: string,
+  options: RateLimitOptions = {}
+): Promise<RateLimitDecision> {
   const max = options.max ?? 30;
   const windowSeconds = options.windowSeconds ?? 60;
 
   if (isE2eAuthEnabled()) {
-    return true;
+    return "allowed";
   }
 
   if (hasSupabaseAdminEnv()) {
@@ -46,10 +51,10 @@ export async function consumeRateLimit(bucket: string, options: RateLimitOptions
     });
 
     if (error) {
-      return false;
+      return "unavailable";
     }
 
-    return data === true;
+    return data === true ? "allowed" : "limited";
   }
 
   return consumeInMemoryRateLimit(bucket, max, windowSeconds);

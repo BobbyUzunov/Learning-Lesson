@@ -7,7 +7,7 @@ const { mockCreateAdminClient, mockHasSupabaseAdminEnv, mockRpc, mockSingle, moc
   mockHasSupabaseAdminEnv: vi.fn(() => true),
   mockRpc: vi.fn(),
   mockSingle: vi.fn(),
-  mockConsumeRateLimit: vi.fn(() => Promise.resolve(true))
+  mockConsumeRateLimit: vi.fn(() => Promise.resolve("allowed"))
 }));
 
 vi.mock("@/lib/supabase/admin-env", () => ({

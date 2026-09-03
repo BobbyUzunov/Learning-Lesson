@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   signUp: vi.fn(),
   hasSupabaseEnv: vi.fn(() => true),
   hasSupabaseAdminEnv: vi.fn(() => true),
-  consumeRateLimit: vi.fn(async () => true),
+  consumeRateLimit: vi.fn(async (): Promise<"allowed" | "limited" | "unavailable"> => "allowed"),
   logServerError: vi.fn()
 }));
 
@@ -16,7 +16,8 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: vi.fn(() => ({}))
 }));
 vi.mock("@/lib/auth/register-user", () => ({
-  registerUserWithAdmin: mocks.registerUserWithAdmin
+  registerUserWithAdmin: mocks.registerUserWithAdmin,
+  isDuplicateSignupError: (message: string) => /already been registered|already registered|user already registered/i.test(message)
 }));
 vi.mock("@/lib/observability", () => ({ logServerError: mocks.logServerError }));
 vi.mock("@/lib/http/rate-limit", () => ({ consumeRateLimit: mocks.consumeRateLimit }));
@@ -47,7 +48,7 @@ describe("POST /api/auth/register", () => {
     vi.clearAllMocks();
     mocks.hasSupabaseEnv.mockReturnValue(true);
     mocks.hasSupabaseAdminEnv.mockReturnValue(true);
-    mocks.consumeRateLimit.mockResolvedValue(true);
+    mocks.consumeRateLimit.mockResolvedValue("allowed");
     mocks.registerUserWithAdmin.mockResolvedValue({
       user: { id: "user-1", email: "student@school.bg" },
       needsEmailConfirmation: true,
@@ -59,7 +60,7 @@ describe("POST /api/auth/register", () => {
     });
   });
 
-  it("registers through the admin helper when service role is configured", async () => {
+  it("returns a generic confirmation response without leaking user identity", async () => {
     const response = await POST(request(validSignup));
 
     expect(response.status).toBe(200);
@@ -67,8 +68,7 @@ describe("POST /api/auth/register", () => {
     expect(mocks.signUp).not.toHaveBeenCalled();
     expect(await response.json()).toEqual({
       ok: true,
-      needsEmailConfirmation: true,
-      user: { id: "user-1", email: "student@school.bg" }
+      needsEmailConfirmation: true
     });
   });
 
@@ -90,18 +90,20 @@ describe("POST /api/auth/register", () => {
     });
   });
 
-  it("maps a confirmed duplicate email to already_registered", async () => {
+  it("does not reveal when an email is already registered", async () => {
     mocks.registerUserWithAdmin.mockResolvedValue({
       user: null,
-      needsEmailConfirmation: false,
-      error: "already_registered",
-      errorCode: "already_registered"
+      needsEmailConfirmation: true,
+      resendError: null
     });
 
     const response = await POST(request(validSignup));
 
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ error: "already_registered" });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      ok: true,
+      needsEmailConfirmation: true
+    });
     expect(mocks.logServerError).not.toHaveBeenCalled();
   });
 
@@ -113,6 +115,10 @@ describe("POST /api/auth/register", () => {
     expect(response.status).toBe(200);
     expect(mocks.registerUserWithAdmin).not.toHaveBeenCalled();
     expect(mocks.signUp).toHaveBeenCalled();
+    expect(await response.json()).toEqual({
+      ok: true,
+      needsEmailConfirmation: true
+    });
   });
 
   it("requires privacy consent", async () => {
@@ -154,8 +160,8 @@ describe("POST /api/auth/register", () => {
     expect(mocks.registerUserWithAdmin).not.toHaveBeenCalled();
   });
 
-  it("returns signup_rate_limited when the IP bucket is exhausted", async () => {
-    mocks.consumeRateLimit.mockResolvedValue(false);
+  it("returns signup_rate_limited when a bucket is exhausted", async () => {
+    mocks.consumeRateLimit.mockResolvedValueOnce("allowed").mockResolvedValueOnce("limited");
 
     const response = await POST(request(validSignup));
 
@@ -163,5 +169,15 @@ describe("POST /api/auth/register", () => {
     expect(await response.json()).toEqual({ error: "signup_rate_limited" });
     expect(mocks.registerUserWithAdmin).not.toHaveBeenCalled();
     expect(mocks.signUp).not.toHaveBeenCalled();
+  });
+
+  it("returns signup_unavailable when the rate limiter backend fails", async () => {
+    mocks.consumeRateLimit.mockResolvedValue("unavailable");
+
+    const response = await POST(request(validSignup));
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "signup_unavailable" });
+    expect(mocks.registerUserWithAdmin).not.toHaveBeenCalled();
   });
 });

@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   deleteUser: vi.fn(),
   hasSupabaseEnv: vi.fn(() => true),
   hasSupabaseAdminEnv: vi.fn(() => true),
-  consumeRateLimit: vi.fn(() => Promise.resolve(true))
+  consumeRateLimit: vi.fn(() => Promise.resolve("allowed"))
 }));
 
 vi.mock("@/lib/supabase/env", () => ({ hasSupabaseEnv: mocks.hasSupabaseEnv }));
@@ -79,7 +79,7 @@ describe("/api/account/delete", () => {
     mocks.profileMaybeSingle.mockResolvedValue({ data: { role: "user" }, error: null });
     mocks.classroomsLimit.mockResolvedValue({ data: [], error: null });
     mocks.coTeachersLimit.mockResolvedValue({ data: [], error: null });
-    mocks.consumeRateLimit.mockResolvedValue(true);
+    mocks.consumeRateLimit.mockResolvedValue("allowed");
     mocks.deleteUser.mockResolvedValue({ error: null });
   });
 

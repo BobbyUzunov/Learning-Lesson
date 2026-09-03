@@ -50,7 +50,11 @@ export function SubmitAssignmentForm({
       });
       const payload = (await response.json()) as { error?: string };
       if (!response.ok) {
-        setError(payload.error ?? copy.submitError);
+        setError(
+          payload.error === "assignment_closed"
+            ? copy.assignmentClosed
+            : (payload.error ?? copy.submitError)
+        );
         return;
       }
       setSuccess(true);

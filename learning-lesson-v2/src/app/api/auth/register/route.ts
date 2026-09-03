@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { isSignupPasswordValid } from "@/lib/auth-password";
 import { isValidDisplayName } from "@/lib/display-name";
 import { isDuplicateSignupError, registerUserWithAdmin } from "@/lib/auth/register-user";
-import { rateLimitBucketFromRequest } from "@/lib/http/client-ip";
+import { hashClientIp, rateLimitBucketFromRequest } from "@/lib/http/client-ip";
 import { readJsonObject } from "@/lib/http";
 import { consumeRateLimit } from "@/lib/http/rate-limit";
 import { logServerError } from "@/lib/observability";
@@ -11,8 +11,13 @@ import { hasSupabaseAdminEnv } from "@/lib/supabase/admin-env";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
-const SIGNUP_RATE_LIMIT = {
+const SIGNUP_IP_RATE_LIMIT = {
   max: 20,
+  windowSeconds: 60 * 60
+} as const;
+
+const SIGNUP_EMAIL_RATE_LIMIT = {
+  max: 5,
   windowSeconds: 60 * 60
 } as const;
 
@@ -33,14 +38,14 @@ function buildSignupMetadata(
   };
 }
 
+/** Same shape for created / unconfirmed / already-registered — no account enumeration. */
+function genericSignupSuccess() {
+  return NextResponse.json({ ok: true, needsEmailConfirmation: true });
+}
+
 export async function POST(request: Request) {
   if (!hasSupabaseEnv()) {
     return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
-  }
-
-  const allowed = await consumeRateLimit(rateLimitBucketFromRequest(request, "signup"), SIGNUP_RATE_LIMIT);
-  if (!allowed) {
-    return NextResponse.json({ error: "signup_rate_limited" }, { status: 429 });
   }
 
   const body = await readJsonObject(request);
@@ -65,6 +70,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_display_name" }, { status: 400 });
   }
 
+  const emailBucket = `signup-email:${hashClientIp(email.toLowerCase())}`;
+  const [ipDecision, emailDecision] = await Promise.all([
+    consumeRateLimit(rateLimitBucketFromRequest(request, "signup"), SIGNUP_IP_RATE_LIMIT),
+    consumeRateLimit(emailBucket, SIGNUP_EMAIL_RATE_LIMIT)
+  ]);
+
+  if (ipDecision === "unavailable" || emailDecision === "unavailable") {
+    return NextResponse.json({ error: "signup_unavailable" }, { status: 503 });
+  }
+
+  if (ipDecision === "limited" || emailDecision === "limited") {
+    return NextResponse.json({ error: "signup_rate_limited" }, { status: 429 });
+  }
+
   const origin = new URL(request.url).origin;
   const metadata = buildSignupMetadata(email, displayName, accountRole);
   const redirectTo = `${origin}/auth/callback?next=/verify-email`;
@@ -78,10 +97,6 @@ export async function POST(request: Request) {
       metadata,
       redirectTo
     });
-
-    if (result.error && result.errorCode === "already_registered") {
-      return NextResponse.json({ error: "already_registered" }, { status: 400 });
-    }
 
     if (result.error) {
       logServerError("signup_failed", {
@@ -97,20 +112,11 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({
-      ok: true,
-      needsEmailConfirmation: result.needsEmailConfirmation,
-      user: result.user
-        ? {
-            id: result.user.id,
-            email: result.user.email
-          }
-        : null
-    });
+    return genericSignupSuccess();
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -120,21 +126,13 @@ export async function POST(request: Request) {
   });
 
   if (error) {
+    if (isDuplicateSignupError(error.message)) {
+      return genericSignupSuccess();
+    }
+
     logServerError("signup_failed", { channel: "public", detail: error.message.slice(0, 200) });
-    return NextResponse.json(
-      { error: isDuplicateSignupError(error.message) ? "already_registered" : "signup_failed" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "signup_failed" }, { status: 400 });
   }
 
-  return NextResponse.json({
-    ok: true,
-    needsEmailConfirmation: !data.session,
-    user: data.user
-      ? {
-          id: data.user.id,
-          email: data.user.email
-        }
-      : null
-  });
+  return genericSignupSuccess();
 }

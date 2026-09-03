@@ -17,7 +17,6 @@ function student(overrides: Partial<ClassroomReportRow> = {}): ClassroomReportRo
   return {
     studentId: "s1",
     displayName: "Ada",
-    email: "ada@school.bg",
     rosterName: "Ada Lovelace",
     completedLessons: 4,
     xp: 400,
@@ -95,7 +94,7 @@ describe("buildClassroomGradebook", () => {
       classroomId: "c1",
       language: "en",
       labels,
-      students: [student(), student({ studentId: "s2", displayName: "Bob", rosterName: null, email: "bob@school.bg" })],
+      students: [student(), student({ studentId: "s2", displayName: "Bob", rosterName: null })],
       assignments: [assignment()],
       assessments: [assessment()],
       assignmentReports: { a1: assignmentRows },

@@ -40,11 +40,10 @@ describe("classroom mappers", () => {
     });
   });
 
-  it("maps a report RPC row with email and roster name", () => {
+  it("maps a report RPC row with roster name and without email", () => {
     const rpcRow: ClassroomReportRpcRow = {
       student_id: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
       display_name: "Ivan",
-      email: "ivan@school.bg",
       roster_name: "Иван Петров",
       completed_lessons: 5,
       xp: 500,
@@ -55,7 +54,6 @@ describe("classroom mappers", () => {
     expect(mapClassroomReportRow(rpcRow)).toEqual({
       studentId: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
       displayName: "Ivan",
-      email: "ivan@school.bg",
       rosterName: "Иван Петров",
       completedLessons: 5,
       xp: 500,
@@ -63,6 +61,7 @@ describe("classroom mappers", () => {
       lastVisit: "2026-07-24",
       joinedAt: "2026-07-20T09:00:00Z"
     });
+    expect(mapClassroomReportRow(rpcRow)).not.toHaveProperty("email");
     expect(shortStudentId(rpcRow.student_id)).toBe("AAAAAAAA");
   });
 });
@@ -73,7 +72,6 @@ describe("summarizeClassroomReport", () => {
     {
       studentId: "a",
       displayName: "A",
-      email: "a@school.bg",
       rosterName: null,
       completedLessons: 4,
       xp: 400,
@@ -84,7 +82,6 @@ describe("summarizeClassroomReport", () => {
     {
       studentId: "b",
       displayName: "B",
-      email: "b@school.bg",
       rosterName: "Bobby",
       completedLessons: 2,
       xp: 200,
