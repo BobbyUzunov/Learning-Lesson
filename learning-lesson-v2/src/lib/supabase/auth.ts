@@ -73,11 +73,11 @@ async function loadCurrentSession() {
 
 export const getCurrentSession = cache(loadCurrentSession);
 
-export async function requireUser(message = "Please login to continue your learning journey.") {
+export async function requireUser(messageKey: "login_required" = "login_required") {
   const session = await getCurrentSession();
 
   if (!session.user) {
-    redirect(`/login?message=${encodeURIComponent(message)}`);
+    redirect(`/login?message=${messageKey}`);
   }
 
   return session as Awaited<ReturnType<typeof getCurrentSession>> & {

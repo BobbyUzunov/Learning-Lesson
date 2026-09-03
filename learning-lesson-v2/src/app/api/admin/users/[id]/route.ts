@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { getUserDeletionBlockReason } from "@/lib/admin/user-deletion";
+import { deleteAuthUserOrOrphanProfile, getUserDeletionBlockReason } from "@/lib/admin/user-deletion";
 import { readJsonObject } from "@/lib/http";
 import { logServerError } from "@/lib/observability";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -67,9 +67,9 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     return NextResponse.json({ error: blockReason }, { status: deleteUserErrorStatus(blockReason) });
   }
 
-  const { error } = await createAdminClient().auth.admin.deleteUser(id);
-  if (error) {
-    logServerError("admin_delete_user_failed", { userId: id, detail: error.message.slice(0, 200) });
+  const deleted = await deleteAuthUserOrOrphanProfile(createAdminClient(), id);
+  if (!deleted.ok) {
+    logServerError("admin_delete_user_failed", { userId: id, detail: deleted.detail.slice(0, 200) });
     return NextResponse.json({ error: "user_delete_failed" }, { status: 500 });
   }
 

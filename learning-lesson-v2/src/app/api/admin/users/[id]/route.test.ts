@@ -8,6 +8,8 @@ const mocks = vi.hoisted(() => ({
   hasSupabaseAdminEnv: vi.fn(() => true),
   logServerError: vi.fn(),
   maybeSingle: vi.fn(),
+  profilesDeleteEq: vi.fn(),
+  purgeOrphanedProfile: vi.fn(),
   requireAdminUser: vi.fn(),
   revalidatePath: vi.fn()
 }));
@@ -55,8 +57,26 @@ describe("DELETE /api/admin/users/[id]", () => {
       })
     });
     mocks.maybeSingle.mockResolvedValue({ data: { id: "user-1", role: "user" }, error: null });
+    mocks.profilesDeleteEq.mockResolvedValue({ error: null });
+    mocks.purgeOrphanedProfile.mockResolvedValue({ error: null });
     mocks.createAdminClient.mockReturnValue({
-      auth: { admin: { deleteUser: mocks.deleteUser } }
+      auth: { admin: { deleteUser: mocks.deleteUser } },
+      rpc: (name: string, args: unknown) => {
+        if (name === "purge_orphaned_profile") {
+          return mocks.purgeOrphanedProfile(args);
+        }
+        throw new Error(`Unexpected rpc ${name}`);
+      },
+      from: (table: string) => {
+        if (table === "profiles") {
+          return {
+            delete: () => ({
+              eq: mocks.profilesDeleteEq
+            })
+          };
+        }
+        throw new Error(`Unexpected admin table ${table}`);
+      }
     });
     mocks.deleteUser.mockResolvedValue({ error: null });
   });
@@ -135,5 +155,16 @@ describe("DELETE /api/admin/users/[id]", () => {
     expect(response.status).toBe(409);
     expect(await response.json()).toEqual({ error: "teacher_has_classrooms" });
     expect(mocks.deleteUser).not.toHaveBeenCalled();
+  });
+
+  it("clears an orphaned profile when Auth already has no user", async () => {
+    mocks.deleteUser.mockResolvedValue({ error: { message: "User not found" } });
+
+    const response = await DELETE(request("user-1"), context());
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, userId: "user-1" });
+    expect(mocks.purgeOrphanedProfile).toHaveBeenCalledWith({ p_user_id: "user-1" });
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/admin/teachers");
   });
 });

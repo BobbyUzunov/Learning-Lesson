@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LoginForm } from "@/components/login-form";
+import { resolveLoginMessage } from "@/lib/auth/login-messages";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 
@@ -12,12 +13,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const copy = t(language);
   const { message, redirect } = await searchParams;
   const redirectPath = redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : "/dashboard";
-  const displayMessage =
-    message === "admin_allowlist"
-      ? copy.admin.allowlistMessage
-      : message
-        ? message
-        : null;
+  const displayMessage = resolveLoginMessage(message, copy);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:py-10">

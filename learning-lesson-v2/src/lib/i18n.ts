@@ -1017,7 +1017,9 @@ const dictionary = {
       updatePassword: "Обнови паролата",
       mismatch: "Паролите не съвпадат.",
       resetSuccess: "Паролата е обновена. Пренасочвам към таблото.",
-      sessionRequired: "Линкът е изтекъл или е невалиден. Поискай нов reset линк."
+      sessionRequired: "Линкът е изтекъл или е невалиден. Поискай нов reset линк.",
+      loginRequiredMessage: "Влез в профила си, за да продължиш.",
+      accountDeletedMessage: "Акаунтът ти беше изтрит. Можеш да създадеш нов профил."
     },
     lesson: {
       stagesLabel: "Етапи на урока",
@@ -2304,7 +2306,9 @@ const dictionary = {
       updatePassword: "Update password",
       mismatch: "Passwords do not match.",
       resetSuccess: "Password updated. Redirecting to dashboard.",
-      sessionRequired: "This reset link is invalid or expired. Request a new one."
+      sessionRequired: "This reset link is invalid or expired. Request a new one.",
+      loginRequiredMessage: "Please sign in to continue.",
+      accountDeletedMessage: "Your account was deleted. You can create a new profile."
     },
     lesson: {
       stagesLabel: "Lesson stages",

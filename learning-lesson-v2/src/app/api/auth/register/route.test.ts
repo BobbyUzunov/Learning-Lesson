@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   signUp: vi.fn(),
   hasSupabaseEnv: vi.fn(() => true),
   hasSupabaseAdminEnv: vi.fn(() => true),
+  consumeRateLimit: vi.fn(async () => true),
   logServerError: vi.fn()
 }));
 
@@ -18,6 +19,7 @@ vi.mock("@/lib/auth/register-user", () => ({
   registerUserWithAdmin: mocks.registerUserWithAdmin
 }));
 vi.mock("@/lib/observability", () => ({ logServerError: mocks.logServerError }));
+vi.mock("@/lib/http/rate-limit", () => ({ consumeRateLimit: mocks.consumeRateLimit }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
     auth: { signUp: mocks.signUp }
@@ -45,6 +47,7 @@ describe("POST /api/auth/register", () => {
     vi.clearAllMocks();
     mocks.hasSupabaseEnv.mockReturnValue(true);
     mocks.hasSupabaseAdminEnv.mockReturnValue(true);
+    mocks.consumeRateLimit.mockResolvedValue(true);
     mocks.registerUserWithAdmin.mockResolvedValue({
       user: { id: "user-1", email: "student@school.bg" },
       needsEmailConfirmation: true,
@@ -149,5 +152,16 @@ describe("POST /api/auth/register", () => {
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error: "invalid_display_name" });
     expect(mocks.registerUserWithAdmin).not.toHaveBeenCalled();
+  });
+
+  it("returns signup_rate_limited when the IP bucket is exhausted", async () => {
+    mocks.consumeRateLimit.mockResolvedValue(false);
+
+    const response = await POST(request(validSignup));
+
+    expect(response.status).toBe(429);
+    expect(await response.json()).toEqual({ error: "signup_rate_limited" });
+    expect(mocks.registerUserWithAdmin).not.toHaveBeenCalled();
+    expect(mocks.signUp).not.toHaveBeenCalled();
   });
 });

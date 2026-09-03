@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAccountDeletePhrase } from "@/lib/account/delete-confirmation";
-import { getUserDeletionBlockReason } from "@/lib/admin/user-deletion";
+import { deleteAuthUserOrOrphanProfile, getUserDeletionBlockReason } from "@/lib/admin/user-deletion";
 import { rateLimitBucketFromRequest } from "@/lib/http/client-ip";
 import { readJsonObject } from "@/lib/http";
 import { consumeRateLimit } from "@/lib/http/rate-limit";
@@ -66,9 +66,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: blockReason }, { status: 403 });
   }
 
-  const { error } = await createAdminClient().auth.admin.deleteUser(user.id);
-  if (error) {
-    logServerError("account_delete_failed", { userId: user.id, detail: error.message.slice(0, 200) });
+  const deleted = await deleteAuthUserOrOrphanProfile(createAdminClient(), user.id);
+  if (!deleted.ok) {
+    logServerError("account_delete_failed", { userId: user.id, detail: deleted.detail.slice(0, 200) });
     return NextResponse.json({ error: "account_delete_failed" }, { status: 500 });
   }
 

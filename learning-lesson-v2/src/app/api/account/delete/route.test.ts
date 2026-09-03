@@ -17,7 +17,13 @@ vi.mock("@/lib/supabase/admin-env", () => ({ hasSupabaseAdminEnv: mocks.hasSupab
 vi.mock("@/lib/http/rate-limit", () => ({ consumeRateLimit: mocks.consumeRateLimit }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
-    auth: { admin: { deleteUser: mocks.deleteUser } }
+    auth: { admin: { deleteUser: mocks.deleteUser } },
+    rpc: vi.fn(async () => ({ error: null })),
+    from: vi.fn(() => ({
+      delete: () => ({
+        eq: vi.fn(async () => ({ error: null }))
+      })
+    }))
   })
 }));
 vi.mock("@/lib/supabase/server", () => ({

@@ -44,3 +44,39 @@ export async function getUserDeletionBlockReason(
 
   return null;
 }
+
+export function isAuthUserMissingError(message: string | undefined) {
+  return Boolean(message && /user not found/i.test(message));
+}
+
+/**
+ * Removes an auth user. If Auth already has no row for the id (orphaned
+ * public.profiles row), purge the profile so the Roles page can clear it.
+ */
+export async function deleteAuthUserOrOrphanProfile(
+  admin: SupabaseClient,
+  userId: string
+): Promise<{ ok: true } | { ok: false; detail: string }> {
+  const { error } = await admin.auth.admin.deleteUser(userId);
+
+  if (!error) {
+    return { ok: true };
+  }
+
+  if (!isAuthUserMissingError(error.message)) {
+    return { ok: false, detail: error.message };
+  }
+
+  const { error: purgeError } = await admin.rpc("purge_orphaned_profile", { p_user_id: userId });
+  if (!purgeError) {
+    return { ok: true };
+  }
+
+  // Fallback when the purge RPC is not migrated yet: direct profile delete.
+  const { error: profileError } = await admin.from("profiles").delete().eq("id", userId);
+  if (profileError) {
+    return { ok: false, detail: profileError.message || purgeError.message };
+  }
+
+  return { ok: true };
+}
