@@ -6,11 +6,15 @@ describe("assertProductionEnv", () => {
     vi.unstubAllEnvs();
   });
 
-  it("is a no-op outside production when fake auth is off", () => {
-    vi.stubEnv("NODE_ENV", "development");
+  it("is a no-op for local CI next start without Vercel", () => {
+    vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("VERCEL", "");
     vi.stubEnv("VERCEL_ENV", "");
-    vi.stubEnv("E2E_FAKE_AUTH", "");
+    vi.stubEnv("E2E_FAKE_AUTH", "1");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
+    vi.stubEnv("SUPABASE_SECRET_KEY", "");
+    vi.stubEnv("ADMIN_EMAIL_ALLOWLIST", "");
+
     expect(() => assertProductionEnv()).not.toThrow();
   });
 
@@ -26,7 +30,7 @@ describe("assertProductionEnv", () => {
     expect(() => assertProductionEnv()).toThrow(/E2E_FAKE_AUTH/);
   });
 
-  it("requires admin secret key in production", () => {
+  it("requires admin secret key on Vercel production", () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("VERCEL_ENV", "production");
     vi.stubEnv("E2E_FAKE_AUTH", "");
@@ -37,7 +41,7 @@ describe("assertProductionEnv", () => {
     expect(() => assertProductionEnv()).toThrow(/SUPABASE_SECRET_KEY/);
   });
 
-  it("requires admin allowlist in production", () => {
+  it("requires admin allowlist on Vercel production", () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("VERCEL_ENV", "production");
     vi.stubEnv("E2E_FAKE_AUTH", "");
@@ -48,7 +52,7 @@ describe("assertProductionEnv", () => {
     expect(() => assertProductionEnv()).toThrow(/ADMIN_EMAIL_ALLOWLIST/);
   });
 
-  it("passes when production env is configured", () => {
+  it("passes when Vercel production env is configured", () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("VERCEL_ENV", "production");
     vi.stubEnv("E2E_FAKE_AUTH", "");
