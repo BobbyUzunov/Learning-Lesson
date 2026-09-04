@@ -79,7 +79,7 @@ export default async function HomePage() {
             />
           ))}
 
-          <div className="relative mx-auto flex min-h-[calc(100dvh-4rem)] max-w-3xl flex-col justify-center px-4 py-14 sm:py-16">
+          <div className="relative mx-auto flex min-h-[calc(100dvh-var(--site-header-height,4.5rem))] max-w-3xl flex-col justify-center px-4 py-14 sm:py-16">
             <div className="relative w-fit">
               {sparks.map((spark, index) => (
                 <span

@@ -6,6 +6,7 @@
   color-scheme: light;
   background: #f7f5ef;
   color: #17212b;
+  --site-header-height: 4.5rem;
 }
 
 * {
@@ -13,8 +14,10 @@
 }
 
 body {
-  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100dvh;
   margin: 0;
+  overflow: hidden;
   overflow-x: clip;
   background:
     linear-gradient(135deg, rgba(47, 191, 143, 0.14), transparent 28rem),
@@ -22,6 +25,17 @@ body {
     #f7f5ef;
   color: #17212b;
   font-family: var(--font-body), "Segoe UI", sans-serif;
+}
+
+#site-scroll {
+  overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+#site-scroll:focus {
+  outline: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

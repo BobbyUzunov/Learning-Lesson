@@ -84,22 +84,28 @@ export default async function RootLayout({
   return (
     <html className={`${displayFont.variable} ${bodyFont.variable}`} lang={language}>
       <body>
-        <SiteHeader
-          brand={copy.nav.brand}
-          brandHref={brandHref}
-          closeMenuLabel={copy.nav.closeMenu}
-          isAuthenticated={Boolean(session.user)}
-          language={language}
-          loginLabel={copy.nav.login}
-          registerLabel={copy.nav.register}
-          logoutLabel={copy.nav.logout}
-          menuLabel={copy.nav.openMenu}
-          navItems={navItems}
-          role={role}
-          roleLabel={roleLabel}
-        />
-        {children}
-        <SiteFooter language={language} />
+        <div className="flex h-dvh min-h-0 flex-col">
+          <SiteHeader
+            brand={copy.nav.brand}
+            brandHref={brandHref}
+            closeMenuLabel={copy.nav.closeMenu}
+            isAuthenticated={Boolean(session.user)}
+            language={language}
+            loginLabel={copy.nav.login}
+            registerLabel={copy.nav.register}
+            logoutLabel={copy.nav.logout}
+            menuLabel={copy.nav.openMenu}
+            navItems={navItems}
+            role={role}
+            roleLabel={roleLabel}
+          />
+          <div className="flex min-h-0 flex-1 flex-col" id="site-scroll" tabIndex={-1}>
+            <div className="flex min-h-full flex-1 flex-col">
+              <div className="flex-1">{children}</div>
+              <SiteFooter language={language} />
+            </div>
+          </div>
+        </div>
       </body>
     </html>
   );

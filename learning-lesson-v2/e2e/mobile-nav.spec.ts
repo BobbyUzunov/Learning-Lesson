@@ -4,14 +4,15 @@ async function expectMenuClosed(page: import("@playwright/test").Page) {
   await expect(page.getByTestId("mobile-menu-panel")).toHaveCount(0);
   await expect
     .poll(async () =>
-      page.evaluate(
-        () =>
+      page.evaluate(() => {
+        const scroller = document.getElementById("site-scroll");
+        return (
           !document.body.classList.contains("mobile-menu-open") &&
           !document.documentElement.classList.contains("mobile-menu-open") &&
-          document.body.style.position !== "fixed" &&
-          document.body.style.overflow === "" &&
-          document.documentElement.style.overflow === ""
-      )
+          scroller?.dataset.scrollLocked !== "1" &&
+          (scroller ? getComputedStyle(scroller).overflowY !== "hidden" : true)
+        );
+      })
     )
     .toBe(true);
 }
@@ -34,7 +35,12 @@ test("mobile menu opens, locks scroll, and closes", async ({ page }) => {
   await expect(panel.getByRole("link", { name: /login|вход/i })).toBeVisible();
 
   await expect
-    .poll(async () => page.evaluate(() => document.body.style.position === "fixed"))
+    .poll(async () =>
+      page.evaluate(() => {
+        const scroller = document.getElementById("site-scroll");
+        return scroller?.dataset.scrollLocked === "1" || getComputedStyle(scroller!).overflow === "hidden";
+      })
+    )
     .toBe(true);
 
   await page.mouse.wheel(0, 800);

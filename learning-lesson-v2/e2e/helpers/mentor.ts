@@ -82,7 +82,14 @@ export async function openAssignmentMentor(page: Page) {
   await page.goto("/assignments/e2e-assignment");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByRole("main").getByText(/AI mentor|AI наставник/i)).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: /help me get started|помогни ми да започна/i })
-  ).toBeVisible();
+
+  const cta = page.getByTestId("mentor-primary-cta");
+  if (!(await cta.isVisible())) {
+    await page
+      .getByRole("button", { name: /AI mentor|AI наставник/i })
+      .first()
+      .click();
+  }
+
+  await expect(cta).toBeVisible();
 }

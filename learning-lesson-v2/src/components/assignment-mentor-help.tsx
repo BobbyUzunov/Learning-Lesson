@@ -190,7 +190,7 @@ export function AssignmentMentorHelp({
   }
 
   return (
-    <section className="mt-4 rounded-xl border border-violet/20 bg-violet/5 p-4">
+    <section className="mt-4 scroll-mt-4 rounded-xl border border-violet/20 bg-violet/5 p-4" data-testid="mentor-panel">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
         <button
           className="flex min-h-11 flex-1 items-center gap-2 text-left text-sm font-bold text-ink sm:pointer-events-none"
@@ -236,6 +236,7 @@ export function AssignmentMentorHelp({
 
             <button
               className="focus-ring mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-bold text-paper transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"
+              data-testid="mentor-primary-cta"
               disabled={!canAsk}
               onClick={() => void askMentor(primaryMode)}
               type="button"

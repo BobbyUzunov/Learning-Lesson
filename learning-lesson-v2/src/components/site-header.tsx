@@ -22,22 +22,25 @@ const roleBadgeStyles = {
 let activeLocks = 0;
 let lockedScrollY = 0;
 
+function getSiteScroller() {
+  return document.getElementById("site-scroll");
+}
+
 function lockScroll() {
   const html = document.documentElement;
   const body = document.body;
+  const scroller = getSiteScroller();
   if (activeLocks === 0) {
-    lockedScrollY = window.scrollY;
+    lockedScrollY = scroller?.scrollTop ?? window.scrollY;
     html.classList.add("mobile-menu-open");
     body.classList.add("mobile-menu-open");
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
-    html.style.overscrollBehavior = "none";
-    body.style.overscrollBehavior = "none";
-    body.style.position = "fixed";
-    body.style.top = `-${lockedScrollY}px`;
-    body.style.left = "0";
-    body.style.right = "0";
-    body.style.width = "100%";
+    if (scroller) {
+      scroller.dataset.scrollLocked = "1";
+      scroller.style.overflow = "hidden";
+    } else {
+      html.style.overflow = "hidden";
+      body.style.overflow = "hidden";
+    }
   }
   activeLocks += 1;
 }
@@ -53,18 +56,18 @@ function unlockScroll() {
 
   const html = document.documentElement;
   const body = document.body;
+  const scroller = getSiteScroller();
   html.classList.remove("mobile-menu-open");
   body.classList.remove("mobile-menu-open");
-  html.style.removeProperty("overflow");
-  body.style.removeProperty("overflow");
-  html.style.removeProperty("overscroll-behavior");
-  body.style.removeProperty("overscroll-behavior");
-  body.style.removeProperty("position");
-  body.style.removeProperty("top");
-  body.style.removeProperty("left");
-  body.style.removeProperty("right");
-  body.style.removeProperty("width");
-  window.scrollTo(0, lockedScrollY);
+  if (scroller) {
+    scroller.style.removeProperty("overflow");
+    delete scroller.dataset.scrollLocked;
+    scroller.scrollTop = lockedScrollY;
+  } else {
+    html.style.removeProperty("overflow");
+    body.style.removeProperty("overflow");
+    window.scrollTo(0, lockedScrollY);
+  }
 }
 
 export function SiteHeader({
@@ -99,11 +102,36 @@ export function SiteHeader({
   const panelId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const badgeTone = role ? roleBadgeStyles[role] : "border-ink/15 bg-ink/5 text-ink/75";
 
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    function publishHeight() {
+      const node = headerRef.current;
+      if (!node) {
+        return;
+      }
+      const height = node.getBoundingClientRect().height;
+      document.documentElement.style.setProperty("--site-header-height", `${Math.ceil(height)}px`);
+    }
+
+    publishHeight();
+    const node = headerRef.current;
+    if (!node) {
+      return;
+    }
+    const observer = new ResizeObserver(publishHeight);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [open, roleLabel]);
 
   useEffect(() => {
     if (!open) {
@@ -170,7 +198,11 @@ export function SiteHeader({
           onPointerDown={() => setOpen(false)}
         />
       ) : null}
-      <header className="sticky top-0 z-50 border-b border-ink/10 bg-paper/90 pt-[env(safe-area-inset-top)] backdrop-blur">
+      <header
+        className="z-50 shrink-0 border-b border-ink/10 bg-paper/95 pt-[env(safe-area-inset-top)] backdrop-blur"
+        data-testid="site-header"
+        ref={headerRef}
+      >
         <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
             <Link
