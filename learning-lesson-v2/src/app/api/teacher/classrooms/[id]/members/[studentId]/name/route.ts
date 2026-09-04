@@ -59,6 +59,8 @@ export async function POST(
 
   revalidatePath(`/teacher/classes/${id}`);
   revalidatePath("/teacher/classes");
+  revalidatePath("/dashboard");
+  revalidatePath("/profile");
 
   return NextResponse.json({
     ok: true,

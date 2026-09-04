@@ -3,6 +3,7 @@ import {
   mapClassroomReportRow,
   mapClassroomRow,
   shortStudentId,
+  studentVisibleName,
   summarizeClassroomReport,
   type ClassroomReportRow,
   type ClassroomReportRpcRow,
@@ -63,6 +64,30 @@ describe("classroom mappers", () => {
     });
     expect(mapClassroomReportRow(rpcRow)).not.toHaveProperty("email");
     expect(shortStudentId(rpcRow.student_id)).toBe("AAAAAAAA");
+  });
+
+  it("uses one visible name with profile display name as source of truth", () => {
+    expect(
+      studentVisibleName({
+        studentId: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+        displayName: "Богдан Наков",
+        rosterName: "Иван Петров"
+      })
+    ).toBe("Богдан Наков");
+    expect(
+      studentVisibleName({
+        studentId: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+        displayName: null,
+        rosterName: "Иван Петров"
+      })
+    ).toBe("Иван Петров");
+    expect(
+      studentVisibleName({
+        studentId: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+        displayName: null,
+        rosterName: null
+      })
+    ).toBe("AAAAAAAA");
   });
 });
 

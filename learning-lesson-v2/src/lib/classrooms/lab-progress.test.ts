@@ -70,7 +70,7 @@ describe("classroom lab progress", () => {
 
     expect(progress.courses.map((course) => course.title)).toEqual(["Frontend курс", "Backend курс"]);
     expect(progress.rows[0]).toMatchObject({
-      name: "Ада Ловлейс",
+      name: "Ada",
       lastLabAt: "2026-08-20T08:00:00.000Z",
       strongest: { courseId: "frontend", title: "Frontend курс", percent: 100 }
     });
@@ -114,7 +114,7 @@ describe("classroom lab progress", () => {
       notStartedLabel: "—"
     });
 
-    expect(csv).toContain("Ада Ловлейс");
+    expect(csv).toContain("Ada");
     expect(csv).not.toContain("@school.bg");
     expect(csv).toContain("Frontend Course 50%");
     expect(labProgressCsvFilename("8A Software / Пилот")).toBe("labs-8A-Software-Пилот.csv");

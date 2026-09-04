@@ -1,5 +1,5 @@
 import type { ClassroomReportRow } from "./types";
-import { shortStudentId } from "./types";
+import { studentVisibleName } from "./types";
 import type { GameQuest } from "@/lib/game-data";
 import type { Language } from "@/lib/language";
 import { localizeGameQuest } from "@/lib/i18n";
@@ -48,7 +48,7 @@ export type ClassroomLabProgress = {
 };
 
 function studentName(row: ClassroomReportRow) {
-  return row.rosterName?.trim() || row.displayName?.trim() || shortStudentId(row.studentId);
+  return studentVisibleName(row);
 }
 
 function courseStatus(completed: number, total: number): LabCourseStatus {

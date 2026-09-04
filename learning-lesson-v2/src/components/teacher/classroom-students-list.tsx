@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Pencil, X } from "lucide-react";
 import { t, type Language } from "@/lib/i18n";
-import { shortStudentId, type ClassroomReportRow } from "@/lib/classrooms/types";
+import { studentVisibleName, type ClassroomReportRow } from "@/lib/classrooms/types";
 
 export function ClassroomStudentsList({
   classroomId,
@@ -24,7 +24,7 @@ export function ClassroomStudentsList({
 
   function startEdit(row: ClassroomReportRow) {
     setEditingId(row.studentId);
-    setDraftName(row.rosterName?.trim() || row.displayName?.trim() || "");
+    setDraftName(studentVisibleName(row));
     setError(null);
   }
 
@@ -70,7 +70,7 @@ export function ClassroomStudentsList({
       <ul className="overflow-hidden rounded-2xl border border-ink/10 bg-white/75">
         {rows.map((row, index) => {
           const isEditing = editingId === row.studentId;
-          const label = row.rosterName?.trim() || row.displayName?.trim() || shortStudentId(row.studentId);
+          const label = studentVisibleName(row);
 
           return (
             <li
@@ -121,14 +121,7 @@ export function ClassroomStudentsList({
                     </button>
                   </div>
                 ) : (
-                  <>
-                    <p className="truncate font-semibold text-ink/85">{label}</p>
-                    {row.rosterName?.trim() &&
-                    row.displayName?.trim() &&
-                    row.rosterName.trim() !== row.displayName.trim() ? (
-                      <p className="truncate text-xs text-ink/40">{row.displayName.trim()}</p>
-                    ) : null}
-                  </>
+                  <p className="truncate font-semibold text-ink/85">{label}</p>
                 )}
               </div>
 

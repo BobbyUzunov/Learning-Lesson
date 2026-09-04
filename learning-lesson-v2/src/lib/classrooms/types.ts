@@ -74,6 +74,13 @@ export function shortStudentId(studentId: string) {
   return studentId.replace(/-/g, "").slice(0, 8).toUpperCase();
 }
 
+/** Single visible name: profile display name first, then roster mirror, then short id. */
+export function studentVisibleName(
+  row: Pick<ClassroomReportRow, "displayName" | "rosterName" | "studentId">
+) {
+  return row.displayName?.trim() || row.rosterName?.trim() || shortStudentId(row.studentId);
+}
+
 export function mapClassroomRow(row: ClassroomRow, memberCount?: number): Classroom {
   return {
     id: row.id,

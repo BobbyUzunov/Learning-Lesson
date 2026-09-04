@@ -102,7 +102,7 @@ describe("buildClassroomGradebook", () => {
     });
 
     expect(gradebook.columns.map((column) => column.label)).toEqual(["School poster", "HTML check"]);
-    expect(gradebook.rows.map((row) => row.name)).toEqual(["Ada Lovelace", "Bob"]);
+    expect(gradebook.rows.map((row) => row.name)).toEqual(["Ada", "Bob"]);
     expect(JSON.stringify(gradebook)).not.toContain("@school.bg");
     expect(gradebook.rows[0]?.cells["assignment:a1"]).toEqual({ label: "Approved", tone: "ok" });
     expect(gradebook.rows[0]?.cells["assessment:check-1"]).toEqual({ label: "80%", tone: "ok" });

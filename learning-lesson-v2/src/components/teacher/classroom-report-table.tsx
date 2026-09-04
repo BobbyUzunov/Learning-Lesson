@@ -1,5 +1,5 @@
 import { t, type Language } from "@/lib/i18n";
-import { shortStudentId, type ClassroomReportRow, type ClassroomReportSummary } from "@/lib/classrooms/types";
+import { shortStudentId, studentVisibleName, type ClassroomReportRow, type ClassroomReportSummary } from "@/lib/classrooms/types";
 
 function formatDate(value: string | null, language: Language, fallback: string) {
   if (!value) {
@@ -66,7 +66,7 @@ export function ClassroomReportTable({
               {rows.map((row) => (
                 <tr className="border-t border-ink/10" key={row.studentId}>
                   <td className="px-4 py-3">
-                    <p className="font-bold">{row.displayName || copy.common.learner}</p>
+                    <p className="font-bold">{studentVisibleName(row)}</p>
                     <p className="text-xs font-mono text-ink/50">{shortStudentId(row.studentId)}</p>
                   </td>
                   <td className="px-4 py-3">{row.completedLessons}</td>

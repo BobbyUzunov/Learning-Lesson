@@ -1,12 +1,12 @@
 import type { Assessment, AssessmentReportRow } from "@/lib/assessments/types";
 import { assignmentDisplayTitle } from "@/lib/assignments/title";
 import type { AssignmentReportRow, ClassroomAssignment } from "@/lib/assignments/types";
-import { shortStudentId, type ClassroomReportRow } from "@/lib/classrooms/types";
+import { studentVisibleName, type ClassroomReportRow } from "@/lib/classrooms/types";
 import type { Language } from "@/lib/language";
 import type { ClassroomGradebook, GradebookCell, GradebookStatusLabels } from "./types";
 
 function studentName(row: ClassroomReportRow) {
-  return row.rosterName?.trim() || row.displayName?.trim() || shortStudentId(row.studentId);
+  return studentVisibleName(row);
 }
 
 function assignmentCell(row: AssignmentReportRow | undefined, labels: GradebookStatusLabels): GradebookCell {
