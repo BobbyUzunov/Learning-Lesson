@@ -90,6 +90,7 @@ const dictionary = {
       classes: "Класове",
       assessments: "Проверки",
       forTeachers: "За учители",
+      tryDemo: "Пробвай демо",
       login: "Вход",
       logout: "Изход",
       profile: "Профил",
@@ -103,7 +104,11 @@ const dictionary = {
       inbox: "Сигнали"
     },
     footer: {
+      navLabel: "Правни връзки",
       privacy: "Поверителност",
+      terms: "Общи условия",
+      cookies: "Бисквитки",
+      contact: "Контакт",
       rights: "Learning Lesson — образователна платформа."
     },
     dueDate: {
@@ -511,8 +516,9 @@ const dictionary = {
     },
     home: {
       brand: "Learning Lesson",
-      title: "Училищна платформа за ученици и учители.",
-      subtitle: "Влез в клас с код, решавай мисии и събирай XP. Създай профил, за да започнеш.",
+      title: "Мисии и измерим напредък за професионални гимназии.",
+      subtitle:
+        "Учениците влизат с код, решават практически мисии и събират XP. Учителите виждат активността — без ученически имейли в таблиците. Пробвай демо без акаунт.",
       primaryCta: "Регистрация като ученик",
       teacherCta: "Регистрация като учител",
       hasAccount: "Вече имам профил — вход",
@@ -557,6 +563,7 @@ const dictionary = {
         "Създай клас с код за присъединяване и виж кой е активен — уроци, XP и последно посещение.",
       panelCta: "Отвори учителския панел",
       loginCta: "Влез в профила",
+      demoCta: "Пробвай демото",
       backHome: "Към началната страница",
       howTitle: "Как работи в час",
       howSubtitle: "Три стъпки от създаване на клас до видимия напредък на учениците.",
@@ -566,10 +573,31 @@ const dictionary = {
       step2Text: "Сподели кода в час. Можеш да го смениш или спреш, когато потрябва.",
       step3Title: "Виж напредъка",
       step3Text: "Справка по ученици и задачи — без ученически имейли в таблиците.",
-      accessTitle: "Регистрация без админ",
-      accessText: "Учителската роля се активира от администратор след регистрация.",
-      accessHint: "След регистрация отваряш учителския панел и създаваш първия клас.",
-      registerCta: "Регистрация като учител"
+      proofTitle: "Как изглежда панелът",
+      proofSubtitle: "Примерен екран — реалните данни се виждат след активирана учителска роля.",
+      proofBadge: "Примерен преглед",
+      proofTableTitle: "Напредък на класа",
+      proofTableSubtitle: "Уроци, XP и последно посещение — без имейли.",
+      proofStatStudents: "Ученици",
+      proofStatLessons: "Средно уроци",
+      proofStatXp: "Средно XP",
+      proofColStudent: "Ученик",
+      proofColLessons: "Уроци",
+      proofColXp: "XP",
+      proofColVisit: "Последно",
+      proofPrivacyNote: "В таблиците няма ученически имейли — само име за показване.",
+      proofJoinBadge: "Код за клас",
+      proofJoinTitle: "Покани с 6 символа",
+      proofJoinText: "Сподели кода в час. Учениците го въвеждат веднъж след регистрация.",
+      accessTitle: "Заяви учителски достъп за пилота",
+      accessText:
+        "Регистрирай се със служебен имейл. След потвърждение на имейла пилотният администратор активира учителската роля — обикновено до 1–2 работни дни.",
+      accessHint:
+        "Learning Lesson не замества електронния дневник (Школо / НЕИСПУО). Допълваме часа с мисии и измерим напредък.",
+      registerCta: "Регистрация като учител",
+      contactCta: "Пиши за училищен пилот",
+      contactMailSubject: "Заявка за училищен пилот — Learning Lesson",
+      contactEmailLabel: "Или директно:"
     },
     dashboard: {
       title: "Твоето обучение",
@@ -890,16 +918,19 @@ const dictionary = {
     privacy: {
       badge: "Поверителност",
       title: "Политика за поверителност",
-      updated: "Последна актуализация: 31 август 2026",
+      updated: "Последна актуализация: 4 септември 2026",
       intro:
         "Learning Lesson обработва лични данни само за учене, оценяване и поддръжка на акаунта. Този документ обяснява какви данни събираме и какви права имаш по GDPR.",
       actionsTitle: "Твоите права",
       actionsBody: "От страницата „Профил“ можеш да изтеглиш копие от данните си или да изтриеш акаунта си.",
       actionsLink: "Към профила",
+      termsLink: "Общи условия",
+      cookiesLink: "Бисквитки",
+      contactLink: "Контакт",
       sections: {
         controller: {
           title: "Администратор на данните",
-          body: "Администратор на платформата е екипът, поддържащ Learning Lesson за съответното училище или пилотен проект. За въпроси: свържи се с учителя или администратора, който ти е дал достъп."
+          body: "Администратор на платформата е {operator}. За въпроси относно личните данни: {email}."
         },
         dataCollected: {
           title: "Какви данни събираме",
@@ -911,7 +942,7 @@ const dictionary = {
         },
         mentor: {
           title: "AI наставник и трети страни",
-          body: "Когато използваш AI наставника, изпращаме само текста на твоя опит и контекста на задачата към OpenAI за генериране на кратка насока. Не изпращаме имейл или парола. OpenAI действа като обработващ данни според своите условия."
+          body: "Когато използваш AI наставника, изпращаме само текста на твоя опит и контекста на задачата към OpenAI за генериране на кратка насока. Не изпращаме имейл или парола. OpenAI действа като обработващ данни според своите условия. Учителят може да преглежда задачите преди или след работата на учениците."
         },
         retention: {
           title: "Съхранение",
@@ -923,9 +954,123 @@ const dictionary = {
         },
         contact: {
           title: "Контакт",
-          body: "При оплаквания първо се обърни към администратора на училището. Можеш също да подадеш сигнал до Комисията за защита на личните данни (КЗЛД)."
+          body: "Пиши на {email}. При оплаквания първо се обърни към нас или към администратора на училището. Можеш също да подадеш сигнал до Комисията за защита на личните данни (КЗЛД)."
         }
       }
+    },
+    contact: {
+      badge: "Контакт",
+      title: "Свържи се с пилотния екип",
+      intro: "За училищен пилот, активиране на учителска роля или въпроси по GDPR — пиши директно.",
+      operatorTitle: "Оператор",
+      emailLabel: "Имейл",
+      sla: "Обикновено отговаряме до 1–2 работни дни в рамките на пилота.",
+      mailSubject: "Въпрос към Learning Lesson",
+      pilotTitle: "Заяви училищен пилот",
+      pilotBody:
+        "Кажи училище, клас (VIII) и колко учители ще пробват. Не заместваме електронния дневник — допълваме часа с мисии.",
+      pilotMailSubject: "Заявка за училищен пилот — Learning Lesson",
+      pilotCta: "Изпрати заявка по имейл",
+      registerTeacherCta: "Или се регистрирай като учител",
+      privacyLink: "Поверителност",
+      termsLink: "Общи условия"
+    },
+    terms: {
+      badge: "Условия",
+      title: "Общи условия",
+      updated: "Последна актуализация: 4 септември 2026",
+      intro:
+        "Тези условия уреждат ползването на Learning Lesson в рамките на училищен или пилотен достъп. С регистрация приемаш условията и политиката за поверителност.",
+      privacyLink: "Поверителност",
+      contactLink: "Контакт",
+      sections: {
+        service: {
+          title: "Услугата",
+          body: "Learning Lesson е образователна платформа за практически мисии, прогрес и учителски преглед. Не е електронен дневник и не замества Школо, НЕИСПУО или подобни системи."
+        },
+        accounts: {
+          title: "Акаунти",
+          body: "Отговорен си за данните за вход. Учениците се присъединяват към клас с код от учителя. Учителската роля се активира от администратор след заявка."
+        },
+        schools: {
+          title: "Училища и пилоти",
+          body: "Достъпът за училище се уговаря с пилотния екип. Училището остава администратор на данните за своите ученици в контекста на пилота, освен ако писмено е уговорено друго."
+        },
+        acceptable: {
+          title: "Приемлива употреба",
+          body: "Забранени са обиди, опити за неоторизиран достъп, споделяне на чужди акаунти и качване на незаконно съдържание. Можем да ограничим достъп при нарушения."
+        },
+        liability: {
+          title: "Отговорност",
+          body: "Платформата се предоставя „както е“ в пилотен режим. {operator} не носи отговорност за учебни решения на училището или за прекъсвания извън разумния контрол."
+        },
+        contact: {
+          title: "Контакт",
+          body: "Въпроси по условията: {email}."
+        }
+      }
+    },
+    cookies: {
+      badge: "Бисквитки",
+      title: "Политика за бисквитки",
+      updated: "Последна актуализация: 4 септември 2026",
+      intro:
+        "Използваме само необходими бисквитки за вход и предпочитания. Нямаме пиксели за маркетинг или аналитика от трети страни.",
+      privacyLink: "Поверителност",
+      contactLink: "Контакт",
+      sections: {
+        essential: {
+          title: "Задължителни",
+          body: "Сесийни бисквитки на Supabase Auth за вход и сигурност. Без тях не можеш да ползваш защитените страници."
+        },
+        preferences: {
+          title: "Предпочитания",
+          body: "Запазваме езика (BG/EN), ако го превключиш. Това не е рекламна проследяваща бисквитка."
+        },
+        analytics: {
+          title: "Аналитика и маркетинг",
+          body: "В момента не поставяме бисквитки за аналитика, реклама или социални пиксели."
+        },
+        contact: {
+          title: "Въпроси",
+          body: "За въпроси относно бисквитките: {email}."
+        }
+      }
+    },
+    demo: {
+      badge: "Демо без акаунт",
+      title: "Пробвай една мисия",
+      subtitle: "Научи → направи → провери. Събираш примерен XP — без имейл и без клас.",
+      noAccountNote: "Това е публичен пример. Реалните мисии и класът се отключват след регистрация.",
+      backHome: "Към началото",
+      forTeachersLink: "За учители",
+      stagesLabel: "Стъпки на мисията",
+      stageLearn: "Научи",
+      stageDo: "Направи",
+      stageCheck: "Провери",
+      learnTitle: "Какво ще направиш",
+      learnBody:
+        "Ще сглобиш проста карта с заглавие, текст и бутон — същият ритъм като в реалните уроци: разбери идеята, после я приложи.",
+      learnCta: "Към задачата",
+      doTitle: "Сглоби картата",
+      doBody: "Натисни частите по-долу. Когато и трите са добавени, продължи към проверката.",
+      doEmpty: "Частите ще се появят тук.",
+      doCta: "Към проверката",
+      pieceTitle: "Заглавие",
+      pieceBody: "Текст",
+      pieceCta: "Бутон",
+      sampleTitle: "Моят профил",
+      sampleBody: "Уча HTML стъпка по стъпка.",
+      sampleCta: "Започни",
+      checkTitle: "Провери",
+      checkBody: "В реалния продукт тук има кратка самопроверка или предаване към учителя. В демото потвърждаваш, че си сглобил картата.",
+      checkCta: "Вземи +100 XP",
+      doneBadge: "Готово",
+      doneTitle: "Спечели примерен XP",
+      doneBody: "Така изглежда ритъмът на мисия. Създай профил, за да влезеш в клас и да пазиш реалния си прогрес.",
+      xpEarned: "+100 XP (демо)",
+      registerCta: "Създай профил",
+      resetCta: "Отначало"
     },
     knowledgeCheck: {
       title: "Самопроверка",
@@ -958,11 +1103,13 @@ const dictionary = {
       teacherRegisterBadge: "Учител",
       teacherRegisterTitle: "Заяви учителски достъп",
       teacherRegisterSubtitle:
-        "Създай акаунт сега. Потвърди имейла си от линка в пощата, после администраторът активира учителската роля.",
+        "Създай акаунт със служебен имейл. Потвърди имейла от линка в пощата — после пилотният администратор активира учителската роля (обикновено 1–2 работни дни).",
       teacherRegisterHint1: "Попълни името и служебния имейл",
       teacherRegisterHint2: "Потвърди имейла си от линка в пощата",
-      teacherRegisterHint3: "Изчакай админ да активира учителската роля",
+      teacherRegisterHint3: "Изчакай активиране на учителската роля от админ",
       teacherPendingBanner: "Заявката за учител е приета. Администраторът трябва да активира ролята ти.",
+      teacherRegisterContactHint: "За училищен пилот или по-бързо активиране пиши на",
+      teacherPilotMailSubject: "Заявка за училищен пилот — Learning Lesson",
       goToLogin: "Вече имаш профил? Влез",
       goToRegister: "Нямаш профил? Създай",
       goToStudentRegister: "Регистрация като ученик",
@@ -1381,6 +1528,7 @@ const dictionary = {
       classes: "Classes",
       assessments: "Checks",
       forTeachers: "For teachers",
+      tryDemo: "Try demo",
       login: "Login",
       logout: "Logout",
       profile: "Profile",
@@ -1394,7 +1542,11 @@ const dictionary = {
       inbox: "Alerts"
     },
     footer: {
+      navLabel: "Legal links",
       privacy: "Privacy",
+      terms: "Terms",
+      cookies: "Cookies",
+      contact: "Contact",
       rights: "Learning Lesson — learning platform."
     },
     dueDate: {
@@ -1802,8 +1954,9 @@ const dictionary = {
     },
     home: {
       brand: "Learning Lesson",
-      title: "A school platform for students and teachers.",
-      subtitle: "Join a class with a code, complete missions, and earn XP. Create an account to get started.",
+      title: "Missions and measurable progress for vocational secondary schools.",
+      subtitle:
+        "Students join with a code, complete practical missions, and earn XP. Teachers see activity — without student emails in the tables. Try the demo with no account.",
       primaryCta: "Register as a student",
       teacherCta: "Register as a teacher",
       hasAccount: "I already have an account — sign in",
@@ -1847,6 +2000,7 @@ const dictionary = {
       subtitle: "Create a class with a join code and see who is active — lessons, XP and last visit.",
       panelCta: "Open the teacher panel",
       loginCta: "Sign in",
+      demoCta: "Try the demo",
       backHome: "Back to home",
       howTitle: "How it works in class",
       howSubtitle: "Three steps from creating a class to visible student progress.",
@@ -1856,10 +2010,31 @@ const dictionary = {
       step2Text: "Share the code in class. Rotate or disable it whenever you need.",
       step3Title: "See the progress",
       step3Text: "Reports by student and assignment — without student emails in the tables.",
-      accessTitle: "No admin approval needed",
-      accessText: "The teacher role is activated by an administrator after registration.",
-      accessHint: "After registration you open the teacher hub and create your first class.",
-      registerCta: "Register as a teacher"
+      proofTitle: "What the panel looks like",
+      proofSubtitle: "Sample screen — real data appears after your teacher role is activated.",
+      proofBadge: "Sample preview",
+      proofTableTitle: "Class progress",
+      proofTableSubtitle: "Lessons, XP and last visit — no emails.",
+      proofStatStudents: "Students",
+      proofStatLessons: "Avg lessons",
+      proofStatXp: "Avg XP",
+      proofColStudent: "Student",
+      proofColLessons: "Lessons",
+      proofColXp: "XP",
+      proofColVisit: "Last visit",
+      proofPrivacyNote: "Tables show display names only — no student emails.",
+      proofJoinBadge: "Class code",
+      proofJoinTitle: "Invite with 6 characters",
+      proofJoinText: "Share the code in class. Students enter it once after registering.",
+      accessTitle: "Request teacher access for the pilot",
+      accessText:
+        "Register with your school email. After you confirm the email, a pilot administrator activates the teacher role — usually within 1–2 business days.",
+      accessHint:
+        "Learning Lesson does not replace the electronic gradebook (Shkolo / NEISPUO). We add missions and measurable progress beside it.",
+      registerCta: "Register as a teacher",
+      contactCta: "Email us about a school pilot",
+      contactMailSubject: "School pilot request — Learning Lesson",
+      contactEmailLabel: "Or write directly:"
     },
     dashboard: {
       title: "Your learning",
@@ -2180,16 +2355,19 @@ const dictionary = {
     privacy: {
       badge: "Privacy",
       title: "Privacy policy",
-      updated: "Last updated: 31 August 2026",
+      updated: "Last updated: 4 September 2026",
       intro:
         "Learning Lesson processes personal data only for learning, assessment, and account support. This page explains what we collect and your GDPR rights.",
       actionsTitle: "Your rights",
       actionsBody: "From your profile you can download your data or delete your account.",
       actionsLink: "Go to profile",
+      termsLink: "Terms",
+      cookiesLink: "Cookies",
+      contactLink: "Contact",
       sections: {
         controller: {
           title: "Data controller",
-          body: "The platform is operated by the team supporting Learning Lesson for your school or pilot project. For questions, contact the teacher or administrator who gave you access."
+          body: "The data controller for the platform is {operator}. For privacy questions: {email}."
         },
         dataCollected: {
           title: "What we collect",
@@ -2201,7 +2379,7 @@ const dictionary = {
         },
         mentor: {
           title: "AI mentor and third parties",
-          body: "When you use the AI mentor, we send only your attempt text and assignment context to OpenAI to generate a short direction. We do not send email or password. OpenAI acts as a processor under its own terms."
+          body: "When you use the AI mentor, we send only your attempt text and assignment context to OpenAI to generate a short direction. We do not send email or password. OpenAI acts as a processor under its own terms. Teachers can review assignments before or after student work."
         },
         retention: {
           title: "Retention",
@@ -2213,9 +2391,123 @@ const dictionary = {
         },
         contact: {
           title: "Contact",
-          body: "For complaints, contact your school administrator first. You may also lodge a complaint with your local data protection authority."
+          body: "Email {email}. For complaints, contact us or your school administrator first. You may also lodge a complaint with your local data protection authority."
         }
       }
+    },
+    contact: {
+      badge: "Contact",
+      title: "Contact the pilot team",
+      intro: "For a school pilot, teacher-role activation, or GDPR questions — write directly.",
+      operatorTitle: "Operator",
+      emailLabel: "Email",
+      sla: "We usually reply within 1–2 business days during the pilot.",
+      mailSubject: "Question for Learning Lesson",
+      pilotTitle: "Request a school pilot",
+      pilotBody:
+        "Tell us the school, grade (8), and how many teachers will try it. We do not replace the electronic gradebook — we add missions beside it.",
+      pilotMailSubject: "School pilot request — Learning Lesson",
+      pilotCta: "Send request by email",
+      registerTeacherCta: "Or register as a teacher",
+      privacyLink: "Privacy",
+      termsLink: "Terms"
+    },
+    terms: {
+      badge: "Terms",
+      title: "Terms of use",
+      updated: "Last updated: 4 September 2026",
+      intro:
+        "These terms cover use of Learning Lesson under school or pilot access. By registering you accept the terms and the privacy policy.",
+      privacyLink: "Privacy",
+      contactLink: "Contact",
+      sections: {
+        service: {
+          title: "The service",
+          body: "Learning Lesson is an educational platform for practical missions, progress, and teacher review. It is not an electronic gradebook and does not replace Shkolo, NEISPUO, or similar systems."
+        },
+        accounts: {
+          title: "Accounts",
+          body: "You are responsible for your sign-in credentials. Students join a class with a teacher code. The teacher role is activated by an administrator after a request."
+        },
+        schools: {
+          title: "Schools and pilots",
+          body: "School access is arranged with the pilot team. The school remains controller of its students’ data in the pilot context unless otherwise agreed in writing."
+        },
+        acceptable: {
+          title: "Acceptable use",
+          body: "Harassment, unauthorized access attempts, sharing accounts, and uploading illegal content are forbidden. We may restrict access for violations."
+        },
+        liability: {
+          title: "Liability",
+          body: "The platform is provided “as is” in pilot mode. {operator} is not liable for school instructional decisions or outages outside reasonable control."
+        },
+        contact: {
+          title: "Contact",
+          body: "Questions about these terms: {email}."
+        }
+      }
+    },
+    cookies: {
+      badge: "Cookies",
+      title: "Cookie policy",
+      updated: "Last updated: 4 September 2026",
+      intro:
+        "We only use essential cookies for sign-in and preferences. We do not set marketing pixels or third-party analytics cookies.",
+      privacyLink: "Privacy",
+      contactLink: "Contact",
+      sections: {
+        essential: {
+          title: "Essential",
+          body: "Supabase Auth session cookies for sign-in and security. Without them you cannot use protected pages."
+        },
+        preferences: {
+          title: "Preferences",
+          body: "We store language (BG/EN) if you switch it. This is not an advertising tracking cookie."
+        },
+        analytics: {
+          title: "Analytics and marketing",
+          body: "We currently do not place analytics, advertising, or social pixels."
+        },
+        contact: {
+          title: "Questions",
+          body: "Cookie questions: {email}."
+        }
+      }
+    },
+    demo: {
+      badge: "Demo without an account",
+      title: "Try one mission",
+      subtitle: "Learn → do → check. Earn sample XP — no email and no class required.",
+      noAccountNote: "This is a public sample. Real missions and class work unlock after you register.",
+      backHome: "Back to home",
+      forTeachersLink: "For teachers",
+      stagesLabel: "Mission steps",
+      stageLearn: "Learn",
+      stageDo: "Do",
+      stageCheck: "Check",
+      learnTitle: "What you will do",
+      learnBody:
+        "You will assemble a simple card with a title, body, and button — the same rhythm as real lessons: understand the idea, then apply it.",
+      learnCta: "Go to the task",
+      doTitle: "Assemble the card",
+      doBody: "Tap the pieces below. When all three are added, continue to the check.",
+      doEmpty: "Pieces will appear here.",
+      doCta: "Go to the check",
+      pieceTitle: "Title",
+      pieceBody: "Body",
+      pieceCta: "Button",
+      sampleTitle: "My profile",
+      sampleBody: "I learn HTML step by step.",
+      sampleCta: "Start",
+      checkTitle: "Check",
+      checkBody: "In the real product this is a short self-check or a hand-in for the teacher. In the demo you confirm you assembled the card.",
+      checkCta: "Claim +100 XP",
+      doneBadge: "Done",
+      doneTitle: "You earned sample XP",
+      doneBody: "That is the mission rhythm. Create an account to join a class and keep real progress.",
+      xpEarned: "+100 XP (demo)",
+      registerCta: "Create an account",
+      resetCta: "Start over"
     },
     knowledgeCheck: {
       title: "Knowledge check",
@@ -2248,11 +2540,13 @@ const dictionary = {
       teacherRegisterBadge: "Teacher",
       teacherRegisterTitle: "Request teacher access",
       teacherRegisterSubtitle:
-        "Create an account now. Confirm your email from the inbox link, then an administrator activates the teacher role.",
+        "Create an account with your school email. Confirm the inbox link — then a pilot administrator activates the teacher role (usually 1–2 business days).",
       teacherRegisterHint1: "Fill in your name and work email",
       teacherRegisterHint2: "Confirm your email from the link in your inbox",
-      teacherRegisterHint3: "Wait for an admin to activate your teacher role",
+      teacherRegisterHint3: "Wait for an admin to activate the teacher role",
       teacherPendingBanner: "Your teacher request was received. An administrator must activate your role.",
+      teacherRegisterContactHint: "For a school pilot or faster activation, email",
+      teacherPilotMailSubject: "School pilot request — Learning Lesson",
       goToLogin: "Already have an account? Sign in",
       goToRegister: "No account yet? Create one",
       goToStudentRegister: "Register as a student",

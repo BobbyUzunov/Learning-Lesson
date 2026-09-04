@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
+import { getContactEmail, getOperatorName } from "@/lib/site-contact";
 
 export const metadata = {
   robots: { index: true, follow: true }
@@ -9,14 +10,25 @@ export const metadata = {
 export default async function PrivacyPage() {
   const language = await getLanguage();
   const copy = t(language);
+  const operator = getOperatorName(language);
+  const email = getContactEmail();
+
   const sections = [
-    copy.privacy.sections.controller,
+    {
+      title: copy.privacy.sections.controller.title,
+      body: copy.privacy.sections.controller.body
+        .replace("{operator}", operator)
+        .replace("{email}", email)
+    },
     copy.privacy.sections.dataCollected,
     copy.privacy.sections.purposes,
     copy.privacy.sections.mentor,
     copy.privacy.sections.retention,
     copy.privacy.sections.rights,
-    copy.privacy.sections.contact
+    {
+      title: copy.privacy.sections.contact.title,
+      body: copy.privacy.sections.contact.body.replace("{email}", email)
+    }
   ];
 
   return (
@@ -45,6 +57,20 @@ export default async function PrivacyPage() {
           {copy.privacy.actionsLink}
         </Link>
       </div>
+
+      <p className="mt-8 text-sm text-ink/50">
+        <Link className="font-semibold underline-offset-4 hover:underline" href="/terms">
+          {copy.privacy.termsLink}
+        </Link>
+        {" · "}
+        <Link className="font-semibold underline-offset-4 hover:underline" href="/cookies">
+          {copy.privacy.cookiesLink}
+        </Link>
+        {" · "}
+        <Link className="font-semibold underline-offset-4 hover:underline" href="/contact">
+          {copy.privacy.contactLink}
+        </Link>
+      </p>
     </main>
   );
 }

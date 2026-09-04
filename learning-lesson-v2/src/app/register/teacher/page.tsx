@@ -2,10 +2,12 @@ import Link from "next/link";
 import { LoginForm } from "@/components/login-form";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
+import { getContactEmail, getContactMailto } from "@/lib/site-contact";
 
 export default async function TeacherRegisterPage() {
   const language = await getLanguage();
   const copy = t(language);
+  const email = getContactEmail();
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
@@ -29,6 +31,13 @@ export default async function TeacherRegisterPage() {
             <span className="font-bold text-ink">3.</span> {copy.login.teacherRegisterHint3}
           </li>
         </ol>
+
+        <p className="mt-4 rounded-xl border border-mint/25 bg-mint/10 px-4 py-3 text-sm leading-6 text-ink/70">
+          {copy.login.teacherRegisterContactHint}{" "}
+          <a className="font-bold text-ink underline-offset-4 hover:underline" href={getContactMailto(copy.login.teacherPilotMailSubject)}>
+            {email}
+          </a>
+        </p>
       </div>
 
       <div className="mt-8">

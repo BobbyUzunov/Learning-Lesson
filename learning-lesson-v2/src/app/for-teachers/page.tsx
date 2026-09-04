@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, KeyRound, LineChart, Users } from "lucide-react";
+import { TeacherProductPreview } from "@/components/teacher-product-preview";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
+import { getContactMailto, getContactEmail } from "@/lib/site-contact";
 import { getCurrentSession } from "@/lib/supabase/auth";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +12,7 @@ export default async function ForTeachersPage() {
   const language = await getLanguage();
   const copy = t(language).forTeachers;
   const session = await getCurrentSession();
+  const email = getContactEmail();
 
   return (
     <main>
@@ -45,6 +48,9 @@ export default async function ForTeachersPage() {
             <Link className="text-sm font-semibold text-paper/70 underline-offset-4 transition hover:text-paper hover:underline" href="/login">
               {copy.loginCta}
             </Link>
+            <Link className="text-sm font-semibold text-paper/70 underline-offset-4 transition hover:text-paper hover:underline" href="/demo">
+              {copy.demoCta}
+            </Link>
           </div>
         </div>
       </section>
@@ -72,11 +78,43 @@ export default async function ForTeachersPage() {
         </div>
       </section>
 
-      <section className="bg-white/70">
+      <section className="border-b border-ink/10 bg-white/70">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:py-16">
+          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">{copy.proofTitle}</h2>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-ink/60">{copy.proofSubtitle}</p>
+          <div className="mt-10">
+            <TeacherProductPreview language={language} />
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-paper/80">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:py-16">
           <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">{copy.accessTitle}</h2>
           <p className="mt-3 max-w-2xl text-base leading-7 text-ink/60">{copy.accessText}</p>
-          <p className="mt-4 text-sm text-ink/45">{copy.accessHint}</p>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-ink/45">{copy.accessHint}</p>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link
+              className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-bold text-paper transition hover:bg-ink/90"
+              href="/register/teacher"
+            >
+              {copy.registerCta}
+              <ArrowRight className="size-4" />
+            </Link>
+            <a
+              className="focus-ring inline-flex min-h-11 items-center justify-center rounded-xl border border-ink/15 px-4 py-2.5 text-sm font-semibold text-ink/70 transition hover:border-ink/30"
+              href={getContactMailto(copy.contactMailSubject)}
+            >
+              {copy.contactCta}
+            </a>
+          </div>
+          <p className="mt-4 text-sm text-ink/45">
+            {copy.contactEmailLabel}{" "}
+            <a className="font-semibold text-ink/70 underline-offset-4 hover:underline" href={getContactMailto()}>
+              {email}
+            </a>
+          </p>
         </div>
       </section>
     </main>

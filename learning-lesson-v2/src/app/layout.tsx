@@ -76,6 +76,7 @@ export default async function RootLayout({
   } else {
     navItems = [
       { href: "/", label: copy.nav.home },
+      { href: "/demo", label: copy.nav.tryDemo },
       { href: "/for-teachers", label: copy.nav.forTeachers }
     ];
   }

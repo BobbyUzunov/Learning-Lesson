@@ -7,4 +7,7 @@ test("privacy page is public and links back to profile actions", async ({ page }
   await expect(page.locator("main")).toContainText(/поверителност|privacy/i);
   await expect(page.locator('main a[href="/profile"]')).toBeVisible();
   await expect(page.locator('footer a[href="/privacy"]')).toBeVisible();
+  await expect(page.locator("main")).toContainText(/pilot@learninglesson\.app|@/);
+  await expect(page.locator('main a[href="/terms"]')).toBeVisible();
+  await expect(page.locator('main a[href="/contact"]')).toBeVisible();
 });

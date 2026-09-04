@@ -184,13 +184,24 @@ export default async function HomePage() {
               ))}
             </ol>
 
-            <Link
-              className="mt-8 inline-flex animate-home-rise text-sm font-semibold text-paper/70 underline-offset-4 transition hover:text-paper hover:underline"
-              href="/login"
+            <div
+              className="mt-8 flex flex-col items-start gap-3 animate-home-rise sm:flex-row sm:items-center sm:gap-5"
               style={{ animationDelay: "1120ms" }}
             >
-              {copy.hasAccount}
-            </Link>
+              <Link
+                className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl border border-paper/20 bg-paper/5 px-4 py-2.5 text-sm font-bold text-paper transition hover:border-mint/50 hover:bg-paper/10"
+                href="/demo"
+              >
+                {copy.tryLessonCta}
+                <ArrowRight className="size-4" />
+              </Link>
+              <Link
+                className="text-sm font-semibold text-paper/70 underline-offset-4 transition hover:text-paper hover:underline"
+                href="/login"
+              >
+                {copy.hasAccount}
+              </Link>
+            </div>
           </div>
         </HomeHeroMotion>
       </section>
