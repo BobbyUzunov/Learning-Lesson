@@ -29,6 +29,39 @@ test.describe("mentor authenticated", () => {
     await expect(page.getByText(/остават 4 AI насоки|4 AI directions left today/i)).toBeVisible();
   });
 
+  test("a failed request without quota headers keeps the quota and allows retry", async ({ page }) => {
+    let failed = false;
+    await page.route("**/api/mentor", async (route) => {
+      if (route.request().method() === "POST" && !failed) {
+        failed = true;
+        await route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "mentor_usage_unavailable" })
+        });
+        return;
+      }
+      await route.fallback();
+    });
+
+    await openAssignmentMentor(page);
+    await expect(page.getByText(/остават 5 AI насоки|5 AI directions left today/i)).toBeVisible();
+    const cta = page.getByTestId("mentor-primary-cta");
+    const failedResponse = page.waitForResponse((response) =>
+      response.url().endsWith("/api/mentor") && response.request().method() === "POST" && response.status() === 503
+    );
+    await cta.click();
+    await failedResponse;
+    await expect(page.getByText(/Лимитът за AI насоки не е наличен|The AI direction limit is unavailable/i)).toBeVisible();
+    await expect(cta).toBeEnabled();
+    await expect(page.getByText(/остават 5 AI насоки|5 AI directions left today/i)).toBeVisible();
+    await expect(page.getByText(/достигна дневния лимит|reached today's AI direction limit/i)).toHaveCount(0);
+
+    await cta.click();
+    await expect(page.getByText(/header, main, and footer/i)).toBeVisible();
+    await expect(page.getByText(/остават 4 AI насоки|4 AI directions left today/i)).toBeVisible();
+  });
+
   test("authenticated student with no quota left sees limit message", async ({ page }) => {
     await mockMentorApi(page, { remaining: 0 });
     await page.goto("/assignments/e2e-assignment");

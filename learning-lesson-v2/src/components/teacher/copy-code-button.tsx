@@ -15,14 +15,20 @@ export function CopyCodeButton({
 }) {
   const copy = t(language);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState(false);
+  const [pending, setPending] = useState(false);
 
   async function handleCopy() {
+    setPending(true);
+    setCopied(false);
+    setError(false);
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     } catch {
-      setCopied(false);
+      setError(true);
+    } finally {
+      setPending(false);
     }
   }
 
@@ -32,9 +38,19 @@ export function CopyCodeButton({
       : "focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink/15 bg-white px-3.5 py-2.5 text-sm font-bold text-ink transition hover:bg-ink/5";
 
   return (
-    <button className={className} onClick={handleCopy} type="button">
-      {copied ? <Check className={`size-4 ${tone === "dark" ? "text-mint" : "text-mint"}`} /> : <Copy className="size-4" />}
-      {copied ? copy.teacher.copied : copy.teacher.copyCode}
-    </button>
+    <div>
+      <button className={className} disabled={pending} onClick={handleCopy} type="button">
+        {copied ? <Check className="size-4 text-mint" /> : <Copy className="size-4" />}
+        {copied ? copy.teacher.copied : copy.teacher.copyCode}
+      </button>
+      <p aria-live="polite" className="sr-only">{copied ? copy.teacher.copied : null}</p>
+      {error ? (
+        <p role="alert" className="mt-2 max-w-sm text-sm">
+          {language === "bg"
+            ? "Кодът не беше копиран. Маркирай го и го копирай ръчно или опитай отново."
+            : "Could not copy the code. Select and copy it manually or try again."}
+        </p>
+      ) : null}
+    </div>
   );
 }

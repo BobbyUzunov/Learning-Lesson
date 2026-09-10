@@ -14,7 +14,7 @@ test("assessment workspace requires login", async ({ page }) => {
 test("learners cannot open the teacher panel", async ({ page }) => {
   await enableE2eAuth(page);
   await page.goto("/teacher");
-  await expect(page).toHaveURL(/\/dashboard/);
+  await expect(page).toHaveURL(/\/access-denied/);
 });
 
 test("student inbox is reachable from the header", async ({ page }) => {
@@ -25,7 +25,7 @@ test("student inbox is reachable from the header", async ({ page }) => {
   await page.locator('header a[href="/inbox"]').first().click();
   await expect(page).toHaveURL(/\/inbox/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.locator("main")).toContainText(/сигнали|alerts/i);
+  await expect(page.getByRole("main")).toContainText(/сигнали|alerts/i);
 });
 
 test("teacher panel shows create-class CTA when there are no classrooms", async ({ page }) => {

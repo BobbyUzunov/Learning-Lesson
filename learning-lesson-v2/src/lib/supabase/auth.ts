@@ -89,7 +89,7 @@ export async function requireAdmin() {
   const session = await requireUser();
 
   if (!session.isAdmin) {
-    redirect("/dashboard");
+    redirect("/access-denied");
   }
 
   return session;
@@ -99,7 +99,7 @@ export async function requireTeacher() {
   const session = await requireUser();
 
   if (!session.isTeacher) {
-    redirect("/dashboard");
+    redirect("/access-denied");
   }
 
   return session;

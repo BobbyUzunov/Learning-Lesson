@@ -52,7 +52,7 @@ export default async function TeacherGradebookPage({ params }: { params: Promise
           <p className="mt-2 max-w-2xl text-sm text-ink/60">{copy.gradebookSubtitle}</p>
         </div>
         {gradebook.rows.length > 0 ? (
-          <DownloadCsvButton csv={csv} filename={gradebookCsvFilename(classroom.name)} label={copy.gradebookExport} />
+          <DownloadCsvButton csv={csv} filename={gradebookCsvFilename(classroom.name)} label={copy.gradebookExport} language={language} />
         ) : null}
       </header>
 

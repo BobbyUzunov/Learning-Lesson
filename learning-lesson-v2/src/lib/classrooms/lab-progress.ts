@@ -3,6 +3,7 @@ import { studentVisibleName } from "./types";
 import type { GameQuest } from "@/lib/game-data";
 import type { Language } from "@/lib/language";
 import { localizeGameQuest } from "@/lib/i18n";
+import { csvCell } from "@/lib/csv";
 
 export type ClassroomLabCompletion = {
   studentId: string;
@@ -59,14 +60,6 @@ function courseStatus(completed: number, total: number): LabCourseStatus {
     return "complete";
   }
   return "started";
-}
-
-function csvCell(value: string) {
-  if (/[",\n\r]/.test(value)) {
-    return `"${value.replaceAll('"', '""')}"`;
-  }
-
-  return value;
 }
 
 export function buildClassroomLabProgress({

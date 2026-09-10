@@ -126,6 +126,23 @@ describe("buildClassroomGradebook", () => {
 });
 
 describe("classroomGradebookToCsv", () => {
+  it("protects names, column titles and report values from spreadsheet formulas", () => {
+    const csv = classroomGradebookToCsv({
+      studentHeader: "Student",
+      xpHeader: "XP",
+      lessonsHeader: "Lessons",
+      gradebook: {
+        columns: [{ id: "a1", kind: "assignment", label: "+1+1", href: "/a" }],
+        rows: [{
+          studentId: "s1", name: "=1+1", xp: 400, completedLessons: 4,
+          cells: { a1: { label: "@SUM(A1)", tone: "ok" } }
+        }]
+      }
+    });
+
+    expect(csv).toBe('\uFEFFStudent,"\t+1+1",XP,Lessons\n"\t=1+1","\t@SUM(A1)",400,4');
+  });
+
   it("escapes commas and prefixes a UTF-8 BOM", () => {
     const csv = classroomGradebookToCsv({
       studentHeader: "Student",

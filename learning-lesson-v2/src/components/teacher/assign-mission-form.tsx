@@ -145,14 +145,20 @@ export function AssignMissionForm({ classroomId, language, missions }: AssignMis
 
   if (!open) {
     return (
-      <button
-        className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink/12 bg-white px-4 py-2.5 text-sm font-bold text-ink/75 transition hover:border-ink/25 hover:text-ink"
-        onClick={() => setOpen(true)}
-        type="button"
-      >
-        <Plus className="size-4" />
-        {copy.assignButton}
-      </button>
+      <div>
+        <button
+          className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink/12 bg-white px-4 py-2.5 text-sm font-bold text-ink/75 transition hover:border-ink/25 hover:text-ink"
+          onClick={() => {
+            setSuccess(false);
+            setOpen(true);
+          }}
+          type="button"
+        >
+          <Plus className="size-4" />
+          {copy.assignButton}
+        </button>
+        <p role="status" className="mt-3 text-sm font-semibold text-ink">{success ? copy.assignSuccess : null}</p>
+      </div>
     );
   }
 
@@ -300,8 +306,7 @@ export function AssignMissionForm({ classroomId, language, missions }: AssignMis
         </label>
       </details>
 
-      {error ? <p className="mt-3 text-sm font-semibold text-coral">{error}</p> : null}
-      {success ? <p className="mt-3 text-sm font-semibold text-mint">{copy.assignSuccess}</p> : null}
+      {error ? <p role="alert" className="mt-3 text-sm font-semibold text-coral">{error}</p> : null}
 
       <button
         className="focus-ring mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-ink px-4 py-2.5 font-bold text-paper transition hover:bg-ink/90 disabled:opacity-60"

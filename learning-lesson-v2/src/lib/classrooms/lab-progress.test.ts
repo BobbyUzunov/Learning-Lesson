@@ -56,6 +56,22 @@ const bob: ClassroomReportRow = {
 };
 
 describe("classroom lab progress", () => {
+  it("protects student names and course titles in the lab CSV export", () => {
+    const progress = buildClassroomLabProgress({
+      students: [{ ...ada, displayName: "=1+1" }],
+      courses: [{ ...frontend, title: "+1+1" }],
+      completions: [{ studentId: "ada", lessonId: "1", xpEarned: 100, completedAt: null }],
+      language: "en"
+    });
+    const csv = classroomLabProgressToCsv({
+      progress, studentHeader: "Student", strongestHeader: "Furthest course",
+      lastActivityHeader: "Last lab lesson", completeLabel: "Complete", notStartedLabel: "—"
+    });
+
+    expect(csv).toContain('"\t+1+1"');
+    expect(csv).toContain('"\t=1+1","\t+1+1 50%",1/2 (50%),');
+  });
+
   it("builds per-course lesson counts and a strongest-course snapshot", () => {
     const progress = buildClassroomLabProgress({
       students: [ada, bob],

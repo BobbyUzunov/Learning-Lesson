@@ -56,11 +56,11 @@ test.describe("teacher happy path", () => {
 test("student cannot open the class gradebook", async ({ page }) => {
   await enableE2eAuth(page);
   await page.goto("/teacher/classes/e2e-classroom-1/gradebook");
-  await expect(page).toHaveURL(/\/dashboard/);
+  await expect(page).toHaveURL(/\/access-denied/);
 });
 
 test("student cannot open class lab progress", async ({ page }) => {
   await enableE2eAuth(page);
   await page.goto("/teacher/classes/e2e-classroom-1/labs");
-  await expect(page).toHaveURL(/\/dashboard/);
+  await expect(page).toHaveURL(/\/access-denied/);
 });

@@ -1,12 +1,5 @@
 import type { ClassroomGradebook } from "./types";
-
-function csvCell(value: string) {
-  if (/[",\n\r]/.test(value)) {
-    return `"${value.replaceAll('"', '""')}"`;
-  }
-
-  return value;
-}
+import { csvCell } from "@/lib/csv";
 
 export function classroomGradebookToCsv({
   gradebook,

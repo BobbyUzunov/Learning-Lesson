@@ -80,7 +80,7 @@ export default async function TeacherClassroomLabsPage({ params }: { params: Pro
           <p className="mt-2 max-w-2xl text-sm text-ink/60">{copy.labsSubtitle}</p>
         </div>
         {progress.rows.length > 0 ? (
-          <DownloadCsvButton csv={csv} filename={labProgressCsvFilename(classroom.name)} label={copy.labsExport} />
+          <DownloadCsvButton csv={csv} filename={labProgressCsvFilename(classroom.name)} label={copy.labsExport} language={language} />
         ) : null}
       </header>
 

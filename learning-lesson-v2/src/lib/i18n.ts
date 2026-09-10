@@ -1089,9 +1089,9 @@ const dictionary = {
       rateLimited: "Твърде много опити за проверка. Изчакай минута и опитай отново."
     },
     login: {
-      badge: "Ученик",
+      badge: "Твоят профил",
       title: "Вход",
-      subtitle: "Влез с имейла си, за да видиш задачите от класа.",
+      subtitle: "Вход за ученици, учители и администратори. Влез с имейла и паролата си.",
       registerBadge: "Ученик",
       registerTitle: "Създай ученически профил",
       registerSubtitle:
@@ -2526,9 +2526,9 @@ const dictionary = {
       rateLimited: "Too many grading attempts. Wait a minute and try again."
     },
     login: {
-      badge: "Student",
+      badge: "Your account",
       title: "Sign in",
-      subtitle: "Sign in with your email to see your class work.",
+      subtitle: "For students, teachers and administrators. Sign in with your email and password.",
       registerBadge: "Student",
       registerTitle: "Create a student account",
       registerSubtitle:

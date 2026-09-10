@@ -53,7 +53,7 @@ export function SubmitAssignmentForm({
         setError(
           payload.error === "assignment_closed"
             ? copy.assignmentClosed
-            : (payload.error ?? copy.submitError)
+            : copy.submitError
         );
         return;
       }
@@ -113,13 +113,13 @@ export function SubmitAssignmentForm({
         />
       ) : null}
 
-      {error ? <p className="mt-3 text-sm font-semibold text-coral">{error}</p> : null}
-      {success ? <p className="mt-3 text-sm font-semibold text-mint">{copy.submitSuccess}</p> : null}
+      {error ? <p role="alert" className="mt-3 text-sm font-semibold text-coral">{error}</p> : null}
+      <p role="status" className="mt-3 text-sm font-semibold text-ink">{success ? copy.submitSuccess : null}</p>
 
       {canSubmit ? (
         <button
           className="mt-4 inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-4 py-2 font-bold text-paper transition hover:bg-ink/90 disabled:opacity-60"
-          disabled={pending || (!text.trim() && !url.trim())}
+          disabled={pending || success || (!text.trim() && !url.trim())}
           type="submit"
         >
           {pending ? copy.submitting : copy.submitButton}

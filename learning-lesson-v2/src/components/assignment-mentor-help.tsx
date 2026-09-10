@@ -9,6 +9,7 @@ import type { AssignmentStatus } from "@/lib/assignments/types";
 import { formatMessage, t, type Language } from "@/lib/i18n";
 import { hasMentorEffort, resolveMentorMode } from "@/lib/mentor/access";
 import type { MentorHintLevel, MentorMode } from "@/lib/mentor/prompt";
+import { parseMentorRemainingHeader } from "@/lib/mentor/usage";
 
 const MAX_HINT_LEVEL = 3;
 
@@ -48,6 +49,7 @@ export function AssignmentMentorHelp({
   const [open, setOpen] = useState(status === "needs_changes");
   const [remaining, setRemaining] = useState<number | null>(null);
   const [usageLoading, setUsageLoading] = useState(true);
+  const [usageError, setUsageError] = useState(false);
   const [effortAtLastRequest, setEffortAtLastRequest] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
   const pendingEffort = useRef("");
@@ -55,28 +57,28 @@ export function AssignmentMentorHelp({
 
   const refreshUsage = useCallback(async (signal?: AbortSignal) => {
     setUsageLoading(true);
-    let response: Response;
     try {
-      response = await fetch("/api/mentor", { signal });
+      const response = await fetch("/api/mentor", { signal });
+      if (!response.ok) {
+        throw new Error("mentor_usage_unavailable");
+      }
+      const body = (await response.json()) as { remaining?: unknown };
+      if (typeof body.remaining !== "number" || !Number.isSafeInteger(body.remaining) || body.remaining < 0) {
+        throw new Error("mentor_usage_unavailable");
+      }
+      if (!signal?.aborted) {
+        setRemaining(body.remaining);
+        setUsageError(false);
+      }
     } catch {
+      if (!signal?.aborted) {
+        setUsageError(true);
+      }
+    } finally {
       if (!signal?.aborted) {
         setUsageLoading(false);
       }
-      return;
     }
-
-    if (signal?.aborted) {
-      return;
-    }
-
-    setUsageLoading(false);
-
-    if (!response.ok) {
-      return;
-    }
-
-    const body = (await response.json()) as { remaining?: number };
-    setRemaining(body.remaining ?? null);
   }, []);
 
   const transport = useMemo(
@@ -85,8 +87,8 @@ export function AssignmentMentorHelp({
         api: "/api/mentor",
         fetch: async (input, init) => {
           const response = await fetch(input, init);
-          const nextRemaining = Number(response.headers.get("X-Mentor-Remaining"));
-          if (Number.isInteger(nextRemaining) && nextRemaining >= 0) {
+          const nextRemaining = parseMentorRemainingHeader(response.headers.get("X-Mentor-Remaining"));
+          if (nextRemaining !== null) {
             setRemaining(nextRemaining);
           }
           return response;
@@ -175,7 +177,7 @@ export function AssignmentMentorHelp({
     );
   }
 
-  const displayedError = localError ?? (error ? getErrorKey(error.message) : null);
+  const displayedError = localError ?? (error ? getErrorKey(error.message) : usageError ? "mentor_usage_unavailable" : null);
   let guidance: string | null = null;
   if (!limitReached && !taskLimitReached) {
     if (hintsUsed > 0 && !hasNewAttempt) {
@@ -251,17 +253,21 @@ export function AssignmentMentorHelp({
         )}
 
         {busy ? (
-          <div className="mt-4 flex items-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-semibold text-ink/65">
+          <div role="status" className="mt-4 flex items-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-semibold text-ink/65">
             <Bot className="size-4 animate-pulse text-violet" />
             {copy.mentor.working}
           </div>
         ) : null}
 
         {displayedError ? (
-          <p className="mt-3 rounded-lg bg-coral/15 px-4 py-3 text-sm font-semibold text-ink">
+          <p role="alert" className="mt-3 rounded-lg bg-coral/15 px-4 py-3 text-sm font-semibold text-ink">
             {resolveError(displayedError)}
           </p>
         ) : null}
+
+        <p role="status" className="sr-only">
+          {!busy && hintHistory.length > 0 ? formatMessage(copy.mentor.hintLevel, { level: hintHistory.length }) : null}
+        </p>
 
         {hintHistory.length > 0 ? (
           <div className="mt-4 space-y-3" ref={historyRef}>

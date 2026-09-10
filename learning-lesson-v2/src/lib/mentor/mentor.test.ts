@@ -1,9 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { isMentorOpenStatus, resolveMentorMode } from "./access";
 import { buildMentorMessages, isMentorHintLevel, isMentorMode } from "./prompt";
-import { parseMentorDailyLimit, computeMentorRemaining, isMentorLimitReached } from "./usage";
+import { parseMentorDailyLimit, computeMentorRemaining, isMentorLimitReached, parseMentorRemainingHeader } from "./usage";
 
 describe("mentor", () => {
+  it.each([null, "", " ", "-1", "1.5", "NaN", "Infinity", "1e2", "0x10", "9007199254740992"])(
+    "ignores missing or invalid remaining-quota headers: %j", (value) => {
+      expect(parseMentorRemainingHeader(value)).toBeNull();
+    }
+  );
+
+  it("recognizes a real zero quota and valid positive quotas", () => {
+    expect(parseMentorRemainingHeader("0")).toBe(0);
+    expect(parseMentorRemainingHeader("4")).toBe(4);
+    expect(parseMentorRemainingHeader(" 5 ")).toBe(5);
+  });
+
   it("builds a guarded Socratic prompt without solution leakage intent", () => {
     const messages = buildMentorMessages({
       language: "en",
