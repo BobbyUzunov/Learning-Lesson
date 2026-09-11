@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { unstable_noStore as noStore } from "next/cache";
-import { hasSupabaseEnv } from "../supabase/env";
+import { hasSupabaseDataEnv } from "../supabase/data-env";
 import { createClient } from "../supabase/server";
 import { fallbackSchoolCurriculum } from "./data";
 import { mapRowsToSchoolCurriculum } from "./helpers";
@@ -10,6 +10,7 @@ import type {
   SchoolCurriculum,
   SpecialtyRow
 } from "./types";
+import { throwLoadError } from "../supabase/load-error";
 
 const specialtyColumns =
   "id, profession_code, title, title_bg, description, description_bg, accent, icon, source_url, sort_order";
@@ -18,11 +19,7 @@ const moduleColumns =
 const missionColumns =
   "id, module_id, title, title_bg, brief, brief_bg, deliverable, deliverable_bg, skills, skills_bg, estimated_minutes, sort_order";
 
-async function loadSchoolCurriculumFromDatabase(): Promise<SchoolCurriculum | null> {
-  if (!hasSupabaseEnv()) {
-    return null;
-  }
-
+async function loadSchoolCurriculumFromDatabase(): Promise<SchoolCurriculum> {
   noStore();
   const supabase = await createClient();
   const [specialtiesResult, modulesResult, missionsResult] = await Promise.all([
@@ -32,21 +29,28 @@ async function loadSchoolCurriculumFromDatabase(): Promise<SchoolCurriculum | nu
   ]);
 
   if (specialtiesResult.error || modulesResult.error || missionsResult.error) {
-    return null;
+    throwLoadError(
+      "school_curriculum_unavailable",
+      specialtiesResult.error ?? modulesResult.error ?? missionsResult.error
+    );
   }
 
   const specialties = (specialtiesResult.data ?? []) as SpecialtyRow[];
   const modules = (modulesResult.data ?? []) as CurriculumModuleRow[];
   const missions = (missionsResult.data ?? []) as CurriculumMissionRow[];
   if (specialties.length === 0 || modules.length === 0 || missions.length === 0) {
-    return null;
+    throwLoadError("school_curriculum_unavailable", { message: "curriculum is incomplete" });
   }
 
   return mapRowsToSchoolCurriculum(specialties, modules, missions);
 }
 
 async function loadSchoolCurriculum() {
-  return (await loadSchoolCurriculumFromDatabase()) ?? fallbackSchoolCurriculum;
+  if (!hasSupabaseDataEnv()) {
+    return fallbackSchoolCurriculum;
+  }
+
+  return loadSchoolCurriculumFromDatabase();
 }
 
 export const getSchoolCurriculum = cache(loadSchoolCurriculum);

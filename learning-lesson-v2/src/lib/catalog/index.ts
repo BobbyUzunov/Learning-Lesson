@@ -1,10 +1,11 @@
 import { cache } from "react";
 import { unstable_noStore as noStore } from "next/cache";
 import { createClient } from "../supabase/server";
-import { hasSupabaseEnv } from "../supabase/env";
+import { hasSupabaseDataEnv } from "../supabase/data-env";
 import { getFallbackCatalog } from "./fallback";
 import { getLessonFromCatalog, mapRowsToCatalog } from "./helpers";
 import type { CourseCatalog, CourseRow, LessonMetadataRow, LessonRow } from "./types";
+import { throwLoadError } from "../supabase/load-error";
 
 const courseColumns =
   "id, title, title_bg, description, description_bg, difficulty, difficulty_bg, estimated_time, estimated_time_bg, reward_badge, reward_badge_bg, xp_reward, sort_order";
@@ -13,11 +14,7 @@ const lessonColumns =
 const metadataColumns =
   "lesson_id, learning_objectives, learning_objectives_bg, prerequisites, prerequisites_bg, key_concepts, key_concepts_bg, reading_time_minutes";
 
-async function loadCatalogFromDatabase(): Promise<CourseCatalog | null> {
-  if (!hasSupabaseEnv()) {
-    return null;
-  }
-
+async function loadCatalogFromDatabase(): Promise<CourseCatalog> {
   noStore();
   const supabase = await createClient();
   const [coursesResult, lessonsResult, metadataResult] = await Promise.all([
@@ -27,23 +24,20 @@ async function loadCatalogFromDatabase(): Promise<CourseCatalog | null> {
   ]);
 
   if (coursesResult.error) {
-    console.error("Failed to load courses:", coursesResult.error.message);
-    return null;
+    throwLoadError("catalog_courses_unavailable", coursesResult.error);
   }
 
   if (lessonsResult.error) {
-    console.error("Failed to load lessons:", lessonsResult.error.message);
-    return null;
+    throwLoadError("catalog_lessons_unavailable", lessonsResult.error);
   }
 
   if (metadataResult.error) {
-    console.error("Failed to load lesson metadata:", metadataResult.error.message);
-    return null;
+    throwLoadError("catalog_metadata_unavailable", metadataResult.error);
   }
 
   const courseRows = (coursesResult.data ?? []) as CourseRow[];
   if (courseRows.length === 0) {
-    return null;
+    throwLoadError("catalog_courses_unavailable", { message: "catalog is empty" });
   }
 
   return mapRowsToCatalog(
@@ -54,8 +48,11 @@ async function loadCatalogFromDatabase(): Promise<CourseCatalog | null> {
 }
 
 async function loadCourseCatalog(): Promise<CourseCatalog> {
-  const fromDatabase = await loadCatalogFromDatabase();
-  return fromDatabase ?? getFallbackCatalog();
+  if (!hasSupabaseDataEnv()) {
+    return getFallbackCatalog();
+  }
+
+  return loadCatalogFromDatabase();
 }
 
 export const getCourseCatalog = cache(loadCourseCatalog);

@@ -5,6 +5,8 @@ const { fromMock } = vi.hoisted(() => ({ fromMock: vi.fn() }));
 
 vi.mock("next/cache", () => ({ unstable_noStore: vi.fn() }));
 vi.mock("../supabase/env", () => ({ hasSupabaseEnv: vi.fn(() => true) }));
+vi.mock("../supabase/data-env", () => ({ hasSupabaseDataEnv: vi.fn(() => true) }));
+vi.mock("../observability", () => ({ logServerError: vi.fn() }));
 vi.mock("../supabase/server", () => ({
   createClient: vi.fn(async () => ({ from: fromMock }))
 }));
@@ -45,6 +47,12 @@ describe("school curriculum database loader", () => {
     expect(curriculum.specialties).toHaveLength(4);
     expect(curriculum.modules).toHaveLength(8);
     expect(curriculum.missions).toHaveLength(64);
+  });
+
+  it("fails visibly when a canonical curriculum table is unavailable", async () => {
+    fromMock.mockImplementation(() => readableQuery([], { message: "database unavailable" }));
+
+    await expect(getSchoolCurriculum()).rejects.toThrow("school_curriculum_unavailable");
   });
 
   it("loads mission-to-lab links from the bridge table", async () => {

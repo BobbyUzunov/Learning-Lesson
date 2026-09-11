@@ -4,7 +4,15 @@ import { getOpenAIConfig } from "./env";
 
 const MENTOR_REQUEST_TIMEOUT_MS = 20_000;
 
-export function streamMentorHint(messages: { system: string; user: string }) {
+export function streamMentorHint(
+  messages: { system: string; user: string },
+  onFinish?: (result: {
+    text: string;
+    inputTokens?: number;
+    outputTokens?: number;
+    model: string;
+  }) => Promise<void>
+) {
   const { apiKey, model } = getOpenAIConfig();
   const openai = createOpenAI({ apiKey });
 
@@ -13,6 +21,16 @@ export function streamMentorHint(messages: { system: string; user: string }) {
     system: messages.system,
     prompt: messages.user,
     maxOutputTokens: 180,
-    timeout: MENTOR_REQUEST_TIMEOUT_MS
+    timeout: MENTOR_REQUEST_TIMEOUT_MS,
+    onFinish: onFinish
+      ? async ({ text, totalUsage }) => {
+          await onFinish({
+            text,
+            inputTokens: totalUsage.inputTokens,
+            outputTokens: totalUsage.outputTokens,
+            model
+          });
+        }
+      : undefined
   });
 }

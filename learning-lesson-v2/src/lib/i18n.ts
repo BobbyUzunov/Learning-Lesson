@@ -511,8 +511,12 @@ const dictionary = {
       learner: "Ученик",
       loading: "Зареждане...",
       errorTitle: "Нещо се обърка",
+      errorMessage: "Страницата не можа да се зареди. Опитай отново.",
+      temporarilyUnavailableTitle: "Временно недостъпно",
+      temporarilyUnavailableMessage: "Не успяхме да заредим актуалните данни. Опитай отново след малко.",
       tryAgain: "Опитай отново",
-      home: "Начало"
+      home: "Начало",
+      close: "Затвори"
     },
     home: {
       brand: "Learning Lesson",
@@ -626,6 +630,9 @@ const dictionary = {
       startJourney: "Започни първия курс",
       level: "Ниво",
       xp: "XP",
+      motivationStats: "XP и текуща серия",
+      streakDayShort: "ден",
+      streakDaysShort: "дни",
       completed: "Завършени",
       progress: "Прогрес",
       courseProgress: "Прогрес по курса",
@@ -934,7 +941,7 @@ const dictionary = {
         },
         dataCollected: {
           title: "Какви данни събираме",
-          body: "Имейл, име за показване, роля (ученик/учител), прогрес по уроци, XP и streak, членство в клас, подадени задачи и проекти, резултати от проверки и ограничен дневен лог за AI наставника."
+          body: "Имейл, име за показване, роля (ученик/учител), прогрес по уроци, XP и streak, членство в клас, подадени задачи и проекти, резултати от проверки, история на AI насоките по задача и ограничен дневен лог за AI наставника."
         },
         purposes: {
           title: "Защо ги обработваме",
@@ -1277,6 +1284,8 @@ const dictionary = {
         daily_limit_reached: "Достигна дневния лимит за AI насоки. Продължи сам или потърси учителя.",
         mentor_failed: "Наставникът не успя да подготви насока. Опитай отново след малко.",
         mentor_usage_unavailable: "Лимитът за AI насоки не е наличен. Опитай отново след малко.",
+        mentor_history_unavailable: "Историята на AI насоките временно не е налична. Опитай отново след малко.",
+        task_limit_reached: "Използва трите AI насоки за тази задача.",
         unknown_lesson: "Непознат урок.",
         lesson_required: "Липсва идентификатор на урока.",
         student_required: "AI наставникът е само за ученици при възложена мисия.",
@@ -1949,8 +1958,12 @@ const dictionary = {
       learner: "Learner",
       loading: "Loading...",
       errorTitle: "Something went wrong",
+      errorMessage: "The page could not be loaded. Try again.",
+      temporarilyUnavailableTitle: "Temporarily unavailable",
+      temporarilyUnavailableMessage: "We could not load the latest data. Try again shortly.",
       tryAgain: "Try again",
-      home: "Home"
+      home: "Home",
+      close: "Close"
     },
     home: {
       brand: "Learning Lesson",
@@ -2063,6 +2076,9 @@ const dictionary = {
       startJourney: "Start your first course",
       level: "Level",
       xp: "XP",
+      motivationStats: "XP and current streak",
+      streakDayShort: "day streak",
+      streakDaysShort: "day streak",
       completed: "Completed",
       progress: "Progress",
       courseProgress: "Course progress",
@@ -2371,7 +2387,7 @@ const dictionary = {
         },
         dataCollected: {
           title: "What we collect",
-          body: "Email, display name, role (student/teacher), lesson progress, XP and streak, class membership, submitted assignments and projects, assessment results, and a limited daily log for the AI mentor."
+          body: "Email, display name, role (student/teacher), lesson progress, XP and streak, class membership, submitted assignments and projects, assessment results, AI direction history per assignment, and a limited daily AI mentor log."
         },
         purposes: {
           title: "Why we process it",
@@ -2714,6 +2730,8 @@ const dictionary = {
         daily_limit_reached: "You reached today's AI direction limit. Continue on your own or ask the teacher.",
         mentor_failed: "The mentor could not prepare a direction. Try again shortly.",
         mentor_usage_unavailable: "The AI direction limit is unavailable. Try again shortly.",
+        mentor_history_unavailable: "Your AI direction history is temporarily unavailable. Try again shortly.",
+        task_limit_reached: "You used all three AI directions for this task.",
         unknown_lesson: "Unknown lesson.",
         lesson_required: "A lesson id is required.",
         student_required: "The AI mentor is only for students on an assigned mission.",

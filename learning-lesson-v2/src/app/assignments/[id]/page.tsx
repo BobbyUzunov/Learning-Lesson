@@ -9,6 +9,7 @@ import { requireUser } from "@/lib/supabase/auth";
 import { getE2eAuthState } from "@/lib/supabase/e2e-auth";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
+import { getMyMentorHintHistory } from "@/lib/supabase/mentor-history";
 
 export const dynamic = "force-dynamic";
 
@@ -31,9 +32,10 @@ export default async function AssignmentPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const e2e = await getE2eAuthState();
 
-  const [loadedAssignment, submission] = await Promise.all([
+  const [loadedAssignment, submission, mentorHistory] = await Promise.all([
     getAssignmentById(id),
-    getMySubmissionForAssignment(id)
+    getMySubmissionForAssignment(id),
+    getMyMentorHintHistory(id)
   ]);
   const assignment =
     loadedAssignment ?? (e2e?.role === "user" && id === E2E_ASSIGNMENT_ID ? e2eStudentAssignment() : null);
@@ -118,6 +120,7 @@ export default async function AssignmentPage({ params }: { params: Promise<{ id:
           initialText={submission?.deliverableText}
           initialUrl={submission?.deliverableUrl}
           language={language}
+          mentorHistory={mentorHistory}
           showMentor={!session.isTeacher}
           status={status}
           teacherNote={submission?.teacherNote}

@@ -21,6 +21,7 @@ export default function GlobalError({
 }) {
   const language = getLanguageFromDocument();
   const copy = t(language);
+  const dataUnavailable = error.message.includes("_unavailable");
 
   useEffect(() => {
     console.error(error);
@@ -31,9 +32,9 @@ export default function GlobalError({
       <body>
         <RouteError
           homeLabel={copy.common.home}
-          message={error.message || copy.common.errorTitle}
+          message={dataUnavailable ? copy.common.temporarilyUnavailableMessage : copy.common.errorMessage}
           reset={reset}
-          title={copy.common.errorTitle}
+          title={dataUnavailable ? copy.common.temporarilyUnavailableTitle : copy.common.errorTitle}
           tryAgainLabel={copy.common.tryAgain}
         />
       </body>

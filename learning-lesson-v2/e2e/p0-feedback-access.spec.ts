@@ -32,6 +32,16 @@ test("404 follows the selected language", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();
 });
 
+test("student sees XP and streak on Today without opening the profile", async ({ page }) => {
+  await enableE2eAuth(page);
+  await page.goto("/dashboard");
+  const motivation = page.getByLabel("XP и текуща серия");
+  await expect(motivation).toBeVisible();
+  await expect(motivation).toContainText("0 XP");
+  await expect(motivation).toContainText("0 дни");
+  await expect(page.getByRole("link", { name: /продължи оттук|continue here|отвори задачата|open assignment|избери мисия|choose mission/i })).toBeVisible();
+});
+
 test("submission failure is readable and retry confirms submission", async ({ page }) => {
   await enableE2eAuth(page);
   await mockMentorApi(page);

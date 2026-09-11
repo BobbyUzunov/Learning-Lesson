@@ -8,6 +8,8 @@ const mockGetMySubmissionForAssignment = vi.fn();
 const mockGetMyClassroomIds = vi.fn();
 const mockFetchMentorUsage = vi.fn();
 const mockReserveMentorHint = vi.fn();
+const mockFetchMentorHintHistory = vi.fn();
+const mockSaveMentorHint = vi.fn();
 const mockStreamMentorHint = vi.fn();
 const mockToUIMessageStreamResponse = vi.fn();
 
@@ -47,6 +49,11 @@ vi.mock("@/lib/supabase/memberships", () => ({
 vi.mock("@/lib/supabase/mentor-usage", () => ({
   fetchMentorUsage: (...args: unknown[]) => mockFetchMentorUsage(...args),
   reserveMentorHint: (...args: unknown[]) => mockReserveMentorHint(...args)
+}));
+
+vi.mock("@/lib/supabase/mentor-history", () => ({
+  fetchMentorHintHistory: (...args: unknown[]) => mockFetchMentorHintHistory(...args),
+  saveMentorHint: (...args: unknown[]) => mockSaveMentorHint(...args)
 }));
 
 vi.mock("@/lib/mentor/openai", () => ({
@@ -100,6 +107,8 @@ describe("/api/mentor", () => {
     mockGetMyClassroomIds.mockResolvedValue(["class-1"]);
     mockFetchMentorUsage.mockResolvedValue({ count: 1, remaining: 4, limit: 5 });
     mockReserveMentorHint.mockResolvedValue({ ok: true, count: 2, remaining: 3, limit: 5 });
+    mockFetchMentorHintHistory.mockResolvedValue([]);
+    mockSaveMentorHint.mockResolvedValue(undefined);
     mockToUIMessageStreamResponse.mockImplementation(
       (options?: { headers?: HeadersInit }) => new Response("mock-stream", { headers: options?.headers })
     );
@@ -111,7 +120,7 @@ describe("/api/mentor", () => {
   it("GET returns 401 when user is not authenticated", async () => {
     mockGetCurrentSession.mockResolvedValue({ user: null, isTeacher: false });
 
-    const response = await GET();
+    const response = await GET(new Request("http://localhost/api/mentor"));
     const body = await response.json();
 
     expect(response.status).toBe(401);
@@ -124,7 +133,7 @@ describe("/api/mentor", () => {
       isTeacher: true
     });
 
-    const response = await GET();
+    const response = await GET(new Request("http://localhost/api/mentor"));
     const body = await response.json();
 
     expect(response.status).toBe(403);
@@ -133,12 +142,26 @@ describe("/api/mentor", () => {
   });
 
   it("GET returns mentor usage for authenticated students", async () => {
-    const response = await GET();
+    const response = await GET(new Request("http://localhost/api/mentor"));
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body).toEqual({ remaining: 4, limit: 5, count: 1 });
+    expect(body).toEqual({ remaining: 4, limit: 5, count: 1, history: [] });
     expect(mockFetchMentorUsage).toHaveBeenCalledOnce();
+  });
+
+  it("GET returns persisted history for an authorized assignment", async () => {
+    mockFetchMentorHintHistory.mockResolvedValue([
+      { id: "hint-1", hintLevel: 1, mode: "start", effort: null, text: "Start small.", createdAt: "now" }
+    ]);
+
+    const response = await GET(new Request("http://localhost/api/mentor?assignmentId=asg-1"));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.history).toHaveLength(1);
+    expect(body.history[0].text).toBe("Start small.");
+    expect(mockFetchMentorHintHistory).toHaveBeenCalledWith(expect.anything(), "asg-1");
   });
 
   it("POST rejects teachers before reserving quota", async () => {
@@ -235,7 +258,33 @@ describe("/api/mentor", () => {
     expect(mockStreamMentorHint).not.toHaveBeenCalled();
   });
 
+  it("POST enforces the persisted per-assignment direction limit before reserving daily quota", async () => {
+    mockFetchMentorHintHistory.mockResolvedValue([
+      { hintLevel: 1 },
+      { hintLevel: 2 },
+      { hintLevel: 3 }
+    ]);
+
+    const response = await POST(mentorRequest({ hintLevel: 3 }));
+
+    expect(response.status).toBe(429);
+    expect(await response.json()).toEqual({ error: "task_limit_reached" });
+    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+    expect(mockStreamMentorHint).not.toHaveBeenCalled();
+  });
+
+  it("POST rejects a skipped persisted direction level", async () => {
+    mockFetchMentorHintHistory.mockResolvedValue([{ hintLevel: 1 }]);
+
+    const response = await POST(mentorRequest({ hintLevel: 3 }));
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({ error: "invalid_hint_level" });
+    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+  });
+
   it("POST streams a guarded direction and exposes remaining quota headers", async () => {
+    mockFetchMentorHintHistory.mockResolvedValue([{ hintLevel: 1 }]);
     const response = await POST(
       mentorRequest({
         mode: "review",
@@ -260,6 +309,30 @@ describe("/api/mentor", () => {
     expect(prompt.user).toContain("Assigned mission");
     expect(prompt.user).toContain("Help mode: review");
     expect(prompt.user).toContain("Which semantic element could hold the main content?");
+  });
+
+  it("persists the completed direction with generation metadata", async () => {
+    await POST(mentorRequest());
+    const onFinish = mockStreamMentorHint.mock.calls[0]?.[1] as (result: {
+      text: string;
+      inputTokens: number;
+      outputTokens: number;
+      model: string;
+    }) => Promise<void>;
+
+    await onFinish({ text: "  Start with the page structure.  ", inputTokens: 40, outputTokens: 9, model: "gpt-test" });
+
+    expect(mockSaveMentorHint).toHaveBeenCalledWith(expect.anything(), {
+      userId: "user-1",
+      assignmentId: "asg-1",
+      hintLevel: 1,
+      mode: "start",
+      effort: "",
+      text: "Start with the page structure.",
+      model: "gpt-test",
+      inputTokens: 40,
+      outputTokens: 9
+    });
   });
 
   it("POST keeps the reserved quota when mentor setup fails synchronously", async () => {

@@ -14,6 +14,7 @@ import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { getAssignmentById, getMySubmissionForAssignment } from "@/lib/supabase/assignments";
 import { getMyClassroomIds } from "@/lib/supabase/memberships";
 import { fetchMentorUsage, reserveMentorHint } from "@/lib/supabase/mentor-usage";
+import { fetchMentorHintHistory, saveMentorHint } from "@/lib/supabase/mentor-history";
 
 const MIN_EFFORT_LENGTH = 4;
 const MAX_EFFORT_LENGTH = 1600;
@@ -56,7 +57,7 @@ async function requireStudentSession() {
   return { ok: true as const, session };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   if (!hasSupabaseEnv()) {
     return NextResponse.json({ error: "supabase_not_configured" }, { status: 503 });
   }
@@ -69,11 +70,29 @@ export async function GET() {
   try {
     const supabase = await createClient();
     const usage = await fetchMentorUsage(supabase);
+    const assignmentId = new URL(request.url).searchParams.get("assignmentId")?.trim() ?? "";
+    let history: Awaited<ReturnType<typeof fetchMentorHintHistory>> = [];
+
+    if (assignmentId) {
+      const e2e = await getE2eAuthState();
+      if (!(e2e?.role === "user" && assignmentId === E2E_ASSIGNMENT_ID)) {
+        const assignment = await getAssignmentById(assignmentId);
+        if (!assignment) {
+          return NextResponse.json({ error: "assignment_not_found" }, { status: 404 });
+        }
+        const classroomIds = await getMyClassroomIds();
+        if (!classroomIds.includes(assignment.classroomId)) {
+          return NextResponse.json({ error: "not_authorized" }, { status: 403 });
+        }
+        history = await fetchMentorHintHistory(supabase, assignmentId);
+      }
+    }
 
     return NextResponse.json({
       remaining: usage.remaining,
       limit: usage.limit,
-      count: usage.count
+      count: usage.count,
+      history
     });
   } catch {
     return NextResponse.json({ error: "mentor_usage_unavailable" }, { status: 503 });
@@ -153,6 +172,23 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createClient();
+  let history: Awaited<ReturnType<typeof fetchMentorHintHistory>> = [];
+  if (!e2e) {
+    try {
+      history = await fetchMentorHintHistory(supabase, assignmentId);
+    } catch {
+      return NextResponse.json({ error: "mentor_history_unavailable" }, { status: 503 });
+    }
+  }
+
+  if (history.length >= 3) {
+    return NextResponse.json({ error: "task_limit_reached" }, { status: 429 });
+  }
+
+  if (!e2e && hintLevel !== history.length + 1) {
+    return NextResponse.json({ error: "invalid_hint_level" }, { status: 409 });
+  }
+
   let reservation: Awaited<ReturnType<typeof reserveMentorHint>>;
   try {
     reservation = await reserveMentorHint(supabase);
@@ -182,7 +218,28 @@ export async function POST(request: Request) {
       effort: effort || undefined,
       previousHints: extractPreviousHints(body.messages)
     });
-    const result = streamMentorHint(messages);
+    const result = streamMentorHint(messages, async (generated) => {
+      if (e2e || !generated.text.trim()) {
+        return;
+      }
+
+      try {
+        await saveMentorHint(supabase, {
+          userId: auth.session.user.id,
+          assignmentId,
+          hintLevel,
+          mode,
+          effort,
+          text: generated.text.trim(),
+          model: generated.model,
+          inputTokens: generated.inputTokens,
+          outputTokens: generated.outputTokens
+        });
+      } catch {
+        logServerError("mentor_history_save_failed", { assignmentId });
+        throw new Error("mentor_history_save_failed");
+      }
+    });
 
     return result.toUIMessageStreamResponse({
       headers: {

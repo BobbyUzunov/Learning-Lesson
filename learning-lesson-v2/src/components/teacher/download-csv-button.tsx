@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { Language } from "@/lib/i18n";
+import { t, type Language } from "@/lib/i18n";
+import { ActionToast } from "@/components/action-toast";
 
 export function DownloadCsvButton({
   csv,
@@ -14,6 +15,7 @@ export function DownloadCsvButton({
   label: string;
   language: Language;
 }) {
+  const copy = t(language);
   const [result, setResult] = useState<"success" | "error" | null>(null);
   function download() {
     setResult(null);
@@ -50,13 +52,17 @@ export function DownloadCsvButton({
       >
         {label}
       </button>
-      <p role="status" className="mt-2 text-sm text-ink/70">
-        {result === "success" ? (language === "bg" ? "Изтеглянето на CSV започна." : "CSV download started.") : null}
-      </p>
-      {result === "error" ? (
-        <p role="alert" className="mt-2 text-sm text-coral">
-          {language === "bg" ? "CSV файлът не беше изтеглен. Опитай отново." : "Could not download the CSV file. Try again."}
-        </p>
+      {result ? (
+        <ActionToast
+          message={
+            result === "success"
+              ? language === "bg" ? "Изтеглянето на CSV започна." : "CSV download started."
+              : language === "bg" ? "CSV файлът не беше изтеглен. Опитай отново." : "Could not download the CSV file. Try again."
+          }
+          onDismiss={() => setResult(null)}
+          closeLabel={copy.common.close}
+          tone={result}
+        />
       ) : null}
     </div>
   );

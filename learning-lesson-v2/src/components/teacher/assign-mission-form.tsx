@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { DueDateField } from "@/components/due-date-field";
+import { ActionToast } from "@/components/action-toast";
 import { CUSTOM_QUESTION_MAX, CUSTOM_QUESTION_MIN } from "@/lib/assignments/custom";
 import { t, type Language } from "@/lib/i18n";
 
@@ -52,7 +53,8 @@ function sourceButtonClass(active: boolean) {
 }
 
 export function AssignMissionForm({ classroomId, language, missions }: AssignMissionFormProps) {
-  const copy = t(language).teacher;
+  const localized = t(language);
+  const copy = localized.teacher;
   const router = useRouter();
   const hasProgramMissions = missions.length > 0;
   const [open, setOpen] = useState(false);
@@ -146,6 +148,7 @@ export function AssignMissionForm({ classroomId, language, missions }: AssignMis
   if (!open) {
     return (
       <div>
+        {success ? <ActionToast closeLabel={localized.common.close} message={copy.assignSuccess} onDismiss={() => setSuccess(false)} tone="success" /> : null}
         <button
           className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink/12 bg-white px-4 py-2.5 text-sm font-bold text-ink/75 transition hover:border-ink/25 hover:text-ink"
           onClick={() => {
@@ -157,7 +160,6 @@ export function AssignMissionForm({ classroomId, language, missions }: AssignMis
           <Plus className="size-4" />
           {copy.assignButton}
         </button>
-        <p role="status" className="mt-3 text-sm font-semibold text-ink">{success ? copy.assignSuccess : null}</p>
       </div>
     );
   }
@@ -306,7 +308,7 @@ export function AssignMissionForm({ classroomId, language, missions }: AssignMis
         </label>
       </details>
 
-      {error ? <p role="alert" className="mt-3 text-sm font-semibold text-coral">{error}</p> : null}
+      {error ? <ActionToast closeLabel={localized.common.close} message={error} onDismiss={() => setError(null)} tone="error" /> : null}
 
       <button
         className="focus-ring mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-ink px-4 py-2.5 font-bold text-paper transition hover:bg-ink/90 disabled:opacity-60"

@@ -10,8 +10,10 @@ import { formatMessage, t, type Language } from "@/lib/i18n";
 import { hasMentorEffort, resolveMentorMode } from "@/lib/mentor/access";
 import type { MentorHintLevel, MentorMode } from "@/lib/mentor/prompt";
 import { parseMentorRemainingHeader } from "@/lib/mentor/usage";
+import type { MentorHintHistoryItem } from "@/lib/supabase/mentor-history";
 
 const MAX_HINT_LEVEL = 3;
+const EMPTY_MENTOR_HISTORY: MentorHintHistoryItem[] = [];
 
 function getErrorKey(message: string) {
   try {
@@ -37,11 +39,13 @@ function assistantText(message: { parts: Array<{ type: string; text?: string }> 
 export function AssignmentMentorHelp({
   assignmentId,
   effort = "",
+  initialHistory = EMPTY_MENTOR_HISTORY,
   language,
   status
 }: {
   assignmentId: string;
   effort?: string;
+  initialHistory?: MentorHintHistoryItem[];
   language: Language;
   status: AssignmentStatus;
 }) {
@@ -50,7 +54,9 @@ export function AssignmentMentorHelp({
   const [remaining, setRemaining] = useState<number | null>(null);
   const [usageLoading, setUsageLoading] = useState(true);
   const [usageError, setUsageError] = useState(false);
-  const [effortAtLastRequest, setEffortAtLastRequest] = useState<string | null>(null);
+  const [effortAtLastRequest, setEffortAtLastRequest] = useState<string | null>(
+    initialHistory.at(-1)?.effort ?? null
+  );
   const [localError, setLocalError] = useState<string | null>(null);
   const pendingEffort = useRef("");
   const historyRef = useRef<HTMLDivElement | null>(null);
@@ -97,7 +103,17 @@ export function AssignmentMentorHelp({
     []
   );
 
-  const { clearError, error, messages, sendMessage, status: chatStatus } = useChat({
+  const initialMessages = useMemo(
+    () => initialHistory.map((hint) => ({
+      id: hint.id,
+      role: "assistant" as const,
+      parts: [{ type: "text" as const, text: hint.text }]
+    })),
+    [initialHistory]
+  );
+
+  const { clearError, error, messages, sendMessage, setMessages, status: chatStatus } = useChat({
+    messages: initialMessages,
     transport,
     onFinish: () => {
       setEffortAtLastRequest(pendingEffort.current);
@@ -114,6 +130,36 @@ export function AssignmentMentorHelp({
 
     return () => controller.abort();
   }, [refreshUsage]);
+
+  useEffect(() => {
+    if (initialHistory.length > 0) {
+      return;
+    }
+
+    const controller = new AbortController();
+    void fetch(`/api/mentor?assignmentId=${encodeURIComponent(assignmentId)}`, { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("mentor_history_unavailable");
+        }
+        const body = (await response.json()) as { history?: MentorHintHistoryItem[] };
+        if (body.history?.length) {
+          setMessages(body.history.map((hint) => ({
+            id: hint.id,
+            role: "assistant" as const,
+            parts: [{ type: "text" as const, text: hint.text }]
+          })));
+          setEffortAtLastRequest(body.history.at(-1)?.effort ?? null);
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setLocalError("mentor_history_unavailable");
+        }
+      });
+
+    return () => controller.abort();
+  }, [assignmentId, initialHistory.length, setMessages]);
 
   const assistantMessages = messages.filter((message) => message.role === "assistant");
   const hintHistory = assistantMessages

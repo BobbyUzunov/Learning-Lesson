@@ -28,11 +28,12 @@ export async function mockMentorApi(
   } = {}
 ) {
   let remaining = options.remaining ?? 5;
+  const history: Array<{ id: string; hintLevel: number; mode: string; effort: string | null; text: string; createdAt: string }> = [];
   const limit = 5;
   const hint =
     options.hint ?? "Try structuring your page with header, main, and footer sections before adding styles.";
 
-  await page.route("**/api/mentor", async (route) => {
+  await page.route("**/api/mentor**", async (route) => {
     if (route.request().method() === "GET") {
       await route.fulfill({
         status: 200,
@@ -40,7 +41,8 @@ export async function mockMentorApi(
         body: JSON.stringify({
           remaining,
           limit,
-          count: limit - remaining
+          count: limit - remaining,
+          history
         })
       });
       return;
@@ -48,6 +50,15 @@ export async function mockMentorApi(
 
     if (route.request().method() === "POST") {
       remaining = Math.max(remaining - 1, 0);
+      const requestBody = route.request().postDataJSON() as { mode?: string; effort?: string; hintLevel?: number };
+      history.push({
+        id: `mentor-message-${history.length + 1}`,
+        hintLevel: requestBody.hintLevel ?? history.length + 1,
+        mode: requestBody.mode ?? "start",
+        effort: requestBody.effort || null,
+        text: hint,
+        createdAt: new Date().toISOString()
+      });
       const textId = "mentor-text-1";
       const streamBody = [
         { type: "start", messageId: "mentor-message-1" },

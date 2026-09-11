@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { t, type Language } from "@/lib/i18n";
+import { ActionToast } from "@/components/action-toast";
 
 export function CopyCodeButton({
   code,
@@ -45,11 +46,14 @@ export function CopyCodeButton({
       </button>
       <p aria-live="polite" className="sr-only">{copied ? copy.teacher.copied : null}</p>
       {error ? (
-        <p role="alert" className="mt-2 max-w-sm text-sm">
-          {language === "bg"
+        <ActionToast
+          message={language === "bg"
             ? "Кодът не беше копиран. Маркирай го и го копирай ръчно или опитай отново."
             : "Could not copy the code. Select and copy it manually or try again."}
-        </p>
+          onDismiss={() => setError(false)}
+          closeLabel={copy.common.close}
+          tone="error"
+        />
       ) : null}
     </div>
   );

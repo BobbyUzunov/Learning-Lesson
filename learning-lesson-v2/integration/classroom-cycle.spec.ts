@@ -152,6 +152,7 @@ test("real classroom cycle for program and custom assignments", async ({ browser
             .getByRole("button", { name: copy.teacher.assignButton, exact: true }).click()
         );
         assignmentId = body.assignment.id;
+        await expect(teacherPage.getByRole("status").filter({ hasText: copy.teacher.assignSuccess })).toBeVisible();
         expect(Boolean(body.assignment.missionId)).toBe(source === "program");
         await studentPage.goto("/classes");
         await expect(studentPage.locator(`a[href="${studentPath()}"]`)).toBeVisible();

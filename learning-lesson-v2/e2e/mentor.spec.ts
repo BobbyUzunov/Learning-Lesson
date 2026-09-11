@@ -29,6 +29,19 @@ test.describe("mentor authenticated", () => {
     await expect(page.getByText(/остават 4 AI насоки|4 AI directions left today/i)).toBeVisible();
   });
 
+  test("refresh restores the same direction and remaining daily quota", async ({ page }) => {
+    await openAssignmentMentor(page);
+    await page.getByRole("button", { name: /help me get started|помогни ми да започна/i }).click();
+    await expect(page.getByText(/header, main, and footer/i)).toBeVisible();
+    await expect(page.getByText(/остават 4 AI насоки|4 AI directions left today/i)).toBeVisible();
+
+    await page.reload();
+
+    await expect(page.getByText(/header, main, and footer/i)).toBeVisible();
+    await expect(page.getByText(/остават 4 AI насоки|4 AI directions left today/i)).toBeVisible();
+    await expect(page.getByRole("paragraph").filter({ hasText: /Насока 1 от 3|Direction 1 of 3/i })).toBeVisible();
+  });
+
   test("a failed request without quota headers keeps the quota and allows retry", async ({ page }) => {
     let failed = false;
     await page.route("**/api/mentor", async (route) => {

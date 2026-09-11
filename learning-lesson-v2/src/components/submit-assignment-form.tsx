@@ -6,12 +6,14 @@ import { AssignmentMentorHelp } from "@/components/assignment-mentor-help";
 import type { AssignmentStatus } from "@/lib/assignments/types";
 import { isMentorOpenStatus } from "@/lib/mentor/access";
 import { t, type Language } from "@/lib/i18n";
+import type { MentorHintHistoryItem } from "@/lib/supabase/mentor-history";
 
 type SubmitAssignmentFormProps = {
   assignmentId: string;
   initialText?: string | null;
   initialUrl?: string | null;
   language: Language;
+  mentorHistory?: MentorHintHistoryItem[];
   showMentor?: boolean;
   status: AssignmentStatus;
   teacherNote?: string | null;
@@ -22,6 +24,7 @@ export function SubmitAssignmentForm({
   initialText,
   initialUrl,
   language,
+  mentorHistory = [],
   showMentor = false,
   status,
   teacherNote
@@ -109,6 +112,7 @@ export function SubmitAssignmentForm({
           assignmentId={assignmentId}
           effort={[text, url].filter((value) => value.trim()).join("\n")}
           language={language}
+          initialHistory={mentorHistory}
           status={status}
         />
       ) : null}

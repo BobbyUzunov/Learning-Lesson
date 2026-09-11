@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, BookOpen, ClipboardCheck, GraduationCap } from "lucide-react";
+import { ArrowRight, BookOpen, ClipboardCheck, Flame, GraduationCap, Sparkles } from "lucide-react";
 import { getCourseCatalog, getGlobalNextLessonFromCourses } from "@/lib/catalog";
 import { localizeGameLesson, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
@@ -93,6 +93,9 @@ export default async function DashboardPage({
   const activeDueAt = activeAssessment?.dueAt ?? activeAssignment?.dueAt;
   const StepIcon = kind === "assessment" ? ClipboardCheck : kind === "assignment" ? GraduationCap : BookOpen;
   const displayName = session.profile?.display_name?.trim() || null;
+  const earnedXp = progress.reduce((total, item) => total + (item.completed ? item.xp_earned : 0), 0);
+  const totalXp = session.profile?.xp ?? earnedXp;
+  const streakCount = session.profile?.streak_count ?? 0;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
@@ -109,10 +112,22 @@ export default async function DashboardPage({
 
         <div className="relative px-5 py-10 sm:px-8 sm:py-12">
           <div className="animate-home-rise max-w-2xl">
-            <p className="inline-flex rounded-md border border-paper/15 bg-paper/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-mint">
-              {copy.nav.today}
-              {displayName ? ` · ${displayName}` : ""}
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="inline-flex rounded-md border border-paper/15 bg-paper/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-mint">
+                {copy.nav.today}
+                {displayName ? ` · ${displayName}` : ""}
+              </p>
+              <div className="flex items-center gap-2" aria-label={copy.dashboard.motivationStats}>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-paper/15 bg-paper/10 px-3 py-1.5 text-xs font-bold text-paper">
+                  <Sparkles aria-hidden className="size-3.5 text-mint" />
+                  {totalXp} {copy.dashboard.xp}
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-paper/15 bg-paper/10 px-3 py-1.5 text-xs font-bold text-paper">
+                  <Flame aria-hidden className="size-3.5 text-coral" />
+                  {streakCount} {streakCount === 1 ? copy.dashboard.streakDayShort : copy.dashboard.streakDaysShort}
+                </span>
+              </div>
+            </div>
             <h1 className="mt-4 font-display text-[clamp(1.85rem,4vw,2.75rem)] font-bold leading-[1.05] tracking-tight">
               {copy.dashboard.continueHere}
             </h1>
