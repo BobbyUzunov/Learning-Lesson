@@ -55,7 +55,8 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
           <span>{assessment.questionCount} {copy.questionCount}</span>
           {assessment.durationMinutes ? (
             <span className="inline-flex items-center gap-1.5">
-              <Clock3 className="size-4" /> {assessment.durationMinutes} {copy.minutes}
+              <Clock3 className="size-4" aria-hidden />
+              {copy.durationSuggested.replace("{minutes}", String(assessment.durationMinutes))}
             </span>
           ) : null}
         </div>

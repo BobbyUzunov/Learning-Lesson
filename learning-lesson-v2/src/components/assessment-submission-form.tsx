@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import type { AssessmentQuestion } from "@/lib/assessments/types";
+import { assessmentDraftKey, type AssessmentAnswersDraft } from "@/lib/draft-storage";
+import { useDraftAutosave } from "@/hooks/use-draft-autosave";
 import { t, type Language } from "@/lib/i18n";
 
 export function AssessmentSubmissionForm({
@@ -16,7 +18,16 @@ export function AssessmentSubmissionForm({
 }) {
   const copy = t(language).assessment;
   const router = useRouter();
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const {
+    value: draft,
+    setValue: setDraft,
+    status: draftStatus,
+    clearDraft
+  } = useDraftAutosave<AssessmentAnswersDraft>({
+    key: assessmentDraftKey(assessmentId),
+    initialValue: { answers: {} }
+  });
+  const answers = draft.answers;
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +53,7 @@ export function AssessmentSubmissionForm({
         return;
       }
 
+      clearDraft();
       router.refresh();
     } catch {
       setError(copy.submitError);
@@ -52,6 +64,12 @@ export function AssessmentSubmissionForm({
 
   return (
     <form className="space-y-4" onSubmit={onSubmit}>
+      {draftStatus === "restored" || draftStatus === "saved" ? (
+        <p className="text-xs font-semibold text-ink/50">
+          {draftStatus === "restored" ? copy.draftRestored : copy.draftSaved}
+        </p>
+      ) : null}
+
       {questions.map((question, questionIndex) => (
         <fieldset className="rounded-xl border border-ink/10 bg-white/80 p-5 shadow-soft" key={question.id}>
           <legend className="w-full">
@@ -74,7 +92,12 @@ export function AssessmentSubmissionForm({
                     checked={checked}
                     className="mt-0.5 size-5 accent-violet"
                     name={`question-${question.id}`}
-                    onChange={() => setAnswers((current) => ({ ...current, [question.id]: optionIndex }))}
+                    onChange={() =>
+                      setDraft((current) => ({
+                        ...current,
+                        answers: { ...current.answers, [question.id]: optionIndex }
+                      }))
+                    }
                     type="radio"
                   />
                   <span>{option}</span>

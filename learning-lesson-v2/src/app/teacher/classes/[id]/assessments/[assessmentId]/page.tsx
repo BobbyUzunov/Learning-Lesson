@@ -60,7 +60,9 @@ export default async function TeacherAssessmentReportPage({
             {assessment.description ? <p className="mt-3 max-w-2xl text-sm leading-6 text-ink/65">{assessment.description}</p> : null}
             <p className="mt-3 text-sm font-semibold text-ink/55">
               {assessment.questionCount} {copy.questionCount}
-              {assessment.durationMinutes ? ` · ${assessment.durationMinutes} ${copy.minutes}` : ""}
+              {assessment.durationMinutes
+                ? ` · ${copy.durationSuggested.replace("{minutes}", String(assessment.durationMinutes))}`
+                : ""}
             </p>
           </div>
           {assessment.status === "published" ? (

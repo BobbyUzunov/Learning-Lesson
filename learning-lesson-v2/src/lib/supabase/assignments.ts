@@ -7,13 +7,16 @@ import {
   mapAssignmentReportRow,
   mapAssignmentSubmissionRow,
   mapClassroomAssignmentRow,
+  mapSubmissionReviewHistoryRow,
   type AssignmentReportRow,
   type AssignmentReportRpcRow,
   type AssignmentStatus,
   type AssignmentSubmission,
   type AssignmentSubmissionRow,
   type ClassroomAssignment,
-  type ClassroomAssignmentRow
+  type ClassroomAssignmentRow,
+  type SubmissionReviewHistoryEntry,
+  type SubmissionReviewHistoryRpcRow
 } from "@/lib/assignments/types";
 
 const assignmentColumns =
@@ -235,4 +238,23 @@ export async function getMySubmissionForAssignment(
   }
 
   return mapAssignmentSubmissionRow(data as AssignmentSubmissionRow);
+}
+
+export async function getSubmissionReviewHistory(
+  submissionId: string
+): Promise<SubmissionReviewHistoryEntry[]> {
+  if (!hasSupabaseDataEnv()) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_submission_review_history", {
+    p_submission_id: submissionId
+  });
+
+  if (error) {
+    throw new Error(error.message ?? "teacher_submission_review_history_unavailable");
+  }
+
+  return ((data ?? []) as SubmissionReviewHistoryRpcRow[]).map(mapSubmissionReviewHistoryRow);
 }

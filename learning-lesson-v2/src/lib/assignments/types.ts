@@ -159,6 +159,47 @@ export type AssignmentReportSummary = {
   needsChanges: number;
 };
 
+export type SubmissionReviewHistoryEventType = "teacher_review" | "cleared_on_resubmit";
+
+export type SubmissionReviewHistoryEntry = {
+  id: string;
+  submissionId: string;
+  status: AssignmentStatus;
+  teacherNote: string | null;
+  deliverableText: string | null;
+  deliverableUrl: string | null;
+  eventType: SubmissionReviewHistoryEventType;
+  reviewedAt: string | null;
+  createdAt: string;
+};
+
+export type SubmissionReviewHistoryRpcRow = {
+  id: string;
+  submission_id: string;
+  status: string;
+  teacher_note: string | null;
+  deliverable_text: string | null;
+  deliverable_url: string | null;
+  event_type: string;
+  reviewed_at: string | null;
+  created_at: string;
+};
+
+export function mapSubmissionReviewHistoryRow(row: SubmissionReviewHistoryRpcRow): SubmissionReviewHistoryEntry {
+  return {
+    id: row.id,
+    submissionId: row.submission_id,
+    status: asAssignmentStatus(row.status),
+    teacherNote: row.teacher_note,
+    deliverableText: row.deliverable_text,
+    deliverableUrl: row.deliverable_url,
+    eventType:
+      row.event_type === "cleared_on_resubmit" ? "cleared_on_resubmit" : "teacher_review",
+    reviewedAt: row.reviewed_at,
+    createdAt: row.created_at
+  };
+}
+
 export function summarizeAssignmentReport(rows: AssignmentReportRow[]): AssignmentReportSummary {
   return {
     studentCount: rows.length,

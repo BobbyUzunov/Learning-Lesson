@@ -13,12 +13,14 @@ export function useDraftAutosave<T>({
   key,
   initialValue,
   enabled = true,
-  debounceMs = 500
+  debounceMs = 500,
+  mergeRestored
 }: {
   key: string;
   initialValue: T;
   enabled?: boolean;
   debounceMs?: number;
+  mergeRestored?: (restored: T, initial: T) => T;
 }) {
   const [value, setValueState] = useState<T>(initialValue);
   const [status, setStatus] = useState<DraftStatus>("idle");
@@ -37,11 +39,15 @@ export function useDraftAutosave<T>({
     hydratedRef.current = true;
     const restored = readJsonDraft<T>(key);
     if (restored !== null) {
+      const merged = mergeRestored ? mergeRestored(restored, initialValue) : restored;
       skipNextSaveRef.current = true;
-      setValueState(restored);
-      setStatus("restored");
+      setValueState(merged);
+      const usedDraft = JSON.stringify(merged) !== JSON.stringify(initialValue);
+      if (usedDraft) {
+        setStatus("restored");
+      }
     }
-  }, [enabled, key]);
+  }, [enabled, initialValue, key, mergeRestored]);
 
   useEffect(() => {
     if (!enabled || !hydratedRef.current) {

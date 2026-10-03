@@ -1,12 +1,24 @@
 # Admin allowlist contract
 
-`ADMIN_EMAIL_ALLOWLIST` is enforced in the Next.js app layer (`isAdminEmailAllowed` in `src/lib/supabase/auth.ts`).
+`ADMIN_EMAIL_ALLOWLIST` is enforced in **both** the Next.js app layer and Postgres.
 
-- App `isAdmin` requires **both** `profiles.role = 'admin'` **and** an allowlisted email (when the allowlist is required in production).
-- Postgres `private.is_admin` continues to check **only** the DB role. Direct Supabase access with a user JWT therefore still follows RLS based on `profiles.role`.
+## App layer
 
-## Current product decision
+`isAdminEmailAllowed` (`src/lib/supabase/auth.ts`, `admin-auth.ts`) requires:
 
-The allowlist is an **application gate** for Next.js admin routes and APIs. It does **not** revoke direct Data API admin privileges for an existing DB admin who is missing from the allowlist.
+- `profiles.role = 'admin'`
+- email present in `ADMIN_EMAIL_ALLOWLIST` when the list is non-empty or production requires it
 
-If operators need the allowlist to also revoke direct Supabase access, add a matching DB check (for example sync allowlisted emails into a private table consulted by `private.is_admin`). That change is intentionally out of scope for the 2026-10-03 audit remediation unless explicitly requested.
+## Database layer
+
+Migration `20261003131000_admin_email_allowlist_db.sql`:
+
+- Stores allowlisted emails in `private.admin_emails` (service_role only).
+- `private.is_admin()` requires `profiles.role = 'admin'` **and**, when the table is non-empty, a matching email.
+- Empty table → role-only admin (local/dev convenience).
+
+## Sync
+
+`syncAdminEmailAllowlist()` (`src/lib/supabase/sync-admin-allowlist.ts`) pushes the env list through `replace_admin_emails` (service role). It runs on successful `requireAdminUser()` so production admin use keeps the DB table current.
+
+After deploying the migration, open any admin action once (or call sync manually) so the table is populated from Vercel env.

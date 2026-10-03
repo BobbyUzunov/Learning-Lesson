@@ -1,9 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AssignmentMentorHelp } from "@/components/assignment-mentor-help";
 import type { AssignmentStatus } from "@/lib/assignments/types";
+import {
+  assignmentDraftKey,
+  mergeAssignmentSubmissionDraft,
+  type AssignmentSubmissionDraft
+} from "@/lib/draft-storage";
+import { useDraftAutosave } from "@/hooks/use-draft-autosave";
 import { isMentorOpenStatus } from "@/lib/mentor/access";
 import { t, type Language } from "@/lib/i18n";
 import type { MentorHintHistoryItem } from "@/lib/supabase/mentor-history";
@@ -31,13 +37,30 @@ export function SubmitAssignmentForm({
 }: SubmitAssignmentFormProps) {
   const copy = t(language).classroom;
   const router = useRouter();
-  const [text, setText] = useState(initialText ?? "");
-  const [url, setUrl] = useState(initialUrl ?? "");
+  const canSubmit = status === "missing" || status === "draft" || status === "needs_changes";
+  const serverDraft = useMemo<AssignmentSubmissionDraft>(
+    () => ({
+      text: initialText ?? "",
+      url: initialUrl ?? ""
+    }),
+    [initialText, initialUrl]
+  );
+  const {
+    value: draft,
+    setValue: setDraft,
+    status: draftStatus,
+    clearDraft
+  } = useDraftAutosave<AssignmentSubmissionDraft>({
+    key: assignmentDraftKey(assignmentId),
+    initialValue: serverDraft,
+    enabled: canSubmit,
+    mergeRestored: mergeAssignmentSubmissionDraft
+  });
+  const text = draft.text;
+  const url = draft.url;
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-
-  const canSubmit = status === "missing" || status === "draft" || status === "needs_changes";
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -60,6 +83,7 @@ export function SubmitAssignmentForm({
         );
         return;
       }
+      clearDraft();
       setSuccess(true);
       router.refresh();
     } catch {
@@ -82,13 +106,19 @@ export function SubmitAssignmentForm({
         </div>
       ) : null}
 
+      {draftStatus === "restored" || draftStatus === "saved" ? (
+        <p className="mt-3 text-xs font-semibold text-ink/50">
+          {draftStatus === "restored" ? copy.draftRestored : copy.draftSaved}
+        </p>
+      ) : null}
+
       <label className="mt-4 block text-sm font-bold">
         {copy.deliverableTextLabel}
         <textarea
           className="mt-1 min-h-32 w-full rounded-md border border-ink/15 bg-white px-3 py-2 disabled:opacity-70"
           disabled={!canSubmit || pending}
           maxLength={10000}
-          onChange={(event) => setText(event.target.value)}
+          onChange={(event) => setDraft((current) => ({ ...current, text: event.target.value }))}
           placeholder={copy.deliverableTextPlaceholder}
           value={text}
         />
@@ -100,7 +130,7 @@ export function SubmitAssignmentForm({
           className="mt-1 w-full rounded-md border border-ink/15 bg-white px-3 py-2 disabled:opacity-70"
           disabled={!canSubmit || pending}
           maxLength={2000}
-          onChange={(event) => setUrl(event.target.value)}
+          onChange={(event) => setDraft((current) => ({ ...current, url: event.target.value }))}
           placeholder={copy.deliverableUrlPlaceholder}
           type="url"
           value={url}
