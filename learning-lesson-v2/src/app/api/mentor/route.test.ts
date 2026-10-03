@@ -9,9 +9,13 @@ const mockGetMyClassroomIds = vi.fn();
 const mockFetchMentorUsage = vi.fn();
 const mockReserveMentorHint = vi.fn();
 const mockFetchMentorHintHistory = vi.fn();
-const mockSaveMentorHint = vi.fn();
+const mockReserveAssignmentMentorSlot = vi.fn();
+const mockFinalizeAssignmentMentorHint = vi.fn();
+const mockFailAssignmentMentorHint = vi.fn();
 const mockStreamMentorHint = vi.fn();
+const mockStreamCachedMentorHint = vi.fn();
 const mockToUIMessageStreamResponse = vi.fn();
+const mockToCachedStreamResponse = vi.fn();
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
@@ -53,11 +57,14 @@ vi.mock("@/lib/supabase/mentor-usage", () => ({
 
 vi.mock("@/lib/supabase/mentor-history", () => ({
   fetchMentorHintHistory: (...args: unknown[]) => mockFetchMentorHintHistory(...args),
-  saveMentorHint: (...args: unknown[]) => mockSaveMentorHint(...args)
+  reserveAssignmentMentorSlot: (...args: unknown[]) => mockReserveAssignmentMentorSlot(...args),
+  finalizeAssignmentMentorHint: (...args: unknown[]) => mockFinalizeAssignmentMentorHint(...args),
+  failAssignmentMentorHint: (...args: unknown[]) => mockFailAssignmentMentorHint(...args)
 }));
 
 vi.mock("@/lib/mentor/openai", () => ({
-  streamMentorHint: (...args: unknown[]) => mockStreamMentorHint(...args)
+  streamMentorHint: (...args: unknown[]) => mockStreamMentorHint(...args),
+  streamCachedMentorHint: (...args: unknown[]) => mockStreamCachedMentorHint(...args)
 }));
 
 const studentSession = {
@@ -79,6 +86,15 @@ const assignment = {
   missionBrief: "Make a folder plan.",
   missionDeliverable: "A short written plan",
   submissionStatus: "missing"
+};
+
+const reservedSlot = {
+  outcome: "reserved" as const,
+  hintId: "hint-slot-1",
+  hintText: null,
+  count: 2,
+  remaining: 3,
+  limit: 5
 };
 
 function mentorRequest(overrides: Record<string, unknown> = {}) {
@@ -108,12 +124,20 @@ describe("/api/mentor", () => {
     mockFetchMentorUsage.mockResolvedValue({ count: 1, remaining: 4, limit: 5 });
     mockReserveMentorHint.mockResolvedValue({ ok: true, count: 2, remaining: 3, limit: 5 });
     mockFetchMentorHintHistory.mockResolvedValue([]);
-    mockSaveMentorHint.mockResolvedValue(undefined);
+    mockReserveAssignmentMentorSlot.mockResolvedValue(reservedSlot);
+    mockFinalizeAssignmentMentorHint.mockResolvedValue(undefined);
+    mockFailAssignmentMentorHint.mockResolvedValue(undefined);
     mockToUIMessageStreamResponse.mockImplementation(
       (options?: { headers?: HeadersInit }) => new Response("mock-stream", { headers: options?.headers })
     );
+    mockToCachedStreamResponse.mockImplementation(
+      (options?: { headers?: HeadersInit }) => new Response("cached-stream", { headers: options?.headers })
+    );
     mockStreamMentorHint.mockReturnValue({
       toUIMessageStreamResponse: mockToUIMessageStreamResponse
+    });
+    mockStreamCachedMentorHint.mockReturnValue({
+      toUIMessageStreamResponse: mockToCachedStreamResponse
     });
   });
 
@@ -175,7 +199,7 @@ describe("/api/mentor", () => {
 
     expect(response.status).toBe(403);
     expect(body.error).toBe("student_required");
-    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+    expect(mockReserveAssignmentMentorSlot).not.toHaveBeenCalled();
   });
 
   it("POST requires an assignment id", async () => {
@@ -184,7 +208,7 @@ describe("/api/mentor", () => {
 
     expect(response.status).toBe(400);
     expect(body.error).toBe("assignment_required");
-    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+    expect(mockReserveAssignmentMentorSlot).not.toHaveBeenCalled();
   });
 
   it("POST rejects an unknown help mode before reserving quota", async () => {
@@ -193,7 +217,7 @@ describe("/api/mentor", () => {
 
     expect(response.status).toBe(400);
     expect(body.error).toBe("invalid_mentor_mode");
-    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+    expect(mockReserveAssignmentMentorSlot).not.toHaveBeenCalled();
   });
 
   it("POST requires a learner attempt for review mode", async () => {
@@ -202,7 +226,7 @@ describe("/api/mentor", () => {
 
     expect(response.status).toBe(400);
     expect(body.error).toBe("effort_required");
-    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+    expect(mockReserveAssignmentMentorSlot).not.toHaveBeenCalled();
   });
 
   it("POST rejects directions above level three", async () => {
@@ -211,7 +235,7 @@ describe("/api/mentor", () => {
 
     expect(response.status).toBe(400);
     expect(body.error).toBe("invalid_hint_level");
-    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+    expect(mockReserveAssignmentMentorSlot).not.toHaveBeenCalled();
   });
 
   it("POST returns 404 when the assignment is missing", async () => {
@@ -222,7 +246,7 @@ describe("/api/mentor", () => {
 
     expect(response.status).toBe(404);
     expect(body.error).toBe("assignment_not_found");
-    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+    expect(mockReserveAssignmentMentorSlot).not.toHaveBeenCalled();
   });
 
   it("POST rejects students who are not in the assignment classroom", async () => {
@@ -233,7 +257,7 @@ describe("/api/mentor", () => {
 
     expect(response.status).toBe(403);
     expect(body.error).toBe("not_authorized");
-    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+    expect(mockReserveAssignmentMentorSlot).not.toHaveBeenCalled();
   });
 
   it("POST rejects closed assignments", async () => {
@@ -244,11 +268,18 @@ describe("/api/mentor", () => {
 
     expect(response.status).toBe(403);
     expect(body.error).toBe("assignment_closed");
-    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+    expect(mockReserveAssignmentMentorSlot).not.toHaveBeenCalled();
   });
 
   it("POST returns 429 when the daily limit is reached", async () => {
-    mockReserveMentorHint.mockResolvedValue({ ok: false, count: 5, remaining: 0, limit: 5 });
+    mockReserveAssignmentMentorSlot.mockResolvedValue({
+      outcome: "daily_limit",
+      hintId: null,
+      hintText: null,
+      count: 5,
+      remaining: 0,
+      limit: 5
+    });
 
     const response = await POST(mentorRequest());
     const body = await response.json();
@@ -269,7 +300,7 @@ describe("/api/mentor", () => {
 
     expect(response.status).toBe(429);
     expect(await response.json()).toEqual({ error: "task_limit_reached" });
-    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+    expect(mockReserveAssignmentMentorSlot).not.toHaveBeenCalled();
     expect(mockStreamMentorHint).not.toHaveBeenCalled();
   });
 
@@ -280,7 +311,43 @@ describe("/api/mentor", () => {
 
     expect(response.status).toBe(409);
     expect(await response.json()).toEqual({ error: "invalid_hint_level" });
-    expect(mockReserveMentorHint).not.toHaveBeenCalled();
+    expect(mockReserveAssignmentMentorSlot).not.toHaveBeenCalled();
+  });
+
+  it("POST returns mentor_pending when another request owns the slot", async () => {
+    mockReserveAssignmentMentorSlot.mockResolvedValue({
+      outcome: "pending",
+      hintId: "hint-slot-1",
+      hintText: null,
+      count: 2,
+      remaining: 3,
+      limit: 5
+    });
+
+    const response = await POST(mentorRequest());
+    const body = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(body.error).toBe("mentor_pending");
+    expect(mockStreamMentorHint).not.toHaveBeenCalled();
+  });
+
+  it("POST streams a cached ready hint without calling the provider", async () => {
+    mockReserveAssignmentMentorSlot.mockResolvedValue({
+      outcome: "ready",
+      hintId: "hint-ready-1",
+      hintText: "Use semantic tags first.",
+      count: 2,
+      remaining: 3,
+      limit: 5
+    });
+
+    const response = await POST(mentorRequest());
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe("cached-stream");
+    expect(mockStreamCachedMentorHint).toHaveBeenCalledWith("Use semantic tags first.");
+    expect(mockStreamMentorHint).not.toHaveBeenCalled();
   });
 
   it("POST streams a guarded direction and exposes remaining quota headers", async () => {
@@ -302,7 +369,8 @@ describe("/api/mentor", () => {
     expect(response.status).toBe(200);
     expect(await response.text()).toBe("mock-stream");
     expect(response.headers.get("X-Mentor-Remaining")).toBe("3");
-    expect(mockReserveMentorHint).toHaveBeenCalledBefore(mockStreamMentorHint);
+    expect(response.headers.get("X-Mentor-Effort-Excerpt")).toBe("false");
+    expect(mockReserveAssignmentMentorSlot).toHaveBeenCalledBefore(mockStreamMentorHint);
 
     const prompt = mockStreamMentorHint.mock.calls[0]?.[0] as { system: string; user: string };
     expect(prompt.system).toContain("Never provide the final answer");
@@ -311,7 +379,31 @@ describe("/api/mentor", () => {
     expect(prompt.user).toContain("Which semantic element could hold the main content?");
   });
 
-  it("persists the completed direction with generation metadata", async () => {
+  it("POST accepts long effort by sending a bounded excerpt to the model", async () => {
+    const longEffort = `${"a".repeat(900)}\n${"b".repeat(900)}`;
+
+    const response = await POST(
+      mentorRequest({
+        mode: "review",
+        effort: longEffort
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("X-Mentor-Effort-Excerpt")).toBe("true");
+
+    const prompt = mockStreamMentorHint.mock.calls[0]?.[0] as { user: string };
+    expect(prompt.user).toContain("omitted");
+    expect(prompt.user).not.toContain(longEffort.slice(820, 980));
+    expect(mockReserveAssignmentMentorSlot).toHaveBeenCalledWith(expect.anything(), {
+      assignmentId: "asg-1",
+      hintLevel: 1,
+      mode: "review",
+      effort: longEffort
+    });
+  });
+
+  it("finalizes the reserved slot with generation metadata", async () => {
     await POST(mentorRequest());
     const onFinish = mockStreamMentorHint.mock.calls[0]?.[1] as (result: {
       text: string;
@@ -322,12 +414,8 @@ describe("/api/mentor", () => {
 
     await onFinish({ text: "  Start with the page structure.  ", inputTokens: 40, outputTokens: 9, model: "gpt-test" });
 
-    expect(mockSaveMentorHint).toHaveBeenCalledWith(expect.anything(), {
-      userId: "user-1",
-      assignmentId: "asg-1",
-      hintLevel: 1,
-      mode: "start",
-      effort: "",
+    expect(mockFinalizeAssignmentMentorHint).toHaveBeenCalledWith(expect.anything(), {
+      hintId: "hint-slot-1",
       text: "Start with the page structure.",
       model: "gpt-test",
       inputTokens: 40,
@@ -335,7 +423,7 @@ describe("/api/mentor", () => {
     });
   });
 
-  it("POST keeps the reserved quota when mentor setup fails synchronously", async () => {
+  it("POST marks the slot failed and keeps quota when mentor setup fails synchronously", async () => {
     mockStreamMentorHint.mockImplementation(() => {
       throw new Error("OpenAI setup failed");
     });
@@ -345,6 +433,7 @@ describe("/api/mentor", () => {
 
     expect(response.status).toBe(502);
     expect(body.error).toBe("mentor_failed");
-    expect(mockReserveMentorHint).toHaveBeenCalledOnce();
+    expect(mockReserveAssignmentMentorSlot).toHaveBeenCalledOnce();
+    expect(mockFailAssignmentMentorHint).toHaveBeenCalledWith(expect.anything(), "hint-slot-1");
   });
 });

@@ -58,6 +58,7 @@ export function AssignmentMentorHelp({
     initialHistory.at(-1)?.effort ?? null
   );
   const [localError, setLocalError] = useState<string | null>(null);
+  const [effortExcerpted, setEffortExcerpted] = useState(false);
   const pendingEffort = useRef("");
   const historyRef = useRef<HTMLDivElement | null>(null);
 
@@ -97,6 +98,7 @@ export function AssignmentMentorHelp({
           if (nextRemaining !== null) {
             setRemaining(nextRemaining);
           }
+          setEffortExcerpted(response.headers.get("X-Mentor-Effort-Excerpt") === "true");
           return response;
         }
       }),
@@ -303,6 +305,12 @@ export function AssignmentMentorHelp({
             <Bot className="size-4 animate-pulse text-violet" />
             {copy.mentor.working}
           </div>
+        ) : null}
+
+        {effortExcerpted ? (
+          <p className="mt-3 rounded-lg border border-violet/20 bg-white px-4 py-3 text-sm leading-6 text-ink/70">
+            {copy.mentor.effortExcerptNote}
+          </p>
         ) : null}
 
         {displayedError ? (

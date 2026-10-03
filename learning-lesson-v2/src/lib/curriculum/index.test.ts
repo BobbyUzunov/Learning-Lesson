@@ -69,12 +69,16 @@ describe("school curriculum database loader", () => {
     ]);
   });
 
-  it("uses the checked-in bridge fallback when the database table is unavailable", async () => {
+  it("fails visibly when the bridge table is unavailable instead of serving seed links", async () => {
     fromMock.mockImplementation(() => readableQuery([], { message: "relation unavailable" }));
 
-    await expect(getCurriculumMissionLabs()).resolves.toEqual([
-      { missionId: "mission-first-class-page", lessonId: "1", sortOrder: 0 }
-    ]);
+    await expect(getCurriculumMissionLabs()).rejects.toThrow("curriculum_mission_labs_unavailable");
+  });
+
+  it("treats an empty bridge table as a valid empty catalog", async () => {
+    fromMock.mockImplementation(() => readableQuery([]));
+
+    await expect(getCurriculumMissionLabs()).resolves.toEqual([]);
   });
 
   it("seeds the canonical curriculum tables and mission lab bridge", async () => {

@@ -4,6 +4,7 @@ import { parseKnowledgeCheckAnswers } from "@/lib/knowledge-check";
 import { logServerError } from "@/lib/observability";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import { touchDailyStreak } from "@/lib/streak/daily-streak";
 
 const completionErrors = [
   "unknown_lesson",
@@ -56,6 +57,9 @@ export async function POST(request: Request) {
     // knowledge_check_* names from the RPC without collapsing to 500.
     return NextResponse.json({ error: code }, { status });
   }
+
+  // Lesson completion is real learning activity: count it toward the daily streak.
+  await touchDailyStreak(supabase);
 
   return NextResponse.json(data);
 }

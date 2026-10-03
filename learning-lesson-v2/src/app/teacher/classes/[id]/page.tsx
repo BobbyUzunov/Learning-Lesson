@@ -262,23 +262,26 @@ export default async function TeacherClassroomPage({ params }: { params: Promise
         <ClassroomStudentsList classroomId={classroom.id} language={language} rows={report} />
       </section>
 
-      <details className="mt-8 rounded-2xl border border-ink/10 bg-white/60 open:bg-white/80">
-        <summary className="cursor-pointer list-none px-5 py-4 text-sm font-bold text-ink/60 [&::-webkit-details-marker]:hidden">
-          {copy.teacher.classSettings}
-        </summary>
-        <div className="border-t border-ink/8 px-2 pb-2 pt-1 sm:px-3 sm:pb-3">
-          <ClassroomControls
-            canTransfer={canTransfer}
-            classroomId={classroom.id}
-            classroomTeachers={classroomTeachers}
-            coTeacherCandidates={coTeacherCandidates}
-            joinCodeEnabled={classroom.joinCodeEnabled}
-            language={language}
-            status={classroom.status}
-            transferCandidates={transferCandidates}
-          />
-        </div>
-      </details>
+      {canTransfer ? (
+        <details className="mt-8 rounded-2xl border border-ink/10 bg-white/60 open:bg-white/80">
+          <summary className="cursor-pointer list-none px-5 py-4 text-sm font-bold text-ink/60 [&::-webkit-details-marker]:hidden">
+            {copy.teacher.classSettings}
+          </summary>
+          <div className="border-t border-ink/8 px-2 pb-2 pt-1 sm:px-3 sm:pb-3">
+            <ClassroomControls
+              canManageClassroom={canTransfer}
+              canTransfer={canTransfer}
+              classroomId={classroom.id}
+              classroomTeachers={classroomTeachers}
+              coTeacherCandidates={coTeacherCandidates}
+              joinCodeEnabled={classroom.joinCodeEnabled}
+              language={language}
+              status={classroom.status}
+              transferCandidates={transferCandidates}
+            />
+          </div>
+        </details>
+      ) : null}
     </div>
   );
 }

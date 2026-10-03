@@ -1,5 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { streamText } from "ai";
+import { createUIMessageStream, createUIMessageStreamResponse, streamText } from "ai";
 import { getOpenAIConfig } from "./env";
 
 const MENTOR_REQUEST_TIMEOUT_MS = 20_000;
@@ -33,4 +33,25 @@ export function streamMentorHint(
         }
       : undefined
   });
+}
+
+export function streamCachedMentorHint(text: string) {
+  const stream = createUIMessageStream({
+    execute: ({ writer }) => {
+      writer.write({ type: "text-start", id: "cached-mentor-hint" });
+      writer.write({ type: "text-delta", id: "cached-mentor-hint", delta: text });
+      writer.write({ type: "text-end", id: "cached-mentor-hint" });
+    }
+  });
+
+  return {
+    toUIMessageStreamResponse: (options?: {
+      headers?: HeadersInit;
+      onError?: () => string;
+    }) =>
+      createUIMessageStreamResponse({
+        stream,
+        headers: options?.headers
+      })
+  };
 }

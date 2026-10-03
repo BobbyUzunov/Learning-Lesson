@@ -24,30 +24,51 @@ export function DeleteAccountSection({ language }: { language: Language }) {
     setLoading(true);
     setError(null);
 
-    const response = await fetch("/api/account/delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ confirm: true, confirmPhrase: confirmText.trim() })
-    });
+    let deleted = false;
 
-    if (!response.ok) {
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-      const code = payload?.error ?? "";
-      if (code === "teacher_has_classrooms") {
-        setError(copy.accountDeletion.teacherBlocked);
-      } else if (code === "admin_account_protected") {
-        setError(copy.accountDeletion.adminBlocked);
-      } else if (code === "account_delete_unavailable" || code === "supabase_not_configured") {
-        setError(copy.accountDeletion.unavailable);
-      } else {
-        setError(copy.accountDeletion.error);
+    try {
+      const response = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: true, confirmPhrase: confirmText.trim() })
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        const code = payload?.error ?? "";
+        if (code === "teacher_has_classrooms") {
+          setError(copy.accountDeletion.teacherBlocked);
+        } else if (code === "admin_account_protected") {
+          setError(copy.accountDeletion.adminBlocked);
+        } else if (code === "account_delete_unavailable" || code === "supabase_not_configured") {
+          setError(copy.accountDeletion.unavailable);
+        } else {
+          setError(copy.accountDeletion.error);
+        }
+        return;
       }
-      setLoading(false);
+
+      deleted = true;
+    } catch {
+      setError(copy.accountDeletion.error);
+    } finally {
+      if (!deleted) {
+        setLoading(false);
+      }
+    }
+
+    if (!deleted) {
       return;
     }
 
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    // The account is already gone; a failed local sign-out must not trap the user on this page.
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch {
+      // Session cookies are invalid once the user is deleted; continue to login.
+    }
+
     router.push("/login?message=account_deleted");
     router.refresh();
   }

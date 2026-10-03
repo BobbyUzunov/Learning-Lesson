@@ -26,13 +26,21 @@ async function loadCurrentSession() {
         level: 1,
         streak_count: 0
       } satisfies UserProfile,
+      profileUnavailable: false,
       isAdmin: role === "admin",
       isTeacher: role === "teacher" || role === "admin"
     };
   }
 
   if (!hasSupabaseEnv()) {
-    return { configured: false, user: null, profile: null, isAdmin: false, isTeacher: false };
+    return {
+      configured: false,
+      user: null,
+      profile: null,
+      profileUnavailable: false,
+      isAdmin: false,
+      isTeacher: false
+    };
   }
 
   const supabase = await createClient();
@@ -41,33 +49,40 @@ async function loadCurrentSession() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { configured: true, user: null, profile: null, isAdmin: false, isTeacher: false };
+    return {
+      configured: true,
+      user: null,
+      profile: null,
+      profileUnavailable: false,
+      isAdmin: false,
+      isTeacher: false
+    };
   }
 
-  const { profile } = await ensureUserProfile(supabase, user);
+  const { profile, error: profileError } = await ensureUserProfile(supabase, user);
 
-  const normalizedProfile =
-    profile ??
-    ({
-      id: user.id,
-      auth_user_id: user.id,
-      email: user.email ?? null,
-      display_name: user.email?.split("@")[0] ?? "Learner",
-      role: "user",
-      xp: 0,
-      level: 1,
-      streak_count: 0
-    } satisfies UserProfile);
+  // Never invent a student profile on outage — teachers would lose role navigation.
+  if (profileError || !profile) {
+    return {
+      configured: true,
+      user,
+      profile: null,
+      profileUnavailable: true,
+      isAdmin: false,
+      isTeacher: false
+    };
+  }
 
-  const roleIsAdmin = normalizedProfile.role === "admin";
-  const allowlisted = isAdminEmailAllowed(normalizedProfile.email ?? user.email);
+  const roleIsAdmin = profile.role === "admin";
+  const allowlisted = isAdminEmailAllowed(profile.email ?? user.email);
 
   return {
     configured: true,
     user,
-    profile: normalizedProfile,
+    profile,
+    profileUnavailable: false,
     isAdmin: roleIsAdmin && allowlisted,
-    isTeacher: normalizedProfile.role === "teacher" || (roleIsAdmin && allowlisted)
+    isTeacher: profile.role === "teacher" || (roleIsAdmin && allowlisted)
   };
 }
 
@@ -80,8 +95,13 @@ export async function requireUser(messageKey: "login_required" = "login_required
     redirect(`/login?message=${messageKey}`);
   }
 
+  if (session.profileUnavailable || !session.profile) {
+    redirect("/unavailable?code=profile_unavailable");
+  }
+
   return session as Awaited<ReturnType<typeof getCurrentSession>> & {
     user: NonNullable<Awaited<ReturnType<typeof getCurrentSession>>["user"]>;
+    profile: UserProfile;
   };
 }
 

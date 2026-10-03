@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { RouteError } from "@/components/route-error";
-import { isDataUnavailableError } from "@/lib/supabase/data-unavailable";
 import { t, type Language } from "@/lib/i18n";
 
 function getLanguageFromDocument(): Language {
@@ -13,7 +12,8 @@ function getLanguageFromDocument(): Language {
   return "en";
 }
 
-export default function Error({
+/** Root-layout failures only — must render its own html/body. */
+export default function GlobalError({
   error,
   reset
 }: {
@@ -22,19 +22,22 @@ export default function Error({
 }) {
   const language = getLanguageFromDocument();
   const copy = t(language);
-  const dataUnavailable = isDataUnavailableError(error);
 
   useEffect(() => {
     console.error(error);
   }, [error]);
 
   return (
-    <RouteError
-      homeLabel={copy.common.home}
-      message={dataUnavailable ? copy.common.temporarilyUnavailableMessage : copy.common.errorMessage}
-      reset={reset}
-      title={dataUnavailable ? copy.common.temporarilyUnavailableTitle : copy.common.errorTitle}
-      tryAgainLabel={copy.common.tryAgain}
-    />
+    <html lang={language}>
+      <body>
+        <RouteError
+          homeLabel={copy.common.home}
+          message={copy.common.temporarilyUnavailableMessage}
+          reset={reset}
+          title={copy.common.temporarilyUnavailableTitle}
+          tryAgainLabel={copy.common.tryAgain}
+        />
+      </body>
+    </html>
   );
 }

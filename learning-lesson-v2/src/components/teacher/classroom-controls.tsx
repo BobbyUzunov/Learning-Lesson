@@ -13,6 +13,7 @@ export function ClassroomControls({
   language,
   status,
   joinCodeEnabled,
+  canManageClassroom,
   canTransfer,
   transferCandidates,
   classroomTeachers,
@@ -22,6 +23,7 @@ export function ClassroomControls({
   language: Language;
   status: ClassroomStatus;
   joinCodeEnabled: boolean;
+  canManageClassroom: boolean;
   canTransfer: boolean;
   transferCandidates: TransferCandidate[];
   classroomTeachers: ClassroomTeacher[];
@@ -40,92 +42,98 @@ export function ClassroomControls({
     setError(null);
     setMessage(null);
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: body ? { "Content-Type": "application/json" } : undefined,
-      body: body ? JSON.stringify(body) : undefined
-    });
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: body ? { "Content-Type": "application/json" } : undefined,
+        body: body ? JSON.stringify(body) : undefined
+      });
 
-    setLoading(null);
+      if (!response.ok) {
+        setError(copy.teacher.manageError);
+        return;
+      }
 
-    if (!response.ok) {
+      if (successMessage) {
+        setMessage(successMessage);
+      }
+      if (key === "add-co-teacher") {
+        setCoTeacherId("");
+      }
+      router.refresh();
+    } catch {
       setError(copy.teacher.manageError);
-      return;
+    } finally {
+      setLoading(null);
     }
-
-    if (successMessage) {
-      setMessage(successMessage);
-    }
-    if (key === "add-co-teacher") {
-      setCoTeacherId("");
-    }
-    router.refresh();
   }
 
   const nextStatus = status === "active" ? "archived" : "active";
 
   return (
     <div className="p-3 sm:p-4">
-      <div className="flex flex-wrap gap-2">
-        <button
-          className="focus-ring inline-flex items-center gap-2 rounded-xl border border-ink/12 px-3.5 py-2 text-sm font-bold transition hover:bg-ink/5 disabled:opacity-60"
-          disabled={loading !== null}
-          onClick={() =>
-            void callApi(
-              "status",
-              `/api/teacher/classrooms/${classroomId}/status`,
-              { status: nextStatus },
-              nextStatus === "archived" ? copy.teacher.archivedSuccess : copy.teacher.restoredSuccess
-            )
-          }
-          type="button"
-        >
-          <Archive className="size-4" />
-          {loading === "status"
-            ? copy.teacher.saving
-            : status === "active"
-              ? copy.teacher.archiveButton
-              : copy.teacher.restoreButton}
-        </button>
+      {canManageClassroom ? (
+        <div className="flex flex-wrap gap-2">
+          <button
+            className="focus-ring inline-flex items-center gap-2 rounded-xl border border-ink/12 px-3.5 py-2 text-sm font-bold transition hover:bg-ink/5 disabled:opacity-60"
+            disabled={loading !== null}
+            onClick={() =>
+              void callApi(
+                "status",
+                `/api/teacher/classrooms/${classroomId}/status`,
+                { status: nextStatus },
+                nextStatus === "archived" ? copy.teacher.archivedSuccess : copy.teacher.restoredSuccess
+              )
+            }
+            type="button"
+          >
+            <Archive className="size-4" />
+            {loading === "status"
+              ? copy.teacher.saving
+              : status === "active"
+                ? copy.teacher.archiveButton
+                : copy.teacher.restoreButton}
+          </button>
 
-        <button
-          className="focus-ring inline-flex items-center gap-2 rounded-xl border border-ink/12 px-3.5 py-2 text-sm font-bold transition hover:bg-ink/5 disabled:opacity-60"
-          disabled={loading !== null}
-          onClick={() =>
-            void callApi(
-              "rotate",
-              `/api/teacher/classrooms/${classroomId}/join-code/rotate`,
-              undefined,
-              copy.teacher.rotatedSuccess
-            )
-          }
-          type="button"
-        >
-          <RefreshCw className="size-4" />
-          {loading === "rotate" ? copy.teacher.saving : copy.teacher.rotateCodeButton}
-        </button>
+          <button
+            className="focus-ring inline-flex items-center gap-2 rounded-xl border border-ink/12 px-3.5 py-2 text-sm font-bold transition hover:bg-ink/5 disabled:opacity-60"
+            disabled={loading !== null}
+            onClick={() =>
+              void callApi(
+                "rotate",
+                `/api/teacher/classrooms/${classroomId}/join-code/rotate`,
+                undefined,
+                copy.teacher.rotatedSuccess
+              )
+            }
+            type="button"
+          >
+            <RefreshCw className="size-4" />
+            {loading === "rotate" ? copy.teacher.saving : copy.teacher.rotateCodeButton}
+          </button>
 
-        <button
-          className="focus-ring inline-flex items-center gap-2 rounded-xl border border-ink/12 px-3.5 py-2 text-sm font-bold transition hover:bg-ink/5 disabled:opacity-60"
-          disabled={loading !== null || (status === "archived" && !joinCodeEnabled)}
-          onClick={() =>
-            void callApi(
-              "enabled",
-              `/api/teacher/classrooms/${classroomId}/join-code/enabled`,
-              { enabled: !joinCodeEnabled },
-              joinCodeEnabled ? copy.teacher.codeDisabledSuccess : copy.teacher.codeEnabledSuccess
-            )
-          }
-          type="button"
-        >
-          <KeyRound className="size-4" />
-          {loading === "enabled"
-            ? copy.teacher.saving
-            : joinCodeEnabled
-              ? copy.teacher.disableCodeButton
-              : copy.teacher.enableCodeButton}
-        </button>
-      </div>
+          <button
+            className="focus-ring inline-flex items-center gap-2 rounded-xl border border-ink/12 px-3.5 py-2 text-sm font-bold transition hover:bg-ink/5 disabled:opacity-60"
+            disabled={loading !== null || (status === "archived" && !joinCodeEnabled)}
+            onClick={() =>
+              void callApi(
+                "enabled",
+                `/api/teacher/classrooms/${classroomId}/join-code/enabled`,
+                { enabled: !joinCodeEnabled },
+                joinCodeEnabled ? copy.teacher.codeDisabledSuccess : copy.teacher.codeEnabledSuccess
+              )
+            }
+            type="button"
+          >
+            <KeyRound className="size-4" />
+            {loading === "enabled"
+              ? copy.teacher.saving
+              : joinCodeEnabled
+                ? copy.teacher.disableCodeButton
+                : copy.teacher.enableCodeButton}
+          </button>
+        </div>
+      ) : null}
 
       {canTransfer ? (
         <div className="mt-4 border-t border-ink/8 pt-4">

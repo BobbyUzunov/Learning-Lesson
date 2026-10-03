@@ -1,7 +1,11 @@
+import { redirect } from "next/navigation";
 import { logServerError } from "@/lib/observability";
 
-/** Fail loudly on data outages instead of presenting them as empty or missing data. */
+/**
+ * Expected data outages must not rely on error.message in production error.tsx —
+ * Next.js sanitizes Server Component errors. Redirect to a controlled unavailable UI.
+ */
 export function throwLoadError(event: string, error: { message?: string } | null | undefined): never {
   logServerError(event, { message: error?.message ?? "unknown" });
-  throw new Error(event);
+  redirect(`/unavailable?code=${encodeURIComponent(event)}`);
 }
