@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="bg">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Learning Lesson — представяне за учители</title>
+    <style>
+      :root {
+        --ink: #14201c;
+        --paper: #f4f7f4;
+        --mint: #7dcea0;
+        --muted: rgba(244, 247, 244, 0.68);
+        --soft: rgba(244, 247, 244, 0.12);
+        --line: rgba(244, 247, 244, 0.18);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--ink);
+        color: var(--paper);
+        font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      }
+
+      body {
+        overflow: hidden;
+      }
+
+      .deck {
+        height: 100%;
+        width: 100%;
+        position: relative;
+      }
+
+      .slide {
+        display: none;
+        height: 100%;
+        padding: clamp(1.5rem, 4vw, 3.5rem);
+        flex-direction: column;
+        justify-content: center;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      .slide.active {
+        display: flex;
+      }
+
+      .eyebrow {
+        margin: 0 0 1rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--mint);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2.1rem, 5.5vw, 3.6rem);
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+        max-width: 16ch;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: clamp(1.8rem, 4.5vw, 3rem);
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        max-width: 22ch;
+      }
+
+      .lead {
+        margin: 1.25rem 0 0;
+        font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+        line-height: 1.55;
+        color: var(--muted);
+        max-width: 42ch;
+      }
+
+      .url {
+        margin-top: 1.75rem;
+        color: var(--mint);
+        font-weight: 700;
+        font-size: 1.05rem;
+        text-decoration: none;
+      }
+
+      .grid {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.75rem;
+      }
+
+      .grid.two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .grid.four {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      @media (max-width: 800px) {
+        .grid.two,
+        .grid.three,
+        .grid.four {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        background: var(--soft);
+        border: 1px solid var(--line);
+        border-radius: 1rem;
+        padding: 1.15rem 1.25rem;
+      }
+
+      .card strong {
+        display: block;
+        font-size: 1.15rem;
+        margin-bottom: 0.35rem;
+      }
+
+      .card p,
+      .card span {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.5;
+        font-size: 0.98rem;
+      }
+
+      .step-num {
+        display: inline-grid;
+        place-items: center;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 999px;
+        background: var(--mint);
+        color: var(--ink);
+        font-weight: 800;
+        margin-bottom: 0.75rem;
+      }
+
+      ul.points {
+        margin: 1.5rem 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 0.85rem;
+        max-width: 48rem;
+      }
+
+      ul.points li {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.85rem;
+        align-items: start;
+        font-size: clamp(1.05rem, 2vw, 1.25rem);
+        line-height: 1.45;
+      }
+
+      ul.points li::before {
+        content: "";
+        width: 0.7rem;
+        height: 0.7rem;
+        margin-top: 0.45rem;
+        border-radius: 999px;
+        background: var(--mint);
+      }
+
+      .note {
+        margin-top: 1.5rem;
+        padding: 1rem 1.15rem;
+        border-left: 4px solid var(--mint);
+        background: var(--soft);
+        color: var(--muted);
+        max-width: 48rem;
+        line-height: 1.5;
+      }
+
+      .footer-bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.85rem 1.25rem;
+        background: rgba(20, 32, 28, 0.92);
+        border-top: 1px solid var(--line);
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      .progress {
+        flex: 1;
+        height: 4px;
+        background: var(--soft);
+        border-radius: 999px;
+        overflow: hidden;
+        max-width: 220px;
+      }
+
+      .progress > span {
+        display: block;
+        height: 100%;
+        background: var(--mint);
+        width: 0%;
+        transition: width 180ms ease;
+      }
+
+      .controls {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      button {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--paper);
+        border-radius: 999px;
+        min-width: 2.5rem;
+        height: 2.5rem;
+        cursor: pointer;
+        font-size: 1.1rem;
+      }
+
+      button:hover {
+        border-color: var(--mint);
+        color: var(--mint);
+      }
+
+      .hint {
+        white-space: nowrap;
+      }
+
+      @media (max-width: 640px) {
+        .hint {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="deck" id="deck" aria-live="polite">
+      <section class="slide active" data-title="Начало">
+        <p class="eyebrow">Презентация за учители · 5 минути</p>
+        <h1>Learning Lesson</h1>
+        <p class="lead">
+          Практическа учебна платформа за дигитални професии в професионална гимназия.
+          Учениците работят по мисии. Вие следите класа без излишна администрация.
+        </p>
+        <a class="url" href="https://learning-lesson-v2.vercel.app" target="_blank" rel="noreferrer">
+          learning-lesson-v2.vercel.app
+        </a>
+      </section>
+
+      <section class="slide" data-title="Проблемът">
+        <p class="eyebrow">Защо ни е нужна</p>
+        <h2>Часът има нужда от ясна практика — не от още един тест.</h2>
+        <ul class="points">
+          <li>Учениците често учат теория, но рядко предават реален резултат.</li>
+          <li>Учителят трудно вижда кой работи и къде се е затруднил.</li>
+          <li>Липсва проста връзка между програмата, задачата и напредъка на класа.</li>
+        </ul>
+      </section>
+
+      <section class="slide" data-title="Какво е">
+        <p class="eyebrow">Какво е Learning Lesson</p>
+        <h2>Урочна среда за VIII клас — с мисии, клас и измерим напредък.</h2>
+        <div class="grid four">
+          <div class="card">
+            <strong>Разработка на софтуер</strong>
+            <p>Логика, алгоритми, прототипи</p>
+          </div>
+          <div class="card">
+            <strong>Интелигентни системи</strong>
+            <p>Данни, автоматизация, AI сценарии</p>
+          </div>
+          <div class="card">
+            <strong>Компютърна графика</strong>
+            <p>Композиция, цвят, визуална комуникация</p>
+          </div>
+          <div class="card">
+            <strong>Киберсигурност</strong>
+            <p>Защита, рискове, дигитална хигиена</p>
+          </div>
+        </div>
+        <p class="note">Пилот по учебните планове на ПГКНМА за прием 2026/2027.</p>
+      </section>
+
+      <section class="slide" data-title="За учителя">
+        <p class="eyebrow">Как работи за вас</p>
+        <h2>Три стъпки от създаване на клас до видимия напредък.</h2>
+        <div class="grid three">
+          <div class="card">
+            <span class="step-num">1</span>
+            <strong>Създайте клас</strong>
+            <p>Давате име и получавате 6-символен код за присъединяване.</p>
+          </div>
+          <div class="card">
+            <span class="step-num">2</span>
+            <strong>Поканете с код</strong>
+            <p>Учениците въвеждат кода веднъж. Можете да го смените или спрете.</p>
+          </div>
+          <div class="card">
+            <span class="step-num">3</span>
+            <strong>Вижте напредъка</strong>
+            <p>Справка по ученици и задачи — без ученически имейли в таблиците.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" data-title="В час">
+        <p class="eyebrow">Какво правят учениците</p>
+        <h2>Кратка мисия с ясен резултат.</h2>
+        <ul class="points">
+          <li>Избират направление и отварят практическа мисия.</li>
+          <li>Виждат какво трябва да направят и какво да предадат.</li>
+          <li>Решават проверки и получават обратна връзка.</li>
+          <li>При нужда ползват AI-подсказки — насоки, не готови решения.</li>
+        </ul>
+      </section>
+
+      <section class="slide" data-title="Инструменти">
+        <p class="eyebrow">Какво получавате като учители</p>
+        <h2>Класове, задания, проверки и справки — на едно място.</h2>
+        <div class="grid two">
+          <div class="card">
+            <strong>Класове и код</strong>
+            <p>Създаване, покана, архив и контрол на кода за вход.</p>
+          </div>
+          <div class="card">
+            <strong>Задания и рецензии</strong>
+            <p>Възлагате мисии и преглеждате предаденото.</p>
+          </div>
+          <div class="card">
+            <strong>Проверки</strong>
+            <p>Входна, текуща или финална проверка с резултати по въпрос.</p>
+          </div>
+          <div class="card">
+            <strong>Справка без имейли</strong>
+            <p>Име и напредък — подходящо за работа в час.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" data-title="Важно">
+        <p class="eyebrow">Важно уточнение</p>
+        <h2>Не замества електронния дневник.</h2>
+        <ul class="points">
+          <li>Школо / НЕИСПУО си остават за оценки и администрация.</li>
+          <li>Learning Lesson допълва часа с практика и видим напредък.</li>
+          <li>Целта е по-ясна работа в час — не нова бюрокрация.</li>
+        </ul>
+      </section>
+
+      <section class="slide" data-title="Старт">
+        <p class="eyebrow">Как да започнете</p>
+        <h2>Първа седмица с класа — старт за около 15 минути.</h2>
+        <div class="grid two">
+          <div class="card">
+            <strong>1. Регистрация</strong>
+            <p>Създайте учителски акаунт със служебен имейл.</p>
+          </div>
+          <div class="card">
+            <strong>2. Активиране</strong>
+            <p>След потвърждение на имейла се активира учителската роля.</p>
+          </div>
+          <div class="card">
+            <strong>3. Клас + код</strong>
+            <p>Създайте клас и споделете кода с учениците.</p>
+          </div>
+          <div class="card">
+            <strong>4. Първа проверка</strong>
+            <p>Публикувайте проверка и вижте кой е предал.</p>
+          </div>
+        </div>
+        <p class="note">
+          Демо: <strong>learning-lesson-v2.vercel.app/demo</strong> ·
+          Учители: <strong>/for-teachers</strong> ·
+          Пилот: <strong>pilot@learninglesson.app</strong>
+        </p>
+      </section>
+    </div>
+
+    <div class="footer-bar">
+      <span id="counter">1 / 8</span>
+      <div class="progress" aria-hidden="true"><span id="bar"></span></div>
+      <span class="hint">← → или интервал · F за цял екран</span>
+      <div class="controls">
+        <button type="button" id="prev" aria-label="Предишен слайд">←</button>
+        <button type="button" id="next" aria-label="Следващ слайд">→</button>
+      </div>
+    </div>
+
+    <script>
+      const slides = Array.from(document.querySelectorAll(".slide"));
+      const counter = document.getElementById("counter");
+      const bar = document.getElementById("bar");
+      let index = 0;
+
+      function show(next) {
+        index = Math.max(0, Math.min(slides.length - 1, next));
+        slides.forEach((slide, i) => slide.classList.toggle("active", i === index));
+        counter.textContent = index + 1 + " / " + slides.length;
+        bar.style.width = ((index + 1) / slides.length) * 100 + "%";
+        document.title = "Learning Lesson — " + (slides[index].dataset.title || "презентация");
+      }
+
+      document.getElementById("prev").addEventListener("click", () => show(index - 1));
+      document.getElementById("next").addEventListener("click", () => show(index + 1));
+
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowRight" || event.key === " " || event.key === "PageDown") {
+          event.preventDefault();
+          show(index + 1);
+        } else if (event.key === "ArrowLeft" || event.key === "PageUp") {
+          event.preventDefault();
+          show(index - 1);
+        } else if (event.key === "Home") {
+          show(0);
+        } else if (event.key === "End") {
+          show(slides.length - 1);
+        } else if (event.key.toLowerCase() === "f") {
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen?.();
+          } else {
+            document.exitFullscreen?.();
+          }
+        }
+      });
+
+      show(0);
+    </script>
+  </body>
+</html>

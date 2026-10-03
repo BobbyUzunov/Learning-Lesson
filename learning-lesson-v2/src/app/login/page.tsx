@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LoginForm } from "@/components/login-form";
 import { resolveLoginMessage } from "@/lib/auth/login-messages";
+import { resolveRedirectPath } from "@/lib/auth/safe-redirect";
 import { t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 
@@ -12,7 +13,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const language = await getLanguage();
   const copy = t(language);
   const { message, redirect } = await searchParams;
-  const redirectPath = redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : "/dashboard";
+  const redirectPath = resolveRedirectPath(redirect);
   const displayMessage = resolveLoginMessage(message, copy);
 
   return (

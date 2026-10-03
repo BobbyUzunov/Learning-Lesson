@@ -5,6 +5,7 @@ import { getCourseCatalog, getGlobalNextLessonFromCourses } from "@/lib/catalog"
 import { localizeGameLesson, t } from "@/lib/i18n";
 import { getLanguage } from "@/lib/i18n-server";
 import { getMyAssignments } from "@/lib/supabase/assignments";
+import { pickPrimaryAssignment } from "@/lib/assignments/primary";
 import { assignmentDisplayTitle } from "@/lib/assignments/title";
 import { getMyAssessments } from "@/lib/supabase/assessments";
 import { isAssessmentExpired } from "@/lib/assessments/types";
@@ -41,11 +42,7 @@ export default async function DashboardPage({
   const nextLesson = nextLessonId ? lessons.find((lesson) => lesson.id === nextLessonId) : null;
   const localizedNext = nextLesson ? localizeGameLesson(nextLesson, language) : null;
 
-  const activeAssignment =
-    assignments.find((item) => item.submissionStatus === "needs_changes") ??
-    assignments.find((item) => item.submissionStatus === "submitted") ??
-    assignments.find((item) => item.submissionStatus !== "approved") ??
-    null;
+  const activeAssignment = pickPrimaryAssignment(assignments);
 
   const lastFeedback = assignments.find((item) => item.teacherNote)?.teacherNote ?? null;
   const inboxItems = buildStudentInbox({ assignments, assessments, language }).slice(0, 3);

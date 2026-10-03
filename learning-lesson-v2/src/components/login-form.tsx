@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { LogIn, UserPlus } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { mapAuthErrorMessage, type AuthErrorLabels } from "@/lib/auth-error";
+import { resolveRedirectPath } from "@/lib/auth/safe-redirect";
 import { isSignupPasswordValid, MIN_SIGNUP_PASSWORD_LENGTH } from "@/lib/auth-password";
 import { formatMessage } from "@/lib/i18n";
 import {
@@ -240,7 +241,7 @@ export function LoginForm({
 
       await mergeGuestProgress();
 
-      const requestedPath = redirectPath.startsWith("/") ? redirectPath : "/dashboard";
+      const requestedPath = resolveRedirectPath(redirectPath);
       const roleHome =
         profile?.role === "admin" ? "/admin" : profile?.role === "teacher" ? "/teacher" : "/dashboard";
       const nextPath =

@@ -2,7 +2,8 @@ import { cache } from "react";
 import { unstable_noStore as noStore } from "next/cache";
 import type { CourseCatalog } from "@/lib/catalog/types";
 import type { GameLesson, GameQuest } from "@/lib/game-data";
-import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { hasSupabaseDataEnv } from "@/lib/supabase/data-env";
+import { throwLoadError } from "@/lib/supabase/load-error";
 import { createClient } from "@/lib/supabase/server";
 import { fallbackCurriculumMissionLabs } from "./labs-data";
 import type { CurriculumMissionLab, CurriculumMissionLabRow } from "./types";
@@ -25,11 +26,7 @@ export function mapCurriculumMissionLabRows(rows: CurriculumMissionLabRow[]): Cu
     .sort((left, right) => left.missionId.localeCompare(right.missionId) || left.sortOrder - right.sortOrder);
 }
 
-async function loadCurriculumMissionLabsFromDatabase(): Promise<CurriculumMissionLab[] | null> {
-  if (!hasSupabaseEnv()) {
-    return null;
-  }
-
+async function loadCurriculumMissionLabsFromDatabase(): Promise<CurriculumMissionLab[]> {
   noStore();
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -38,15 +35,21 @@ async function loadCurriculumMissionLabsFromDatabase(): Promise<CurriculumMissio
     .order("mission_id")
     .order("sort_order");
 
-  if (error || !data || data.length === 0) {
-    return null;
+  if (error) {
+    throwLoadError("curriculum_mission_labs_unavailable", error);
   }
 
-  return mapCurriculumMissionLabRows(data as CurriculumMissionLabRow[]);
+  // Empty is a valid catalog state — do not substitute seed links.
+  return mapCurriculumMissionLabRows((data ?? []) as CurriculumMissionLabRow[]);
 }
 
 async function loadCurriculumMissionLabs() {
-  return (await loadCurriculumMissionLabsFromDatabase()) ?? fallbackCurriculumMissionLabs;
+  // Explicit local/demo / fake-auth mode only — never paper over a live DB outage.
+  if (!hasSupabaseDataEnv()) {
+    return fallbackCurriculumMissionLabs;
+  }
+
+  return loadCurriculumMissionLabsFromDatabase();
 }
 
 export const getCurriculumMissionLabs = cache(loadCurriculumMissionLabs);

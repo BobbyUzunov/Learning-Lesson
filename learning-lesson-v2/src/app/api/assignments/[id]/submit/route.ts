@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { readJsonObject, resolvePublicErrorCode } from "@/lib/http";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { touchDailyStreak } from "@/lib/streak/daily-streak";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -69,6 +70,9 @@ export async function POST(request: Request, context: RouteContext) {
     const code = resolvePublicErrorCode(error.message, submitAssignmentErrors, "submission_failed");
     return NextResponse.json({ error: code }, { status: submitAssignmentErrorStatus(code) });
   }
+
+  // Submitting work is real learning activity: count it toward the daily streak.
+  await touchDailyStreak(supabase);
 
   revalidatePath(`/assignments/${assignmentId}`);
   revalidatePath("/classes");

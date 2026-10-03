@@ -68,13 +68,13 @@ export async function ensureUserProfile(
     };
   }
 
+  // Omit `role` — authenticated INSERT grants do not include it; DB default is `user`.
+  // Teacher/admin are granted only via privileged admin RPCs — never from client inserts.
   const row = {
     id: user.id,
     auth_user_id: user.id,
     email: user.email ?? null,
-    display_name: deriveDisplayName(user, options?.displayName) || null,
-    // Teacher/admin are granted only via privileged admin RPCs — never from signup metadata.
-    role: "user"
+    display_name: deriveDisplayName(user, options?.displayName) || null
   };
 
   const { data: inserted, error: insertError } = await supabase

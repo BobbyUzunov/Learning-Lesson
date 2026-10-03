@@ -38,31 +38,35 @@ export function CreateClassroomForm({
     setLoading(true);
     setError(null);
 
-    const response = await fetch("/api/teacher/classrooms", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        description,
-        specialtyId: specialtyId || null,
-        gradeLevel: PILOT_STUDENT_GRADE,
-        academicYear
-      })
-    });
+    try {
+      const response = await fetch("/api/teacher/classrooms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          description,
+          specialtyId: specialtyId || null,
+          gradeLevel: PILOT_STUDENT_GRADE,
+          academicYear
+        })
+      });
 
-    const payload = (await response.json().catch(() => null)) as
-      | { classroom?: { id?: string } }
-      | null;
+      const payload = (await response.json().catch(() => null)) as
+        | { classroom?: { id?: string } }
+        | null;
 
-    setLoading(false);
+      if (!response.ok || !payload?.classroom?.id) {
+        setError(copy.teacher.createError);
+        return;
+      }
 
-    if (!response.ok || !payload?.classroom?.id) {
+      router.push(`/teacher/classes/${payload.classroom.id}`);
+      router.refresh();
+    } catch {
       setError(copy.teacher.createError);
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    router.push(`/teacher/classes/${payload.classroom.id}`);
-    router.refresh();
   }
 
   if (!open) {

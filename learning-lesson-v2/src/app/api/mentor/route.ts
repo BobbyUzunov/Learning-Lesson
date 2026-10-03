@@ -3,8 +3,12 @@ import { readJsonObject } from "@/lib/http";
 import { assignmentDisplayTitle, assignmentMentorBrief, isCustomAssignment } from "@/lib/assignments/title";
 import { E2E_ASSIGNMENT_ID, e2eStudentAssignment } from "@/lib/assignments/e2e-fixture";
 import { isMentorOpenStatus } from "@/lib/mentor/access";
+import {
+  buildMentorEffortForModel,
+  MAX_STORED_MENTOR_EFFORT
+} from "@/lib/mentor/effort-excerpt";
 import { hasOpenAIEnv } from "@/lib/mentor/env";
-import { streamMentorHint } from "@/lib/mentor/openai";
+import { streamCachedMentorHint, streamMentorHint } from "@/lib/mentor/openai";
 import { buildMentorMessages, isMentorHintLevel, isMentorMode } from "@/lib/mentor/prompt";
 import { logServerError } from "@/lib/observability";
 import { getCurrentSession } from "@/lib/supabase/auth";
@@ -14,10 +18,14 @@ import { hasSupabaseEnv } from "@/lib/supabase/env";
 import { getAssignmentById, getMySubmissionForAssignment } from "@/lib/supabase/assignments";
 import { getMyClassroomIds } from "@/lib/supabase/memberships";
 import { fetchMentorUsage, reserveMentorHint } from "@/lib/supabase/mentor-usage";
-import { fetchMentorHintHistory, saveMentorHint } from "@/lib/supabase/mentor-history";
+import {
+  failAssignmentMentorHint,
+  fetchMentorHintHistory,
+  finalizeAssignmentMentorHint,
+  reserveAssignmentMentorSlot
+} from "@/lib/supabase/mentor-history";
 
 const MIN_EFFORT_LENGTH = 4;
-const MAX_EFFORT_LENGTH = 1600;
 
 function extractPreviousHints(value: unknown) {
   if (!Array.isArray(value)) {
@@ -42,6 +50,14 @@ function extractPreviousHints(value: unknown) {
       });
     })
     .slice(-2);
+}
+
+function mentorQuotaHeaders(remaining: number, limit: number, effortExcerpted: boolean) {
+  return {
+    "X-Mentor-Limit": String(limit),
+    "X-Mentor-Remaining": String(remaining),
+    "X-Mentor-Effort-Excerpt": effortExcerpted ? "true" : "false"
+  };
 }
 
 async function requireStudentSession() {
@@ -119,7 +135,7 @@ export async function POST(request: Request) {
   }
 
   const assignmentId = typeof body.assignmentId === "string" ? body.assignmentId.trim() : "";
-  const effort = typeof body.effort === "string" ? body.effort.trim() : "";
+  const effortRaw = typeof body.effort === "string" ? body.effort.trim() : "";
   const language = body.language === "en" ? "en" : "bg";
   const mode = body.mode;
   const hintLevel = body.hintLevel;
@@ -136,13 +152,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_hint_level" }, { status: 400 });
   }
 
-  if (effort.length > MAX_EFFORT_LENGTH) {
+  if (effortRaw.length > MAX_STORED_MENTOR_EFFORT) {
     return NextResponse.json({ error: "effort_too_long" }, { status: 400 });
   }
 
-  if (mode !== "start" && effort.length < MIN_EFFORT_LENGTH) {
+  if (mode !== "start" && effortRaw.length < MIN_EFFORT_LENGTH) {
     return NextResponse.json({ error: "effort_required" }, { status: 400 });
   }
+
+  const effortForModel = buildMentorEffortForModel(effortRaw);
 
   const e2e = await getE2eAuthState();
   const assignment =
@@ -189,66 +207,123 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_hint_level" }, { status: 409 });
   }
 
-  let reservation: Awaited<ReturnType<typeof reserveMentorHint>>;
-  try {
-    reservation = await reserveMentorHint(supabase);
-  } catch {
-    return NextResponse.json({ error: "mentor_usage_unavailable" }, { status: 503 });
+  let reservedHintId: string | null = null;
+  let quotaRemaining = 0;
+  let quotaLimit = 0;
+
+  if (e2e) {
+    let reservation: Awaited<ReturnType<typeof reserveMentorHint>>;
+    try {
+      reservation = await reserveMentorHint(supabase);
+    } catch {
+      return NextResponse.json({ error: "mentor_usage_unavailable" }, { status: 503 });
+    }
+
+    if (!reservation.ok) {
+      return NextResponse.json({ error: "daily_limit_reached", limit: reservation.limit }, { status: 429 });
+    }
+
+    quotaRemaining = reservation.remaining;
+    quotaLimit = reservation.limit;
+  } else {
+    let slot: Awaited<ReturnType<typeof reserveAssignmentMentorSlot>>;
+    try {
+      slot = await reserveAssignmentMentorSlot(supabase, {
+        assignmentId,
+        hintLevel,
+        mode,
+        effort: effortRaw
+      });
+    } catch {
+      return NextResponse.json({ error: "mentor_usage_unavailable" }, { status: 503 });
+    }
+
+    quotaRemaining = slot.remaining;
+    quotaLimit = slot.limit;
+
+    if (slot.outcome === "daily_limit") {
+      return NextResponse.json({ error: "daily_limit_reached", limit: slot.limit }, { status: 429 });
+    }
+
+    if (slot.outcome === "task_limit") {
+      return NextResponse.json({ error: "task_limit_reached" }, { status: 429 });
+    }
+
+    if (slot.outcome === "pending") {
+      return NextResponse.json({ error: "mentor_pending" }, { status: 409 });
+    }
+
+    if (slot.outcome === "ready" && slot.hintText) {
+      return streamCachedMentorHint(slot.hintText).toUIMessageStreamResponse({
+        headers: mentorQuotaHeaders(slot.remaining, slot.limit, effortForModel.excerpted)
+      });
+    }
+
+    reservedHintId = slot.hintId;
   }
 
-  if (!reservation.ok) {
-    return NextResponse.json({ error: "daily_limit_reached", limit: reservation.limit }, { status: 429 });
-  }
+  const title = assignmentDisplayTitle(assignment, language);
+  const messages = buildMentorMessages({
+    title,
+    brief: assignmentMentorBrief(assignment, language),
+    deliverable: isCustomAssignment(assignment)
+      ? undefined
+      : language === "bg"
+        ? assignment.missionDeliverableBg || assignment.missionDeliverable
+        : assignment.missionDeliverable,
+    instructions: assignment.instructions,
+    teacherNote: submission?.teacherNote ?? assignment.teacherNote,
+    language,
+    mode,
+    level: hintLevel,
+    effort: effortForModel.text || undefined,
+    previousHints: extractPreviousHints(body.messages)
+  });
 
   try {
-    const title = assignmentDisplayTitle(assignment, language);
-    const messages = buildMentorMessages({
-      title,
-      brief: assignmentMentorBrief(assignment, language),
-      deliverable: isCustomAssignment(assignment)
-        ? undefined
-        : language === "bg"
-          ? assignment.missionDeliverableBg || assignment.missionDeliverable
-          : assignment.missionDeliverable,
-      instructions: assignment.instructions,
-      teacherNote: submission?.teacherNote ?? assignment.teacherNote,
-      language,
-      mode,
-      level: hintLevel,
-      effort: effort || undefined,
-      previousHints: extractPreviousHints(body.messages)
-    });
     const result = streamMentorHint(messages, async (generated) => {
       if (e2e || !generated.text.trim()) {
         return;
       }
 
+      if (!reservedHintId) {
+        logServerError("mentor_history_save_failed", { assignmentId, reason: "missing_hint_id" });
+        throw new Error("mentor_history_save_failed");
+      }
+
       try {
-        await saveMentorHint(supabase, {
-          userId: auth.session.user.id,
-          assignmentId,
-          hintLevel,
-          mode,
-          effort,
+        await finalizeAssignmentMentorHint(supabase, {
+          hintId: reservedHintId,
           text: generated.text.trim(),
           model: generated.model,
           inputTokens: generated.inputTokens,
           outputTokens: generated.outputTokens
         });
       } catch {
+        try {
+          await failAssignmentMentorHint(supabase, reservedHintId);
+        } catch {
+          logServerError("mentor_fail_slot_failed", { assignmentId, hintId: reservedHintId });
+        }
         logServerError("mentor_history_save_failed", { assignmentId });
         throw new Error("mentor_history_save_failed");
       }
     });
 
     return result.toUIMessageStreamResponse({
-      headers: {
-        "X-Mentor-Limit": String(reservation.limit),
-        "X-Mentor-Remaining": String(reservation.remaining)
-      },
+      headers: mentorQuotaHeaders(quotaRemaining, quotaLimit, effortForModel.excerpted),
       onError: () => "mentor_failed"
     });
   } catch {
+    if (reservedHintId) {
+      try {
+        // Provider/setup failures still consume the reserved daily quota (no client refund).
+        await failAssignmentMentorHint(supabase, reservedHintId);
+      } catch {
+        logServerError("mentor_fail_slot_failed", { assignmentId, hintId: reservedHintId });
+      }
+    }
+
     logServerError("mentor_failed", { assignmentId });
     return NextResponse.json({ error: "mentor_failed" }, { status: 502 });
   }

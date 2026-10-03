@@ -1,7 +1,8 @@
 import { cache } from "react";
 import { unstable_noStore as noStore } from "next/cache";
 import { createClient } from "../supabase/server";
-import { hasSupabaseEnv } from "../supabase/env";
+import { hasSupabaseDataEnv } from "../supabase/data-env";
+import { throwLoadError } from "../supabase/load-error";
 import { fallbackCourseProjects } from "./fallback-data";
 import { mapProjectRows } from "./helpers";
 import type { CourseProjectRow, CourseProjectsContent } from "./types";
@@ -16,33 +17,28 @@ export function getFallbackProjects(): CourseProjectsContent {
   };
 }
 
-async function loadProjectsFromDatabase(): Promise<CourseProjectsContent | null> {
-  if (!hasSupabaseEnv()) {
-    return null;
-  }
-
+async function loadProjectsFromDatabase(): Promise<CourseProjectsContent> {
   noStore();
   const supabase = await createClient();
   const { data, error } = await supabase.from("course_projects").select(projectColumns).order("sort_order");
 
   if (error) {
-    console.error("Failed to load course projects:", error.message);
-    return null;
+    throwLoadError("course_projects_unavailable", error);
   }
 
-  const rows = (data ?? []) as CourseProjectRow[];
-  if (rows.length === 0) {
-    return null;
-  }
-
+  // Empty catalog is valid — do not substitute certificate requirements from seed.
   return {
-    projects: mapProjectRows(rows),
+    projects: mapProjectRows((data ?? []) as CourseProjectRow[]),
     source: "db"
   };
 }
 
 async function loadCourseProjects(): Promise<CourseProjectsContent> {
-  return (await loadProjectsFromDatabase()) ?? getFallbackProjects();
+  if (!hasSupabaseDataEnv()) {
+    return getFallbackProjects();
+  }
+
+  return loadProjectsFromDatabase();
 }
 
 export const getCourseProjects = cache(loadCourseProjects);

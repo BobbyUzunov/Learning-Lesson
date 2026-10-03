@@ -66,6 +66,16 @@ describe("/api/progress", () => {
     });
   });
 
+  it("records daily streak after successful completion", async () => {
+    mockSingle
+      .mockResolvedValueOnce({ data: { ok: true, xp: 100, level: 2 }, error: null })
+      .mockResolvedValueOnce({ data: { streak: 2, last_visit: "2026-10-03" }, error: null });
+
+    const response = await POST(request({ lessonId: "1", knowledgeCheckAnswers }));
+    expect(response.status).toBe(200);
+    expect(mockRpc).toHaveBeenNthCalledWith(2, "record_daily_visit");
+  });
+
   it("forwards stable database option indexes after client-side shuffling", async () => {
     const response = await POST(
       request({ lessonId: "2", knowledgeCheckAnswers: cssAnswersInDatabaseOrder })

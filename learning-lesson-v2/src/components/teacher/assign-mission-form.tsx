@@ -46,6 +46,13 @@ function assignErrorMessage(copy: AssignCopy, code?: string) {
   return copy.assignError;
 }
 
+export function resolveMissionId(missions: Pick<MissionOption, "id">[], currentId: string) {
+  if (currentId && missions.some((mission) => mission.id === currentId)) {
+    return currentId;
+  }
+  return missions[0]?.id ?? "";
+}
+
 function sourceButtonClass(active: boolean) {
   return active
     ? "bg-ink text-paper"
@@ -61,7 +68,8 @@ export function AssignMissionForm({ classroomId, language, missions }: AssignMis
   const nextQuestionKey = useRef(3);
   const [selectedSource, setSelectedSource] = useState<AssignSource>(hasProgramMissions ? "program" : "custom");
   const source: AssignSource = hasProgramMissions ? selectedSource : "custom";
-  const [missionId, setMissionId] = useState(missions[0]?.id ?? "");
+  const [selectedMissionId, setMissionId] = useState(missions[0]?.id ?? "");
+  const missionId = resolveMissionId(missions, selectedMissionId);
   const [title, setTitle] = useState("");
   const [questions, setQuestions] = useState([
     { key: "question-1", text: "" },

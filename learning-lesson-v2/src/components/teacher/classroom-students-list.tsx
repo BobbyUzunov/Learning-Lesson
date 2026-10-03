@@ -38,22 +38,26 @@ export function ClassroomStudentsList({
     setLoading(true);
     setError(null);
 
-    const response = await fetch(`/api/teacher/classrooms/${classroomId}/members/${studentId}/name`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rosterName: draftName })
-    });
+    try {
+      const response = await fetch(`/api/teacher/classrooms/${classroomId}/members/${studentId}/name`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rosterName: draftName })
+      });
 
-    setLoading(false);
+      if (!response.ok) {
+        setError(copy.teacher.renameStudentError);
+        return;
+      }
 
-    if (!response.ok) {
+      setEditingId(null);
+      setDraftName("");
+      router.refresh();
+    } catch {
       setError(copy.teacher.renameStudentError);
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    setEditingId(null);
-    setDraftName("");
-    router.refresh();
   }
 
   if (rows.length === 0) {

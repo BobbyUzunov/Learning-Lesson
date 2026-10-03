@@ -60,6 +60,17 @@ function formatDate(value: string | null, language: Language) {
   });
 }
 
+export function resolveTeacherNote(
+  notes: Record<string, string>,
+  submissionId: string,
+  rowNote: string | null | undefined
+) {
+  if (Object.prototype.hasOwnProperty.call(notes, submissionId)) {
+    return notes[submissionId];
+  }
+  return rowNote ?? "";
+}
+
 export function AssignmentReportTable({ language, rows, summary }: AssignmentReportTableProps) {
   const copy = t(language).teacher;
   const router = useRouter();
@@ -69,7 +80,7 @@ export function AssignmentReportTable({ language, rows, summary }: AssignmentRep
   const [error, setError] = useState<string | null>(null);
   const sorted = sortAssignmentReportRows(rows);
 
-  async function review(submissionId: string, action: "approve" | "request_changes") {
+  async function review(row: AssignmentReportRow, submissionId: string, action: "approve" | "request_changes") {
     setPendingId(submissionId);
     setError(null);
 
@@ -79,7 +90,7 @@ export function AssignmentReportTable({ language, rows, summary }: AssignmentRep
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action,
-          teacherNote: notes[submissionId] ?? ""
+          teacherNote: resolveTeacherNote(notes, submissionId, row.teacherNote)
         })
       });
       const payload = (await response.json()) as { error?: string };
@@ -118,7 +129,7 @@ export function AssignmentReportTable({ language, rows, summary }: AssignmentRep
           const busy = pendingId === row.submissionId;
           const isReturning = Boolean(row.submissionId && returningId === row.submissionId);
           const submittedAt = formatDate(row.submittedAt, language);
-          const noteValue = row.submissionId ? (notes[row.submissionId] ?? row.teacherNote ?? "") : "";
+          const noteValue = row.submissionId ? resolveTeacherNote(notes, row.submissionId, row.teacherNote) : "";
           const showApprove = Boolean(row.submissionId && canShowApproveAction(row.status) && !isReturning);
           const showReturnStart = Boolean(row.submissionId && canShowReturnAction(row.status) && !isReturning);
 
@@ -180,7 +191,7 @@ export function AssignmentReportTable({ language, rows, summary }: AssignmentRep
                           <button
                             className="focus-ring inline-flex min-h-11 items-center rounded-xl border border-coral/30 bg-coral/10 px-4 py-2 text-sm font-bold disabled:opacity-60"
                             disabled={busy}
-                            onClick={() => review(row.submissionId!, "request_changes")}
+                            onClick={() => review(row, row.submissionId!, "request_changes")}
                             type="button"
                           >
                             {busy ? copy.reviewing : copy.requestChanges}
@@ -201,7 +212,7 @@ export function AssignmentReportTable({ language, rows, summary }: AssignmentRep
                           <button
                             className="focus-ring inline-flex min-h-11 items-center rounded-xl bg-mint px-4 py-2 text-sm font-bold text-ink disabled:opacity-60"
                             disabled={busy}
-                            onClick={() => review(row.submissionId!, "approve")}
+                            onClick={() => review(row, row.submissionId!, "approve")}
                             type="button"
                           >
                             {busy ? copy.reviewing : mode === "returned" ? copy.approveNow : copy.approve}

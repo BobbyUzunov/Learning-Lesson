@@ -14,6 +14,17 @@ export type MentorHintHistoryItem = {
   createdAt: string;
 };
 
+export type MentorSlotOutcome = "ready" | "pending" | "reserved" | "daily_limit" | "task_limit";
+
+export type MentorSlotReservation = {
+  outcome: MentorSlotOutcome;
+  hintId: string | null;
+  hintText: string | null;
+  count: number;
+  remaining: number;
+  limit: number;
+};
+
 type MentorHintRow = {
   id: string;
   hint_level: MentorHintLevel;
@@ -21,6 +32,15 @@ type MentorHintRow = {
   effort: string | null;
   hint_text: string;
   created_at: string;
+};
+
+type MentorSlotRow = {
+  outcome: MentorSlotOutcome;
+  hint_id: string | null;
+  hint_text: string | null;
+  request_count: number;
+  remaining: number;
+  daily_limit: number;
 };
 
 export async function fetchMentorHintHistory(
@@ -31,6 +51,7 @@ export async function fetchMentorHintHistory(
     .from("assignment_mentor_hints")
     .select("id, hint_level, mode, effort, hint_text, created_at")
     .eq("assignment_id", assignmentId)
+    .eq("status", "ready")
     .order("hint_level");
 
   if (error) {
@@ -47,30 +68,64 @@ export async function fetchMentorHintHistory(
   }));
 }
 
-export async function saveMentorHint(
+export async function reserveAssignmentMentorSlot(
   supabase: SupabaseClient,
   input: {
-    userId: string;
     assignmentId: string;
     hintLevel: MentorHintLevel;
     mode: MentorMode;
     effort: string;
+  }
+): Promise<MentorSlotReservation> {
+  const { data, error } = await supabase
+    .rpc("reserve_assignment_mentor_slot", {
+      p_assignment_id: input.assignmentId,
+      p_hint_level: input.hintLevel,
+      p_mode: input.mode,
+      p_effort: input.effort
+    })
+    .single<MentorSlotRow>();
+
+  if (error) {
+    throw error;
+  }
+
+  return {
+    outcome: data.outcome,
+    hintId: data.hint_id,
+    hintText: data.hint_text,
+    count: data.request_count,
+    remaining: data.remaining,
+    limit: data.daily_limit
+  };
+}
+
+export async function finalizeAssignmentMentorHint(
+  supabase: SupabaseClient,
+  input: {
+    hintId: string;
     text: string;
     model: string;
     inputTokens?: number;
     outputTokens?: number;
   }
 ) {
-  const { error } = await supabase.from("assignment_mentor_hints").insert({
-    user_id: input.userId,
-    assignment_id: input.assignmentId,
-    hint_level: input.hintLevel,
-    mode: input.mode,
-    effort: input.effort || null,
-    hint_text: input.text,
-    model: input.model,
-    input_tokens: input.inputTokens ?? null,
-    output_tokens: input.outputTokens ?? null
+  const { error } = await supabase.rpc("finalize_assignment_mentor_hint", {
+    p_hint_id: input.hintId,
+    p_hint_text: input.text,
+    p_model: input.model,
+    p_input_tokens: input.inputTokens ?? null,
+    p_output_tokens: input.outputTokens ?? null
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function failAssignmentMentorHint(supabase: SupabaseClient, hintId: string) {
+  const { error } = await supabase.rpc("fail_assignment_mentor_hint", {
+    p_hint_id: hintId
   });
 
   if (error) {

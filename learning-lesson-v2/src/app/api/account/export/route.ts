@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { accountExportFilename, buildAccountExportPayload } from "@/lib/account/build-export";
+import {
+  accountExportFilename,
+  buildAccountExportPayload,
+  consentFromUserMetadata
+} from "@/lib/account/build-export";
 import { rateLimitBucketFromRequest } from "@/lib/http/client-ip";
 import { consumeRateLimit } from "@/lib/http/rate-limit";
 import { logServerError } from "@/lib/observability";
@@ -42,7 +46,10 @@ export async function GET(request: Request) {
     projectSubmissionsResult,
     assignmentSubmissionsResult,
     membershipsResult,
-    mentorUsageResult
+    mentorUsageResult,
+    mentorHintsResult,
+    assessmentAttemptsResult,
+    reviewHistoryResult
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -55,7 +62,7 @@ export async function GET(request: Request) {
       .eq("user_id", user.id),
     supabase
       .from("project_submissions")
-      .select("project_id, status, notes, repo_url, deploy_url, submitted_at, reviewed_at")
+      .select("project_id, status, notes, review_notes, repo_url, deploy_url, submitted_at, reviewed_at")
       .eq("user_id", user.id),
     supabase
       .from("assignment_submissions")
@@ -71,7 +78,18 @@ export async function GET(request: Request) {
       .from("mentor_daily_usage")
       .select("usage_date, request_count, updated_at")
       .eq("user_id", user.id)
-      .order("usage_date", { ascending: false })
+      .order("usage_date", { ascending: false }),
+    supabase
+      .from("assignment_mentor_hints")
+      .select("id, assignment_id, hint_level, mode, effort, hint_text, model, status, created_at, updated_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("assessment_attempts")
+      .select("id, assessment_id, answers, score, max_score, percentage, submitted_at")
+      .eq("student_id", user.id)
+      .order("submitted_at", { ascending: false }),
+    supabase.rpc("export_my_assignment_review_history")
   ]);
 
   const firstError =
@@ -80,7 +98,10 @@ export async function GET(request: Request) {
     projectSubmissionsResult.error ??
     assignmentSubmissionsResult.error ??
     membershipsResult.error ??
-    mentorUsageResult.error;
+    mentorUsageResult.error ??
+    mentorHintsResult.error ??
+    assessmentAttemptsResult.error ??
+    reviewHistoryResult.error;
 
   if (firstError) {
     logServerError("account_export_failed", { userId: user.id, detail: firstError.message.slice(0, 200) });
@@ -91,11 +112,15 @@ export async function GET(request: Request) {
     userId: user.id,
     email: user.email ?? null,
     profile: (profileResult.data as Record<string, unknown> | null) ?? null,
+    consent: consentFromUserMetadata(user.user_metadata as Record<string, unknown> | undefined),
     progress: (progressResult.data ?? []) as Record<string, unknown>[],
     projectSubmissions: (projectSubmissionsResult.data ?? []) as Record<string, unknown>[],
     assignmentSubmissions: (assignmentSubmissionsResult.data ?? []) as Record<string, unknown>[],
+    assignmentReviewHistory: (reviewHistoryResult.data ?? []) as Record<string, unknown>[],
+    assessmentAttempts: (assessmentAttemptsResult.data ?? []) as Record<string, unknown>[],
     classroomMemberships: (membershipsResult.data ?? []) as Record<string, unknown>[],
-    mentorDailyUsage: (mentorUsageResult.data ?? []) as Record<string, unknown>[]
+    mentorDailyUsage: (mentorUsageResult.data ?? []) as Record<string, unknown>[],
+    mentorHintHistory: (mentorHintsResult.data ?? []) as Record<string, unknown>[]
   });
 
   return new NextResponse(JSON.stringify(payload, null, 2), {
