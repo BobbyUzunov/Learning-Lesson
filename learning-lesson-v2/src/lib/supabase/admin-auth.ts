@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isAdminEmailAllowed } from "./admin-allowlist";
 import { createE2eUser, getE2eAuthState } from "./e2e-auth";
 import { createClient } from "./server";
+import { syncAdminEmailAllowlist } from "./sync-admin-allowlist";
 
 export async function requireAdminUser() {
   const e2e = await getE2eAuthState();
@@ -30,6 +31,9 @@ export async function requireAdminUser() {
   if (!isAdminEmailAllowed(profile.email ?? user.email)) {
     return { error: NextResponse.json({ error: "admin_allowlist" }, { status: 403 }) };
   }
+
+  // Keep Postgres private.is_admin aligned with the env allowlist for direct JWT access.
+  await syncAdminEmailAllowlist();
 
   return { supabase, user };
 }

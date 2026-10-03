@@ -3,7 +3,16 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ExternalLink } from "lucide-react";
-import type { AssignmentReportRow, AssignmentReportSummary, AssignmentStatus } from "@/lib/assignments/types";
+import type {
+  AssignmentReportRow,
+  AssignmentReportSummary,
+  AssignmentStatus,
+  SubmissionReviewHistoryEntry
+} from "@/lib/assignments/types";
+import {
+  formatReviewHistoryDeliverableSnippet,
+  reviewHistoryEventLabel
+} from "@/lib/assignments/review-history-ui";
 import {
   canShowApproveAction,
   canShowReturnAction,
@@ -78,7 +87,48 @@ export function AssignmentReportTable({ language, rows, summary }: AssignmentRep
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [returningId, setReturningId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
+  const [historyBySubmission, setHistoryBySubmission] = useState<
+    Record<string, SubmissionReviewHistoryEntry[]>
+  >({});
+  const [historyLoadingId, setHistoryLoadingId] = useState<string | null>(null);
+  const [historyErrorId, setHistoryErrorId] = useState<string | null>(null);
   const sorted = sortAssignmentReportRows(rows);
+
+  async function toggleHistory(submissionId: string) {
+    if (expandedHistoryId === submissionId) {
+      setExpandedHistoryId(null);
+      return;
+    }
+
+    setExpandedHistoryId(submissionId);
+    setHistoryErrorId(null);
+
+    if (historyBySubmission[submissionId]) {
+      return;
+    }
+
+    setHistoryLoadingId(submissionId);
+    try {
+      const response = await fetch(`/api/teacher/submissions/${submissionId}/history`);
+      const payload = (await response.json()) as {
+        error?: string;
+        history?: SubmissionReviewHistoryEntry[];
+      };
+      if (!response.ok) {
+        setHistoryErrorId(submissionId);
+        return;
+      }
+      setHistoryBySubmission((current) => ({
+        ...current,
+        [submissionId]: payload.history ?? []
+      }));
+    } catch {
+      setHistoryErrorId(submissionId);
+    } finally {
+      setHistoryLoadingId(null);
+    }
+  }
 
   async function review(row: AssignmentReportRow, submissionId: string, action: "approve" | "request_changes") {
     setPendingId(submissionId);
@@ -170,6 +220,61 @@ export function AssignmentReportTable({ language, rows, summary }: AssignmentRep
 
                 {mode === "returned" && row.teacherNote ? (
                   <p className="mt-3 text-sm leading-6 text-ink/65">{row.teacherNote}</p>
+                ) : null}
+
+                {row.submissionId ? (
+                  <div className="mt-3">
+                    <button
+                      className="text-sm font-bold text-violet underline-offset-4 hover:underline"
+                      onClick={() => toggleHistory(row.submissionId!)}
+                      type="button"
+                    >
+                      {expandedHistoryId === row.submissionId ? copy.reviewHistoryHide : copy.reviewHistoryToggle}
+                    </button>
+                    {expandedHistoryId === row.submissionId ? (
+                      <div className="mt-3 space-y-3 rounded-xl border border-ink/10 bg-ink/[0.02] p-4">
+                        {historyLoadingId === row.submissionId ? (
+                          <p className="text-sm text-ink/55">{copy.reviewHistoryLoading}</p>
+                        ) : historyErrorId === row.submissionId ? (
+                          <p className="text-sm font-semibold text-coral">{copy.reviewHistoryError}</p>
+                        ) : (historyBySubmission[row.submissionId] ?? []).length === 0 ? (
+                          <p className="text-sm text-ink/55">{copy.reviewHistoryEmpty}</p>
+                        ) : (
+                          <ul className="space-y-3">
+                            {(historyBySubmission[row.submissionId] ?? []).map((entry) => {
+                              const recordedAt = formatDate(entry.createdAt, language);
+                              const snippet = formatReviewHistoryDeliverableSnippet(
+                                entry.deliverableText,
+                                entry.deliverableUrl
+                              );
+                              return (
+                                <li className="border-t border-ink/8 pt-3 first:border-t-0 first:pt-0" key={entry.id}>
+                                  <p className="text-xs font-bold uppercase text-ink/45">
+                                    {reviewHistoryEventLabel(copy, entry.eventType)}
+                                    {recordedAt ? ` · ${copy.reviewHistoryRecordedAt}: ${recordedAt}` : ""}
+                                  </p>
+                                  <p className="mt-1 text-sm font-semibold text-ink/70">
+                                    {statusLabel(copy, entry.status)}
+                                  </p>
+                                  {entry.teacherNote ? (
+                                    <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-ink/75">
+                                      {entry.teacherNote}
+                                    </p>
+                                  ) : null}
+                                  {snippet ? (
+                                    <p className="mt-2 text-sm text-ink/60">
+                                      <span className="font-bold text-ink/50">{copy.reviewHistoryDeliverable}: </span>
+                                      {snippet}
+                                    </p>
+                                  ) : null}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
                 ) : null}
 
                 {row.submissionId && (showApprove || showReturnStart || isReturning) ? (

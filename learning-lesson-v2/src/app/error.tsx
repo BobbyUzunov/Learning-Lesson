@@ -22,7 +22,8 @@ export default function Error({
 }) {
   const language = getLanguageFromDocument();
   const copy = t(language);
-  const dataUnavailable = isDataUnavailableError(error);
+  // Production sanitizes Server Component error.message; digests still mark SC failures.
+  const dataUnavailable = isDataUnavailableError(error) || Boolean(error.digest);
 
   useEffect(() => {
     console.error(error);
